@@ -28,6 +28,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
+      - name: Enable Corepack
+        run: corepack enable
       - name: install
         run: yarn --immutable
       - name: build
@@ -58,6 +60,8 @@ jobs:
         with:
           node-version: lts/*
           cache: yarn
+      - name: Enable Corepack
+        run: corepack enable
       - name: install
         run: yarn --immutable
       - name: build
