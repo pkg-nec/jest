@@ -189,15 +189,6 @@ jobs:
           max_attempts: 3
           retry_on: error
           command: yarn jest-runtime-vm-modules-ci --max-workers ${{ steps.cpu-cores.outputs.count }}
-      - name: map coverage
-        run: node ./scripts/mapCoverage.mjs
-        if: always()
-      - uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
-        if: always()
-        with:
-          directory: ./coverage
-          token: ${{ secrets.CODECOV_TOKEN }}
-
   test-coverage:
     name: Node LTS on Ubuntu with coverage (${{ matrix.shard }})
     strategy:
@@ -232,11 +223,3 @@ jobs:
           max_attempts: 3
           retry_on: error
           command: yarn jest-coverage --color --config jest.config.ci.mjs --max-workers ${{ steps.cpu-cores.outputs.count }} --shard=${{ matrix.shard }}
-      - name: map coverage
-        run: node ./scripts/mapCoverage.mjs
-        if: always()
-      - uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
-        if: always()
-        with:
-          directory: ./coverage
-          token: ${{ secrets.CODECOV_TOKEN }}
