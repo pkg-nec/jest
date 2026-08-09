@@ -5,7 +5,8 @@ on:
     branches:
       - main
   pull_request:
-  merge_group:
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -16,14 +17,17 @@ permissions:
 
 jobs:
   prepare-yarn-cache-ubuntu:
+    if: github.event_name == 'push'
     uses: ./.github/workflows/prepare-cache.yml
     with:
       os: ubuntu-latest
   prepare-yarn-cache-macos:
+    if: github.event_name == 'push'
     uses: ./.github/workflows/prepare-cache.yml
     with:
       os: macos-latest
   prepare-yarn-cache-windows:
+    if: github.event_name == 'push'
     uses: ./.github/workflows/prepare-cache.yml
     with:
       os: windows-latest
@@ -32,6 +36,7 @@ jobs:
     name: TypeScript Compatibility
     runs-on: ubuntu-latest
     needs: prepare-yarn-cache-ubuntu
+    if: ${{ always() && !cancelled() && (github.event_name == 'pull_request' || needs.prepare-yarn-cache-ubuntu.result == 'success') }}
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -62,6 +67,7 @@ jobs:
     name: Static Checks (Lint, Typecheck, Yarn Validate)
     runs-on: ubuntu-latest
     needs: prepare-yarn-cache-ubuntu
+    if: ${{ always() && !cancelled() && (github.event_name == 'pull_request' || needs.prepare-yarn-cache-ubuntu.result == 'success') }}
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -101,6 +107,7 @@ jobs:
   test-ubuntu:
     uses: ./.github/workflows/test.yml
     needs: prepare-yarn-cache-ubuntu
+    if: ${{ always() && !cancelled() && (github.event_name == 'pull_request' || needs.prepare-yarn-cache-ubuntu.result == 'success') }}
     strategy:
       fail-fast: false
       matrix:
@@ -113,6 +120,7 @@ jobs:
   test-macos:
     uses: ./.github/workflows/test.yml
     needs: prepare-yarn-cache-macos
+    if: github.event_name == 'push'
     strategy:
       fail-fast: false
       matrix:
@@ -125,6 +133,7 @@ jobs:
   test-windows:
     uses: ./.github/workflows/test.yml
     needs: prepare-yarn-cache-windows
+    if: github.event_name == 'push'
     strategy:
       fail-fast: false
       matrix:
@@ -139,6 +148,7 @@ jobs:
     name: Node LTS on Ubuntu with leak detection
     runs-on: ubuntu-latest
     needs: prepare-yarn-cache-ubuntu
+    if: github.event_name == 'push'
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -162,6 +172,7 @@ jobs:
     name: Node ${{ matrix.node-version }} on Ubuntu with --experimental-vm-modules (jest-runtime)
     runs-on: ubuntu-latest
     needs: prepare-yarn-cache-ubuntu
+    if: github.event_name == 'push'
     strategy:
       fail-fast: false
       matrix:
@@ -197,9 +208,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: ['1/4', '2/4', '3/4', '4/4']
+        shard: ${{ fromJSON(github.event_name == 'pull_request' && '["1/4"]' || '["1/4", "2/4", "3/4", "4/4"]') }}
     runs-on: ubuntu-latest
     needs: prepare-yarn-cache-ubuntu
+    if: ${{ always() && !cancelled() && (github.event_name == 'pull_request' || needs.prepare-yarn-cache-ubuntu.result == 'success') }}
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
