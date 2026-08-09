@@ -41,6 +41,8 @@ jobs:
         with:
           node-version: lts/*
           cache: yarn
+      - name: Enable Corepack
+        run: corepack enable
       - name: install
         run: yarn --immutable
       - name: build
@@ -48,7 +50,7 @@ jobs:
       - name: ts integration
         run: yarn test-ts --selectProjects ts-integration
       - name: type tests
-        run: yarn test-types --target '>=5.4' # For documentation, see: https://tstyche.org/guides/typescript-versions
+        run: yarn test-types --target '>=5.4 <7.0' # For documentation, see: https://tstyche.org/guides/typescript-versions
       - name: verify TypeScript@5.4 compatibility
         run: yarn verify-old-ts
       - name: run ESLint with type info
@@ -69,6 +71,8 @@ jobs:
         with:
           node-version: lts/*
           cache: yarn
+      - name: Enable Corepack
+        run: corepack enable
       - name: install
         run: yarn --immutable
       - name: build TypeScript
@@ -142,6 +146,8 @@ jobs:
         with:
           node-version: lts/*
           cache: yarn
+      - name: Enable Corepack
+        run: corepack enable
       - name: install
         run: yarn --immutable
       - name: build
@@ -156,7 +162,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18.x, 20.x, 22.x, 24.x, 25.x]
+        node-version: [18.x, 20.x, 22.x, 24.x]
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -167,6 +173,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
+      - name: Enable Corepack
+        run: corepack enable
       - name: install
         run: yarn --immutable
       - name: build
@@ -181,15 +189,6 @@ jobs:
           max_attempts: 3
           retry_on: error
           command: yarn jest-runtime-vm-modules-ci --max-workers ${{ steps.cpu-cores.outputs.count }}
-      - name: map coverage
-        run: node ./scripts/mapCoverage.mjs
-        if: always()
-      - uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
-        if: always()
-        with:
-          directory: ./coverage
-          token: ${{ secrets.CODECOV_TOKEN }}
-
   test-coverage:
     name: Node LTS on Ubuntu with coverage (${{ matrix.shard }})
     strategy:
@@ -208,6 +207,8 @@ jobs:
         with:
           node-version: lts/*
           cache: yarn
+      - name: Enable Corepack
+        run: corepack enable
       - name: install
         run: yarn --immutable
       - name: build
@@ -222,11 +223,3 @@ jobs:
           max_attempts: 3
           retry_on: error
           command: yarn jest-coverage --color --config jest.config.ci.mjs --max-workers ${{ steps.cpu-cores.outputs.count }} --shard=${{ matrix.shard }}
-      - name: map coverage
-        run: node ./scripts/mapCoverage.mjs
-        if: always()
-      - uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
-        if: always()
-        with:
-          directory: ./coverage
-          token: ${{ secrets.CODECOV_TOKEN }}
