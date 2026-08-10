@@ -130,6 +130,7 @@ jobs:
       os: macos-latest
       shard: ${{ matrix.shard }}
       node-versions: '["18.x", "20.x", "22.x", "24.x"]'
+      jasmine-node-version: 24.18.0
   test-windows:
     uses: ./.github/workflows/test.yml
     needs: prepare-yarn-cache-windows
