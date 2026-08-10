@@ -12,6 +12,10 @@ on:
       node-versions:
         required: true
         type: string
+      jasmine-node-version:
+        required: false
+        type: string
+        default: lts/*
 
 jobs:
   test:
@@ -61,7 +65,7 @@ jobs:
       - name: Use Node.js LTS
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: lts/*
+          node-version: ${{ inputs.jasmine-node-version }}
           cache: yarn
       - name: Enable Corepack
         run: corepack enable
