@@ -22,6 +22,7 @@ const publishablePrivatePackages = new Set([
 ]);
 
 export function canonicalName(oldName, {isRoot = false} = {}) {
+  if (oldName.startsWith('@pkg-nec/')) return oldName;
   if (isRoot && oldName === '@jest/monorepo') return '@pkg-nec/monorepo';
   if (oldName.startsWith('@jest/')) return `@pkg-nec/jest-${oldName.slice(6)}`;
   return `@pkg-nec/${oldName}`;

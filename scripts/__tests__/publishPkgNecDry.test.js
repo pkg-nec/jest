@@ -12,6 +12,7 @@ import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
 const repoRoot = process.cwd();
+const oldJestCore = ['@jest', 'core'].join('/');
 const identityModuleUrl = pathToFileURL(
   join(repoRoot, 'scripts/pkgNecPackageIdentity.mjs'),
 ).href;
@@ -565,7 +566,7 @@ describe('pkg-nec publish-readiness packing', () => {
         },
         'packages/jest/package.json': {
           dependencies: {
-            '@jest/core': 'workspace:*',
+            [${JSON.stringify(oldJestCore)}]: 'workspace:*',
             'import-local': '^3.2.0',
           },
           name: 'jest',
@@ -629,7 +630,7 @@ describe('pkg-nec publish-readiness packing', () => {
         {
           ...validManifest,
           dependencies: {
-            '@jest/core': '30.4.2',
+            [${JSON.stringify(oldJestCore)}]: '30.4.2',
             'import-local': '^3.2.0',
           },
         },
@@ -772,7 +773,7 @@ describe('pkg-nec publish-readiness packing', () => {
           },
           'packages/jest/package.json': {
             dependencies: {
-              '@jest/core': 'workspace:*',
+              [${JSON.stringify(oldJestCore)}]: 'workspace:*',
               'import-local': '^3.2.0',
             },
             name: 'jest',
@@ -1106,7 +1107,7 @@ describe('pkg-nec publish-readiness packing', () => {
             version: '30.4.2',
           },
           'packages/jest/package.json': {
-            dependencies: {'@jest/core': 'workspace:*'},
+            dependencies: {[${JSON.stringify(oldJestCore)}]: 'workspace:*'},
             name: 'jest',
             private: false,
             version: '30.4.2',

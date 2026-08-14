@@ -382,7 +382,6 @@ function collectLockEdits({category, inventory, text}) {
     text,
   });
 
-  if (category !== 'fixture-lock') return edits;
   return edits.filter(edit => {
     const tokenStart = Math.max(
       text.lastIndexOf('"', edit.start),
@@ -395,7 +394,13 @@ function collectLockEdits({category, inventory, text}) {
       quoteEnd === -1 ? text.length : quoteEnd,
       whitespaceEnd === -1 ? text.length : edit.end + whitespaceEnd,
     );
-    return !text.slice(tokenStart + 1, tokenEnd).includes('@npm:');
+    if (text.slice(tokenStart + 1, tokenEnd).includes('@npm:')) return false;
+
+    const before = text.slice(0, edit.start);
+    const fieldHeaders = [
+      ...before.matchAll(/^ {2}([A-Za-z][A-Za-z]+):\r?$/gm),
+    ];
+    return fieldHeaders.at(-1)?.[1] !== 'bin';
   });
 }
 

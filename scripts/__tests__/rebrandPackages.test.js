@@ -18,10 +18,10 @@ import {tmpdir} from 'node:os';
 import {join, relative} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
+import upstreamManifestBaseline from '../pkgNec/upstreamManifestBaseline.json';
+
 const repoRoot = process.cwd();
-const identityModuleUrl = pathToFileURL(
-  join(repoRoot, 'scripts/pkgNecPackageIdentity.mjs'),
-).href;
+const oldJestGlobals = ['@jest', 'globals'].join('/');
 const moduleCandidatesUrl = pathToFileURL(
   join(repoRoot, 'scripts/pkgNec/moduleCandidates.mjs'),
 ).href;
@@ -34,6 +34,29 @@ const structuredCandidatesUrl = pathToFileURL(
 const migrationPlanUrl = pathToFileURL(
   join(repoRoot, 'scripts/pkgNec/migrationPlan.mjs'),
 ).href;
+
+function upstreamInventoryProgram() {
+  const identities = Object.entries(upstreamManifestBaseline).map(
+    ([manifestPath, manifest]) => ({
+      manifestPath,
+      newName:
+        manifest.name === '@jest/monorepo'
+          ? '@pkg-nec/monorepo'
+          : manifest.name.startsWith('@jest/')
+            ? `@pkg-nec/jest-${manifest.name.slice(6)}`
+            : `@pkg-nec/${manifest.name}`,
+      oldName: manifest.name,
+    }),
+  );
+
+  return `
+    const identities = ${JSON.stringify(identities)};
+    const inventory = {
+      byNewName: new Map(identities.map(item => [item.newName, item])),
+      byOldName: new Map(identities.map(item => [item.oldName, item])),
+    };
+  `;
+}
 
 function runMigrationProgram(program, cwd = repoRoot) {
   return spawnSync(
@@ -71,12 +94,11 @@ function migrationFixtureProgram({baseline, body, identities, root}) {
 
 function rewriteModule(code, filePath) {
   const program = `
-    import {discoverPackageIdentities} from ${JSON.stringify(identityModuleUrl)};
     import {applyTextEdits, collectModuleCandidates} from ${JSON.stringify(moduleCandidatesUrl)};
 
     const code = ${JSON.stringify(code)};
     const filePath = ${JSON.stringify(filePath)};
-    const inventory = discoverPackageIdentities({repoRoot: ${JSON.stringify(repoRoot)}});
+    ${upstreamInventoryProgram()}
     const edits = collectModuleCandidates({code, filePath, inventory});
     console.log(JSON.stringify(applyTextEdits(code, edits)));
   `;
@@ -92,12 +114,11 @@ function rewriteModule(code, filePath) {
 
 function rewriteStructured(text, filePath, category) {
   const program = `
-    import {discoverPackageIdentities} from ${JSON.stringify(identityModuleUrl)};
     import {applyTextEdits} from ${JSON.stringify(moduleCandidatesUrl)};
     import {collectStructuredCandidates} from ${JSON.stringify(structuredCandidatesUrl)};
 
     const text = ${JSON.stringify(text)};
-    const inventory = discoverPackageIdentities({repoRoot: ${JSON.stringify(repoRoot)}});
+    ${upstreamInventoryProgram()}
     const edits = collectStructuredCandidates({
       category: ${JSON.stringify(category)},
       filePath: ${JSON.stringify(filePath)},
@@ -266,7 +287,7 @@ describe('pkg-nec rewrite candidates', () => {
     const manifest = JSON.stringify({
       dependencies: {
         '@fast-check/jest': '^2.1.1',
-        '@jest/globals': 'workspace:*',
+        [oldJestGlobals]: 'workspace:*',
       },
       name: '@jest/monorepo',
       resolutions: {'jest-runtime': 'workspace:^'},

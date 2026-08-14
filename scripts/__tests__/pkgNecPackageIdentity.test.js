@@ -30,7 +30,11 @@ function runIdentityRequest(request) {
       });
       let result;
 
-      if (request.action === 'inventory') {
+      if (request.action === 'canonical') {
+        result = identity.canonicalName(request.name, {
+          isRoot: request.isRoot,
+        });
+      } else if (request.action === 'inventory') {
         result = {
           byOldName: Object.fromEntries(inventory.byOldName),
           byNewNameSize: inventory.byNewName.size,
@@ -45,7 +49,9 @@ function runIdentityRequest(request) {
         const modifiedInventory = {
           ...inventory,
           packages: inventory.packages.map(pkg =>
-            pkg.oldName === 'jest' ? {...pkg, version: '0.0.0'} : pkg,
+            pkg.oldName === '@pkg-nec/jest'
+              ? {...pkg, version: '0.0.0'}
+              : pkg,
           ),
         };
         identity.assertManifestBaseline({
@@ -97,33 +103,57 @@ async function writeManifest(repo, directory, manifest) {
 }
 
 describe('pkg-nec package identities', () => {
+  test('keeps canonical package names stable', () => {
+    expect(
+      runIdentityRequest({
+        action: 'canonical',
+        name: '@pkg-nec/jest-globals',
+        repoRoot,
+      }),
+    ).toBe('@pkg-nec/jest-globals');
+    expect(
+      runIdentityRequest({
+        action: 'canonical',
+        isRoot: true,
+        name: '@pkg-nec/monorepo',
+        repoRoot,
+      }),
+    ).toBe('@pkg-nec/monorepo');
+  });
+
   test('discovers the complete release inventory and canonical names', () => {
     const inventory = runIdentityRequest({action: 'inventory', repoRoot});
 
     expect(Object.keys(inventory.byOldName)).toHaveLength(56);
     expect(inventory.byNewNameSize).toBe(56);
-    expect(inventory.byOldName['@jest/monorepo'].newName).toBe(
+    expect(inventory.byOldName['@pkg-nec/monorepo'].newName).toBe(
       '@pkg-nec/monorepo',
     );
-    expect(inventory.byOldName['@jest/globals'].newName).toBe(
+    expect(inventory.byOldName['@pkg-nec/jest-globals'].newName).toBe(
       '@pkg-nec/jest-globals',
     );
-    expect(inventory.byOldName.jest.newName).toBe('@pkg-nec/jest');
-    expect(inventory.byOldName.expect.newName).toBe('@pkg-nec/expect');
+    expect(inventory.byOldName['@pkg-nec/jest'].newName).toBe('@pkg-nec/jest');
+    expect(inventory.byOldName['@pkg-nec/expect'].newName).toBe(
+      '@pkg-nec/expect',
+    );
     expect(inventory.packageCount).toBe(55);
     expect(
       new Set(Object.values(inventory.byOldName).map(pkg => pkg.newName)).size,
     ).toBe(56);
-    expect(inventory.byOldName['@jest/test-globals'].publishable).toBe(true);
-    expect(inventory.byOldName['@jest/test-utils'].publishable).toBe(true);
+    expect(inventory.byOldName['@pkg-nec/jest-test-globals'].publishable).toBe(
+      true,
+    );
+    expect(inventory.byOldName['@pkg-nec/jest-test-utils'].publishable).toBe(
+      true,
+    );
   });
 
-  test('rewrites first-party package names and deep imports only', () => {
+  test('keeps canonical package names and deep imports stable', () => {
     expect(
       runIdentityRequest({
         action: 'rewrite',
         repoRoot,
-        specifier: '@jest/globals/build/index.js',
+        specifier: '@pkg-nec/jest-globals/build/index.js',
       }),
     ).toBe('@pkg-nec/jest-globals/build/index.js');
     expect(
@@ -204,14 +234,14 @@ describe('pkg-nec package identities', () => {
     expect(Object.keys(baseline)).toHaveLength(56);
     expect(baseline['package.json']).toEqual(
       expect.objectContaining({
-        name: '@jest/monorepo',
+        name: '@pkg-nec/monorepo',
         private: true,
         version: '0.0.0',
       }),
     );
     expect(baseline['packages/jest/package.json']).toEqual(
       expect.objectContaining({
-        name: 'jest',
+        name: '@pkg-nec/jest',
         private: false,
         version: '30.4.2',
       }),
@@ -222,7 +252,7 @@ describe('pkg-nec package identities', () => {
     ).toThrow('Manifest baseline does not match current inventory');
   });
 
-  test('asserts the committed baseline and preserves dependency protocols', () => {
+  test('preserves the committed upstream baseline as a migration reference', () => {
     expect(
       upstreamManifestBaseline['package.json'].devDependencies['@jest/globals'],
     ).toBe('workspace:*');
@@ -236,30 +266,10 @@ describe('pkg-nec package identities', () => {
         'node-notifier'
       ],
     ).toBe('^8.0.1 || ^9.0.0 || ^10.0.0');
-    expect(
-      runIdentityRequest({
-        action: 'assert-baseline',
-        baseline: upstreamManifestBaseline,
-        repoRoot,
-      }),
-    ).toBe('asserted');
-
-    const corruptedBaseline = {
-      ...upstreamManifestBaseline,
-      'packages/jest/package.json': {
-        ...upstreamManifestBaseline['packages/jest/package.json'],
-        dependencies: {
-          ...upstreamManifestBaseline['packages/jest/package.json']
-            .dependencies,
-          '@jest/core': 'workspace:^',
-        },
-      },
-    };
-
     expect(() =>
       runIdentityRequest({
         action: 'assert-baseline',
-        baseline: corruptedBaseline,
+        baseline: upstreamManifestBaseline,
         repoRoot,
       }),
     ).toThrow('Manifest baseline does not match current inventory');

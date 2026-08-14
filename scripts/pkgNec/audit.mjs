@@ -8,6 +8,7 @@
 import path from 'node:path';
 import {isDeepStrictEqual} from 'node:util';
 import fs from 'graceful-fs';
+import ts from 'typescript';
 import {rewritePackageSpecifier} from '../pkgNecPackageIdentity.mjs';
 import {collectModuleCandidates} from './moduleCandidates.mjs';
 import {enumerateRepositoryFiles} from './repositoryFiles.mjs';
@@ -26,6 +27,8 @@ const helperManifestPaths = new Set([
   'packages/test-utils/package.json',
 ]);
 const historicalFiles = new Set([
+  'CHANGELOG.md',
+  'CHANGELOG_PRE_v30.md',
   'docs/pkg-nec-rebrand-technical-guide.md',
   'docs/superpowers/plans/2026-08-12-pkg-nec-package-rebrand.md',
   'docs/superpowers/specs/2026-08-12-pkg-nec-package-rebrand-design.md',
@@ -33,11 +36,26 @@ const historicalFiles = new Set([
 ]);
 const exactExceptions = new Set([
   ['jest.config.mjs', 'mapper-key', '^@jest/globals$'].join('\0'),
+  ['tsconfig.test.json', 'compiler-path', '@jest/globals'].join('\0'),
   [
     'packages/jest-runtime/src/__tests__/test_root/MappedGlobals.js',
     'module-specifier',
     '@jest/globals',
   ].join('\0'),
+  [
+    'packages/jest-runtime/src/__tests__/test_root/MappedGlobals.js',
+    'source-identity',
+    '@jest/globals',
+  ].join('\0'),
+]);
+const externalModulePackages = new Set([
+  'jest-pnp-resolver',
+  'jest-preset-angular',
+  'jest-runner-parallel',
+  'jest-runner-serial',
+  'jest-serializer-ansi-escapes',
+  'jest-watch-typeahead',
+  'jest-whatever',
 ]);
 const fixtureLinks = new Map([
   [
@@ -154,7 +172,7 @@ function semanticFindings({category, filePath, inventory, text}) {
       : collectStructuredCandidates({category, filePath, inventory, text});
 
   let filteredCandidates = candidates;
-  if (category === 'fixture-lock') {
+  if (category === 'lock' || category === 'fixture-lock') {
     filteredCandidates = filteredCandidates.filter(
       candidate => !isUpstreamNpmLockRecord(text, candidate.start),
     );
@@ -200,6 +218,11 @@ function isProtectedDocumentationCandidate(text, candidate) {
 
 function sourceIdentityFindings({filePath, inventory, text}) {
   const literals = [];
+  const moduleAugmentationPattern = /\bdeclare\s+module\s+(['"])([^'"]+)\1/g;
+  for (const match of text.matchAll(moduleAugmentationPattern)) {
+    literals.push(match[2]);
+  }
+
   const comparisonPattern = /\b(?:dep|pkg\.name)\s*={2,3}\s*(['"])([^'"]+)\1/g;
   for (const match of text.matchAll(comparisonPattern)) literals.push(match[2]);
 
@@ -232,12 +255,113 @@ function sourceIdentityFindings({filePath, inventory, text}) {
   });
 }
 
+function scopedPackageFileFindings({category, filePath, inventory, text}) {
+  if (!/^(?:docs|e2e|examples|packages|website)\//.test(filePath)) return [];
+
+  const findings = [];
+  for (const identity of inventory.byOldName.values()) {
+    if (!identity.oldName.startsWith('@jest/')) continue;
+
+    let index = text.indexOf(identity.oldName);
+    while (index !== -1) {
+      const suffix = text[index + identity.oldName.length];
+      const isUpstreamLockIdentity =
+        (category === 'lock' || category === 'fixture-lock') &&
+        isUpstreamNpmLockRecord(text, index);
+      if (
+        !isUpstreamLockIdentity &&
+        (suffix === undefined || !/[A-Za-z0-9._-]/.test(suffix))
+      ) {
+        findings.push(
+          finding({
+            category: 'source-identity',
+            expected: identity.newName,
+            filePath,
+            literal: identity.oldName,
+          }),
+        );
+        break;
+      }
+      index = text.indexOf(identity.oldName, index + identity.oldName.length);
+    }
+  }
+  return findings;
+}
+
+function jsonPropertyName(name) {
+  return ts.isIdentifier(name) || ts.isStringLiteral(name) ? name.text : null;
+}
+
+function compilerPathFindings({category, filePath, inventory, text}) {
+  if (
+    (category !== 'json' && category !== 'jsonc') ||
+    !/(?:^|\/)tsconfig(?:\.[^/]*)?\.json$/.test(filePath)
+  ) {
+    return [];
+  }
+
+  const sourceFile = ts.parseJsonText(filePath, text);
+  if (sourceFile.parseDiagnostics.length > 0) return [];
+
+  const root = sourceFile.statements[0]?.expression;
+  if (!ts.isObjectLiteralExpression(root)) return [];
+  const compilerOptions = root.properties.find(
+    property =>
+      ts.isPropertyAssignment(property) &&
+      jsonPropertyName(property.name) === 'compilerOptions',
+  );
+  if (
+    !compilerOptions ||
+    !ts.isPropertyAssignment(compilerOptions) ||
+    !ts.isObjectLiteralExpression(compilerOptions.initializer)
+  ) {
+    return [];
+  }
+  const paths = compilerOptions.initializer.properties.find(
+    property =>
+      ts.isPropertyAssignment(property) &&
+      jsonPropertyName(property.name) === 'paths',
+  );
+  if (
+    !paths ||
+    !ts.isPropertyAssignment(paths) ||
+    !ts.isObjectLiteralExpression(paths.initializer)
+  ) {
+    return [];
+  }
+
+  return paths.initializer.properties.flatMap(property => {
+    if (!ts.isPropertyAssignment(property)) return [];
+    const literal = jsonPropertyName(property.name);
+    if (literal === null) return [];
+    const expected = rewritePackageSpecifier(literal, inventory);
+    return expected === null
+      ? []
+      : [
+          finding({
+            category: 'compiler-path',
+            expected,
+            filePath,
+            literal,
+          }),
+        ];
+  });
+}
+
 function moduleSpecifierFindings({filePath, inventory, text}) {
   const findings = [];
   for (const match of text.matchAll(moduleSpecifierPattern)) {
     const literal = match[1];
     if (!internalIdentityPattern.test(literal)) continue;
     if (rewritePackageSpecifier(literal, inventory) !== null) continue;
+    if (
+      [...externalModulePackages].some(
+        packageName =>
+          literal === packageName || literal.startsWith(`${packageName}/`),
+      )
+    ) {
+      continue;
+    }
     findings.push(
       finding({
         category: 'unresolved-identity',
@@ -382,6 +506,12 @@ export function auditText({category, filePath, inventory, text}) {
   const normalizedCategory = normalizeCategory(category);
   const findings = [
     ...doublePrefixFindings({filePath: normalizedFilePath, text}),
+    ...scopedPackageFileFindings({
+      category: normalizedCategory,
+      filePath: normalizedFilePath,
+      inventory,
+      text,
+    }),
     ...semanticFindings({
       category: normalizedCategory,
       filePath: normalizedFilePath,
@@ -411,6 +541,16 @@ export function auditText({category, filePath, inventory, text}) {
   if (normalizedCategory === 'manifest') {
     findings.push(
       ...manifestPolicyFindings({
+        filePath: normalizedFilePath,
+        inventory,
+        text,
+      }),
+    );
+  }
+  if (normalizedCategory === 'json' || normalizedCategory === 'jsonc') {
+    findings.push(
+      ...compilerPathFindings({
+        category: normalizedCategory,
         filePath: normalizedFilePath,
         inventory,
         text,
