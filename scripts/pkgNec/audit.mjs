@@ -1,0 +1,508 @@
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+import path from 'node:path';
+import {isDeepStrictEqual} from 'node:util';
+import fs from 'graceful-fs';
+import {rewritePackageSpecifier} from '../pkgNecPackageIdentity.mjs';
+import {collectModuleCandidates} from './moduleCandidates.mjs';
+import {enumerateRepositoryFiles} from './repositoryFiles.mjs';
+import {collectStructuredCandidates} from './structuredCandidates.mjs';
+
+const dependencyFields = [
+  'dependencies',
+  'devDependencies',
+  'optionalDependencies',
+  'peerDependencies',
+  'peerDependenciesMeta',
+  'resolutions',
+];
+const helperManifestPaths = new Set([
+  'packages/test-globals/package.json',
+  'packages/test-utils/package.json',
+]);
+const historicalFiles = new Set([
+  'docs/pkg-nec-rebrand-technical-guide.md',
+  'docs/superpowers/plans/2026-08-12-pkg-nec-package-rebrand.md',
+  'docs/superpowers/specs/2026-08-12-pkg-nec-package-rebrand-design.md',
+  'scripts/pkgNec/upstreamManifestBaseline.json',
+]);
+const exactExceptions = new Set([
+  ['jest.config.mjs', 'mapper-key', '^@jest/globals$'].join('\0'),
+  [
+    'packages/jest-runtime/src/__tests__/test_root/MappedGlobals.js',
+    'module-specifier',
+    '@jest/globals',
+  ].join('\0'),
+]);
+const fixtureLinks = new Map([
+  [
+    'e2e/global-setup/package.json',
+    ['@pkg-nec/jest-util', 'link:../../packages/jest-util'],
+  ],
+  [
+    'e2e/global-teardown/package.json',
+    ['@pkg-nec/jest-util', 'link:../../packages/jest-util'],
+  ],
+  [
+    'e2e/transform/transform-environment/package.json',
+    [
+      '@pkg-nec/jest-environment-node',
+      'link:../../../packages/jest-environment-node',
+    ],
+  ],
+  [
+    'e2e/transform/transform-runner/package.json',
+    [
+      '@pkg-nec/jest-environment-node',
+      'link:../../../packages/jest-environment-node',
+    ],
+  ],
+]);
+const moduleSpecifierPattern =
+  /\b(?:from\s*|import\s*\(|import\s+|require(?:\.resolve)?\s*\(|(?:createMockFromModule|doMock|dontMock|mock|requireActual|requireMock|setMock|unmock)\s*\()\s*['"]([^'"]+)['"]/g;
+const internalIdentityPattern =
+  /^(?:@jest\/[A-Za-z0-9._-]+|jest-[A-Za-z0-9._-]+)(?:\/.*)?$/;
+const doublePrefixPrefix = ['@pkg-nec/jest', 'jest', ''].join('-');
+const doublePrefixPattern = new RegExp(
+  `${doublePrefixPrefix}[A-Za-z0-9._/-]+`,
+  'g',
+);
+const mapperKeyPattern = /['"](\^?(@jest\/[A-Za-z0-9._-]+)\$?)['"]\s*:/g;
+
+function normalizedPath(filePath) {
+  return filePath.split(path.sep).join('/').replace(/^\.\//, '');
+}
+
+function normalizeCategory(category) {
+  if (category === 'source' || category === 'config') return 'module';
+  return category;
+}
+
+function finding({category, expected, filePath, literal}) {
+  return {category, exceptionId: null, expected, filePath, literal};
+}
+
+function auditCategory(category) {
+  if (category === 'module') return 'module-specifier';
+  if (category === 'manifest') return 'manifest-identity';
+  if (category === 'json' || category === 'jsonc') return 'compiler-type';
+  if (category === 'lock' || category === 'fixture-lock') {
+    return 'lock-identity';
+  }
+  return 'package-literal';
+}
+
+function parserCompatibleModuleSource(code) {
+  return code.replaceAll(
+    /^(\s*(?:import|export)\b[^\r\n;]*?(?:\bfrom\s+)?['"][^'"\r\n]+['"]\s+)assert(?=\s*\{)/gm,
+    '$1with  ',
+  );
+}
+
+function moduleMayContainIdentity(code, inventory) {
+  if (code.includes('\\')) return true;
+
+  for (const identity of inventory.byOldName.values()) {
+    for (const quote of ["'", '"']) {
+      const prefix = `${quote}${identity.oldName}`;
+      let index = code.indexOf(prefix);
+      while (index !== -1) {
+        const suffix = code[index + prefix.length];
+        if (suffix === quote || suffix === '/') return true;
+        index = code.indexOf(prefix, index + prefix.length);
+      }
+    }
+  }
+  return false;
+}
+
+function collectAuditedModuleCandidates({filePath, inventory, text}) {
+  if (/^(?:\.\.\/)+[A-Za-z0-9_./@-]+\r?\n?$/.test(text)) return [];
+  if (!moduleMayContainIdentity(text, inventory)) return [];
+
+  const compatibleText = parserCompatibleModuleSource(text);
+  try {
+    return collectModuleCandidates({
+      code: compatibleText,
+      filePath,
+      inventory,
+    });
+  } catch (error) {
+    if (
+      path.extname(filePath) !== '.js' ||
+      error?.code !== 'BABEL_PARSE_ERROR'
+    ) {
+      throw error;
+    }
+    return collectModuleCandidates({
+      code: compatibleText,
+      filePath: `${filePath}x`,
+      inventory,
+    });
+  }
+}
+
+function semanticFindings({category, filePath, inventory, text}) {
+  const candidates =
+    category === 'module'
+      ? collectAuditedModuleCandidates({filePath, inventory, text})
+      : collectStructuredCandidates({category, filePath, inventory, text});
+
+  let filteredCandidates = candidates;
+  if (category === 'fixture-lock') {
+    filteredCandidates = filteredCandidates.filter(
+      candidate => !isUpstreamNpmLockRecord(text, candidate.start),
+    );
+  } else if (category === 'documentation' || category === 'workflow') {
+    filteredCandidates = filteredCandidates.filter(
+      candidate => !isProtectedDocumentationCandidate(text, candidate),
+    );
+  }
+
+  return filteredCandidates.map(candidate =>
+    finding({
+      category: auditCategory(category),
+      expected: candidate.newValue,
+      filePath,
+      literal: candidate.oldValue,
+    }),
+  );
+}
+
+function isUpstreamNpmLockRecord(text, offset) {
+  const before = text.slice(0, offset);
+  const headers = [...before.matchAll(/^"([^"]+)":\r?$/gm)];
+  return headers.at(-1)?.[1].includes('@npm:') === true;
+}
+
+function isProtectedDocumentationCandidate(text, candidate) {
+  if (candidate.oldValue !== 'jest' && candidate.oldValue !== 'expect') {
+    return false;
+  }
+
+  const lineStart = text.lastIndexOf('\n', candidate.start) + 1;
+  const lineEnd = text.indexOf('\n', candidate.end);
+  const line = text.slice(lineStart, lineEnd === -1 ? text.length : lineEnd);
+  const packageContext =
+    /\b(?:npm|pnpm|yarn)\s+(?:add|i|install)\b/.test(line) ||
+    /\b(?:from|import|require(?:\.resolve)?)\b/.test(line) ||
+    /https?:\/\/(?:www\.)?(?:npmjs\.com|registry\.npmjs\.org|npm\.im)\//.test(
+      line,
+    ) ||
+    /^\s*\|/.test(line);
+  return !packageContext;
+}
+
+function sourceIdentityFindings({filePath, inventory, text}) {
+  const literals = [];
+  const comparisonPattern = /\b(?:dep|pkg\.name)\s*={2,3}\s*(['"])([^'"]+)\1/g;
+  for (const match of text.matchAll(comparisonPattern)) literals.push(match[2]);
+
+  const setPattern =
+    /\b(?:excludedPackages|typeOnlyPackages)\s*=\s*new Set\s*\(\s*\[([\s\S]*?)\]\s*\)/g;
+  for (const setMatch of text.matchAll(setPattern)) {
+    for (const stringMatch of setMatch[1].matchAll(/(['"])([^'"]+)\1/g)) {
+      literals.push(stringMatch[2]);
+    }
+  }
+
+  const dependencyCheckPattern =
+    /Object\.keys\(\s*pkg\.(?:dependencies|devDependencies)[^)]*\)\.includes\(\s*(['"])([^'"]+)\1\s*\)/g;
+  for (const match of text.matchAll(dependencyCheckPattern)) {
+    literals.push(match[2]);
+  }
+
+  return literals.flatMap(literal => {
+    const expected = rewritePackageSpecifier(literal, inventory);
+    return expected === null
+      ? []
+      : [
+          finding({
+            category: 'source-identity',
+            expected,
+            filePath,
+            literal,
+          }),
+        ];
+  });
+}
+
+function moduleSpecifierFindings({filePath, inventory, text}) {
+  const findings = [];
+  for (const match of text.matchAll(moduleSpecifierPattern)) {
+    const literal = match[1];
+    if (!internalIdentityPattern.test(literal)) continue;
+    if (rewritePackageSpecifier(literal, inventory) !== null) continue;
+    findings.push(
+      finding({
+        category: 'unresolved-identity',
+        expected: null,
+        filePath,
+        literal,
+      }),
+    );
+  }
+  return findings;
+}
+
+function doublePrefixFindings({filePath, text}) {
+  return [...text.matchAll(doublePrefixPattern)].map(match => {
+    const literal = match[0];
+    return finding({
+      category: 'double-prefix',
+      expected: literal.replace(doublePrefixPrefix, '@pkg-nec/jest-'),
+      filePath,
+      literal,
+    });
+  });
+}
+
+function mapperKeyFindings({filePath, inventory, text}) {
+  const findings = [];
+  for (const match of text.matchAll(mapperKeyPattern)) {
+    const expectedIdentity = rewritePackageSpecifier(match[2], inventory);
+    if (expectedIdentity === null) continue;
+    findings.push(
+      finding({
+        category: 'mapper-key',
+        expected: `${match[1].startsWith('^') ? '^' : ''}${expectedIdentity}${match[1].endsWith('$') ? '$' : ''}`,
+        filePath,
+        literal: match[1],
+      }),
+    );
+  }
+  return findings;
+}
+
+function manifestIdentityForPath(filePath, inventory) {
+  return [inventory.root, ...inventory.packages].find(identity =>
+    normalizedPath(identity.manifestPath).endsWith(filePath),
+  );
+}
+
+function manifestPolicyFindings({filePath, inventory, text}) {
+  const manifest = JSON.parse(text);
+  const findings = [];
+  const identity = manifestIdentityForPath(filePath, inventory);
+
+  if (identity && manifest.name !== identity.newName) {
+    findings.push(
+      finding({
+        category: 'manifest-identity',
+        expected: identity.newName,
+        filePath,
+        literal: manifest.name ?? null,
+      }),
+    );
+  }
+
+  if (identity?.publishable && manifest.private === true) {
+    findings.push(
+      finding({
+        category: 'publishability',
+        expected: false,
+        filePath,
+        literal: true,
+      }),
+    );
+  }
+
+  const expectedFixtureLink = fixtureLinks.get(filePath);
+  if (expectedFixtureLink) {
+    const [dependencyName, expected] = expectedFixtureLink;
+    const literal = dependencyFields
+      .map(field => manifest[field]?.[dependencyName])
+      .find(value => value !== undefined);
+    if (literal !== expected) {
+      findings.push(
+        finding({
+          category: 'fixture-link',
+          expected,
+          filePath,
+          literal: literal ?? null,
+        }),
+      );
+    }
+  }
+
+  if (identity?.publishable) {
+    for (const field of dependencyFields) {
+      for (const value of Object.values(manifest[field] ?? {})) {
+        const literal =
+          value !== null && typeof value === 'object' ? value.optional : value;
+        if (typeof literal === 'string' && literal.startsWith('link:')) {
+          findings.push(
+            finding({
+              category: 'published-link',
+              expected: 'registry or workspace protocol',
+              filePath,
+              literal,
+            }),
+          );
+        }
+      }
+    }
+  }
+
+  return findings;
+}
+
+function isExactException(auditFinding) {
+  return exactExceptions.has(
+    [auditFinding.filePath, auditFinding.category, auditFinding.literal].join(
+      '\0',
+    ),
+  );
+}
+
+function uniqueSortedFindings(findings) {
+  const unique = new Map();
+  for (const auditFinding of findings) {
+    const key = JSON.stringify(auditFinding);
+    if (!unique.has(key)) unique.set(key, auditFinding);
+  }
+  return [...unique.values()].sort((left, right) =>
+    [left.filePath, left.category, String(left.literal)]
+      .join('\0')
+      .localeCompare(
+        [right.filePath, right.category, String(right.literal)].join('\0'),
+      ),
+  );
+}
+
+export function auditText({category, filePath, inventory, text}) {
+  const normalizedFilePath = normalizedPath(filePath);
+  if (historicalFiles.has(normalizedFilePath)) return [];
+
+  const normalizedCategory = normalizeCategory(category);
+  const findings = [
+    ...doublePrefixFindings({filePath: normalizedFilePath, text}),
+    ...semanticFindings({
+      category: normalizedCategory,
+      filePath: normalizedFilePath,
+      inventory,
+      text,
+    }),
+  ];
+  if (normalizedCategory === 'module') {
+    findings.push(
+      ...mapperKeyFindings({
+        filePath: normalizedFilePath,
+        inventory,
+        text,
+      }),
+      ...moduleSpecifierFindings({
+        filePath: normalizedFilePath,
+        inventory,
+        text,
+      }),
+      ...sourceIdentityFindings({
+        filePath: normalizedFilePath,
+        inventory,
+        text,
+      }),
+    );
+  }
+  if (normalizedCategory === 'manifest') {
+    findings.push(
+      ...manifestPolicyFindings({
+        filePath: normalizedFilePath,
+        inventory,
+        text,
+      }),
+    );
+  }
+
+  return uniqueSortedFindings(findings.filter(item => !isExactException(item)));
+}
+
+function preservationFindings({baseline, inventory, repoRoot}) {
+  const findings = [];
+  for (const [filePath, baselineManifest] of Object.entries(baseline)) {
+    const absolutePath = path.join(repoRoot, filePath);
+    if (!fs.existsSync(absolutePath)) {
+      findings.push(
+        finding({
+          category: 'missing-manifest',
+          expected: filePath,
+          filePath,
+          literal: null,
+        }),
+      );
+      continue;
+    }
+    const manifest = JSON.parse(fs.readFileSync(absolutePath, 'utf8'));
+    if (manifest.version !== baselineManifest.version) {
+      findings.push(
+        finding({
+          category: 'manifest-version',
+          expected: baselineManifest.version,
+          filePath,
+          literal: manifest.version ?? null,
+        }),
+      );
+    }
+
+    const expectedPrivate = helperManifestPaths.has(filePath)
+      ? false
+      : baselineManifest.private === true;
+    const actualPrivate = manifest.private === true;
+    if (actualPrivate !== expectedPrivate) {
+      findings.push(
+        finding({
+          category: 'manifest-privacy',
+          expected: expectedPrivate,
+          filePath,
+          literal: actualPrivate,
+        }),
+      );
+    }
+
+    for (const field of dependencyFields) {
+      const expectedDependencies = {};
+      for (const [oldName, expected] of Object.entries(
+        baselineManifest[field] ?? {},
+      )) {
+        const canonicalName =
+          rewritePackageSpecifier(oldName, inventory) ?? oldName;
+        const fixtureLink = fixtureLinks.get(filePath);
+        expectedDependencies[canonicalName] =
+          fixtureLink?.[0] === canonicalName ? fixtureLink[1] : expected;
+      }
+      const literal = manifest[field] ?? {};
+      if (!isDeepStrictEqual(literal, expectedDependencies)) {
+        findings.push(
+          finding({
+            category: 'manifest-preservation',
+            expected: expectedDependencies,
+            filePath,
+            literal,
+          }),
+        );
+      }
+    }
+  }
+  return findings;
+}
+
+export function auditRepository({baseline, inventory, repoRoot}) {
+  const root = path.resolve(repoRoot);
+  const findings = [];
+  for (const entry of enumerateRepositoryFiles({repoRoot: root})) {
+    findings.push(
+      ...auditText({
+        category: entry.category,
+        filePath: normalizedPath(path.relative(root, entry.path)),
+        inventory,
+        text: fs.readFileSync(entry.path, 'utf8'),
+      }),
+    );
+  }
+  findings.push(...preservationFindings({baseline, inventory, repoRoot: root}));
+  return uniqueSortedFindings(findings);
+}
