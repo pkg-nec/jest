@@ -6,7 +6,7 @@
  */
 
 import * as path from 'path';
-import {testWithSyncEsm, testWithVmEsm} from '@jest/test-utils';
+import {testWithSyncEsm, testWithVmEsm} from '@pkg-nec/jest-test-utils';
 
 const ROOT_DIR = path.join(__dirname, 'test_esm_interop_root');
 const FROM = path.join(ROOT_DIR, 'test.js');

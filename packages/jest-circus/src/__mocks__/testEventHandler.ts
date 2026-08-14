@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Circus} from '@jest/types';
+import type {Circus} from '@pkg-nec/jest-types';
 
 const testEventHandler: Circus.EventHandler = (event, state) => {
   switch (event.name) {

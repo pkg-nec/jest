@@ -8,14 +8,17 @@
 /* eslint-disable local/prefer-spread-eventually */
 
 import {promisify} from 'node:util';
-import {type StackTraceConfig, formatStackTrace} from 'jest-message-util';
+import {
+  type StackTraceConfig,
+  formatStackTrace,
+} from '@pkg-nec/jest-message-util';
 import type {
   FunctionLike,
   Mock,
   ModuleMocker,
   UnknownFunction,
-} from 'jest-mock';
-import {setGlobal} from 'jest-util';
+} from '@pkg-nec/jest-mock';
+import {setGlobal} from '@pkg-nec/jest-util';
 
 type Callback = (...args: Array<unknown>) => void;
 type TemporalDurationLike = {total(options: {unit: string}): number};

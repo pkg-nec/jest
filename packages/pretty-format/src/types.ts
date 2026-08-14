@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {SnapshotFormat} from '@jest/schemas';
+import type {SnapshotFormat} from '@pkg-nec/jest-schemas';
 
 export type Colors = {
   comment: {close: string; open: string};

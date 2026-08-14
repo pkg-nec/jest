@@ -7,7 +7,7 @@
 
 'use strict';
 
-const Sequencer = require('@jest/test-sequencer').default;
+const Sequencer = require('@pkg-nec/jest-test-sequencer').default;
 
 // Ensure that test1.js runs first.
 class CustomSequencer extends Sequencer {

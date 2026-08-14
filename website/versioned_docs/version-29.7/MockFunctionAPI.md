@@ -169,7 +169,7 @@ mockFn(3); // 39
 ```
 
 ```ts tab
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 const mockFn = jest.fn((scalar: number) => 42 + scalar);
 
@@ -215,7 +215,7 @@ export class SomeClass {
 ```
 
 ```ts title="SomeClass.test.ts"
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 import {SomeClass} from './SomeClass';
 
 jest.mock('./SomeClass'); // this happens automatically with automocking
@@ -248,7 +248,7 @@ mockFn((err, val) => console.log(val)); // false
 ```
 
 ```ts tab
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 const mockFn = jest
   .fn<(cb: (a: null, b: boolean) => void) => void>()
@@ -326,7 +326,7 @@ mock(); // 43
 ```
 
 ```ts tab
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 const mock = jest.fn<() => number>();
 
@@ -361,7 +361,7 @@ mockFn(); // 'default'
 ```
 
 ```ts tab
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 const mockFn = jest
   .fn<() => string>()
@@ -394,7 +394,7 @@ test('async test', async () => {
 ```
 
 ```ts tab
-import {jest, test} from '@jest/globals';
+import {jest, test} from '@pkg-nec/jest-globals';
 
 test('async test', async () => {
   const asyncMock = jest.fn<() => Promise<number>>().mockResolvedValue(43);
@@ -429,7 +429,7 @@ test('async test', async () => {
 ```
 
 ```ts tab
-import {jest, test} from '@jest/globals';
+import {jest, test} from '@pkg-nec/jest-globals';
 
 test('async test', async () => {
   const asyncMock = jest
@@ -466,7 +466,7 @@ test('async test', async () => {
 ```
 
 ```ts tab
-import {jest, test} from '@jest/globals';
+import {jest, test} from '@pkg-nec/jest-globals';
 
 test('async test', async () => {
   const asyncMock = jest
@@ -500,7 +500,7 @@ test('async test', async () => {
 ```
 
 ```ts tab
-import {jest, test} from '@jest/globals';
+import {jest, test} from '@pkg-nec/jest-globals';
 
 test('async test', async () => {
   const asyncMock = jest
@@ -573,7 +573,7 @@ The [`restoreMocks`](configuration#restoremocks-boolean) configuration option is
 Correct mock typings will be inferred if implementation is passed to [`jest.fn()`](JestObjectAPI.md#jestfnimplementation). There are many use cases where the implementation is omitted. To ensure type safety you may pass a generic type argument (also see the examples above for more reference):
 
 ```ts
-import {expect, jest, test} from '@jest/globals';
+import {expect, jest, test} from '@pkg-nec/jest-globals';
 import type add from './add';
 import calculate from './calc';
 
@@ -603,7 +603,7 @@ test('calculate calls add', () => {
 Constructs the type of a mock function, e.g. the return type of `jest.fn()`. It can be useful if you have to defined a recursive mock function:
 
 ```ts
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 const sumRecursively: jest.Mock<(value: number) => number> = jest.fn(value => {
   if (value === 0) {
@@ -619,7 +619,7 @@ const sumRecursively: jest.Mock<(value: number) => number> = jest.fn(value => {
 The `jest.Mocked<Source>` utility type returns the `Source` type wrapped with type definitions of Jest mock function.
 
 ```ts
-import {expect, jest, test} from '@jest/globals';
+import {expect, jest, test} from '@pkg-nec/jest-globals';
 import type {fetch} from 'node-fetch';
 
 jest.mock('node-fetch');
@@ -654,7 +654,7 @@ export function isLocalhost(): boolean {
 ```
 
 ```ts title="src/__tests__/utils.test.ts"
-import {afterEach, expect, it, jest} from '@jest/globals';
+import {afterEach, expect, it, jest} from '@pkg-nec/jest-globals';
 import {isLocalhost} from '../utils';
 
 let replacedEnv: jest.Replaced<typeof process.env> | undefined = undefined;
@@ -695,7 +695,7 @@ export const song = {
 ```
 
 ```ts title="song.test.ts"
-import {expect, jest, test} from '@jest/globals';
+import {expect, jest, test} from '@pkg-nec/jest-globals';
 import {song} from './song';
 
 jest.mock('./song');
@@ -728,7 +728,7 @@ test('direct usage', () => {
 Constructs the type of a spied class or function (i.e. the return type of `jest.spyOn()`).
 
 ```ts title="__utils__/setDateNow.ts"
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 export function setDateNow(now: number): jest.Spied<typeof Date.now> {
   return jest.spyOn(Date, 'now').mockReturnValue(now);
@@ -736,7 +736,7 @@ export function setDateNow(now: number): jest.Spied<typeof Date.now> {
 ```
 
 ```ts
-import {afterEach, expect, type jest, test} from '@jest/globals';
+import {afterEach, expect, type jest, test} from '@pkg-nec/jest-globals';
 import {setDateNow} from './__utils__/setDateNow';
 
 let spiedDateNow: jest.Spied<typeof Date.now> | undefined = undefined;

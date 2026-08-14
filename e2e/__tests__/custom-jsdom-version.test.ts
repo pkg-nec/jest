@@ -6,7 +6,7 @@
  */
 
 import path from 'node:path';
-import {onNodeVersions} from '@jest/test-utils';
+import {onNodeVersions} from '@pkg-nec/jest-test-utils';
 import runJest, {type RunJestResult} from '../runJest';
 import {runYarnInstall} from '../Utils';
 

@@ -12,8 +12,8 @@ import type {
   TestCaseResult,
   TestContext,
   TestResult,
-} from '@jest/test-result';
-import {isInteractive, preRunMessage} from 'jest-util';
+} from '@pkg-nec/jest-test-result';
+import {isInteractive, preRunMessage} from '@pkg-nec/jest-util';
 import type {Reporter, ReporterOnStartOptions} from './types';
 
 const {remove: preRunMessageRemove} = preRunMessage;

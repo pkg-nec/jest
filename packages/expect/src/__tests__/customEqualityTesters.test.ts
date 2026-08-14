@@ -6,7 +6,7 @@
  *
  */
 
-import type {Tester} from '@jest/expect-utils';
+import type {Tester} from '@pkg-nec/jest-expect-utils';
 import jestExpect from '../';
 
 class Volume {

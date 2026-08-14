@@ -8,8 +8,8 @@
 import ansiRegex from 'ansi-regex';
 import styles from 'ansi-styles';
 import chalk from 'chalk';
-import type {SyncExpectationResult} from 'expect';
-import format from 'pretty-format';
+import type {SyncExpectationResult} from '@pkg-nec/expect';
+import format from '@pkg-nec/pretty-format';
 import {
   type Context,
   toMatchInlineSnapshot,

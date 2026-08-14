@@ -11,7 +11,7 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports.default = void 0;
 
-const _reporters = require('@jest/reporters');
+const _reporters = require('@pkg-nec/jest-reporters');
 
 class TestReporter extends _reporters.BaseReporter {
   onTestStart() {

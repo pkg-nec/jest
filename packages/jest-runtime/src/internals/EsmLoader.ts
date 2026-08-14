@@ -13,8 +13,8 @@ import {
   type Context as VMContext,
   type Module as VMModule,
 } from 'node:vm';
-import type {JestEnvironment, JestImportMeta} from '@jest/environment';
-import {invariant, isError, isPromise} from 'jest-util';
+import type {JestEnvironment, JestImportMeta} from '@pkg-nec/jest-environment';
+import {invariant, isError, isPromise} from '@pkg-nec/jest-util';
 import {noop} from '../helpers';
 import type {CjsExportsCache} from './CjsExportsCache';
 import type {FileCache} from './FileCache';
@@ -84,7 +84,7 @@ type ModuleLinkExtra = {
 };
 
 // Source-text entries carry their dep cacheKeys (used for `linkRequests`).
-// Synthetic entries (mocks, core, JSON, wasm, @jest/globals) start linked
+// Synthetic entries (mocks, core, JSON, wasm, @pkg-nec/jest-globals) start linked
 // and never appear in the link-requests pass.
 type ScratchEntry =
   | {
@@ -635,8 +635,8 @@ export class EsmLoader {
     registry: ModuleRegistry | Map<string, JestModule>,
     mode: SyncEsmMode,
   ): ResolvedSyncSpecifier | null {
-    if (specifier === '@jest/globals') {
-      const cacheKey = `@jest/globals/${referencingIdentifier}`;
+    if (specifier === '@pkg-nec/jest-globals') {
+      const cacheKey = `@pkg-nec/jest-globals/${referencingIdentifier}`;
       const ok = this.tryCommitSynthetic(cacheKey, registry, scratch, () =>
         this.jestGlobals.esmGlobalsModule(referencingIdentifier, context),
       );
@@ -1099,8 +1099,8 @@ export class EsmLoader {
 
     const registry = this.registries.getActiveEsmRegistry();
 
-    if (specifier === '@jest/globals') {
-      const globalsIdentifier = `@jest/globals/${referencingIdentifier}`;
+    if (specifier === '@pkg-nec/jest-globals') {
+      const globalsIdentifier = `@pkg-nec/jest-globals/${referencingIdentifier}`;
       const fromCache = registry.get(globalsIdentifier);
       if (fromCache) {
         return fromCache as T;

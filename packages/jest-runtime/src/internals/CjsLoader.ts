@@ -7,7 +7,7 @@
 
 import * as path from 'node:path';
 import type {Module as VMModule} from 'node:vm';
-import type {JestEnvironment, Module} from '@jest/environment';
+import type {JestEnvironment, Module} from '@pkg-nec/jest-environment';
 import type {MockState} from './MockState';
 import {type ModuleExecutor, isCjsParseError} from './ModuleExecutor';
 import type {ModuleRegistries} from './ModuleRegistries';

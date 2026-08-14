@@ -7,7 +7,7 @@
 
 import {AsyncLocalStorage, createHook} from 'async_hooks';
 import {clsx} from 'clsx';
-import {onNodeVersions} from '@jest/test-utils';
+import {onNodeVersions} from '@pkg-nec/jest-test-utils';
 
 describe('Globals Cleanup 2', () => {
   test('dispatch event', () => {

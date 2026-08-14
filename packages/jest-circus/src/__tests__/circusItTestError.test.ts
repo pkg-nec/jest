@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Global} from '@jest/types';
+import type {Global} from '@pkg-nec/jest-types';
 
 // Aliases of `it` and `test` to avoid collision with global testing APIs.
 let circusIt: Global.It;

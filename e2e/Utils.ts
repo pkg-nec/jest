@@ -17,7 +17,7 @@ import {
 import * as fs from 'graceful-fs';
 import slash from 'slash';
 import which from 'which';
-import type {Config} from '@jest/types';
+import type {Config} from '@pkg-nec/jest-types';
 
 const dedent = dedentBase.withOptions({escapeSpecialCharacters: true});
 

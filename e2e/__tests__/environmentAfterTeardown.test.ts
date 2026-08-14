@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {skipSuiteOnJasmine} from '@jest/test-utils';
+import {skipSuiteOnJasmine} from '@pkg-nec/jest-test-utils';
 import runJest from '../runJest';
 
 skipSuiteOnJasmine();

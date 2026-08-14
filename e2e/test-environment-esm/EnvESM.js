@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {TestEnvironment} from 'jest-environment-node';
+import {TestEnvironment} from '@pkg-nec/jest-environment-node';
 
 export default class Env extends TestEnvironment {
   constructor(...args) {

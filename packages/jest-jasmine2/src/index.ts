@@ -6,17 +6,17 @@
  */
 
 import * as path from 'node:path';
-import type {JestEnvironment} from '@jest/environment';
-import {getCallsite} from '@jest/source-map';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
+import type Runtime from '@pkg-nec/jest-runtime';
+import type {SnapshotState} from '@pkg-nec/jest-snapshot';
+import {getCallsite} from '@pkg-nec/jest-source-map';
 import {
   type AssertionResult,
   type TestResult,
   createEmptyTestResult,
-} from '@jest/test-result';
-import type {Config, Global} from '@jest/types';
-import type Runtime from 'jest-runtime';
-import type {SnapshotState} from 'jest-snapshot';
-import {ErrorWithStack} from 'jest-util';
+} from '@pkg-nec/jest-test-result';
+import type {Config, Global} from '@pkg-nec/jest-types';
+import {ErrorWithStack} from '@pkg-nec/jest-util';
 import installEach from './each';
 import {installErrorOnPrivate} from './errorOnPrivate';
 import type Spec from './jasmine/Spec';
@@ -27,7 +27,7 @@ export type {Jasmine} from './types';
 
 const JASMINE = require.resolve('./jasmine/jasmineLight');
 
-const jestEachBuildDir = path.dirname(require.resolve('jest-each'));
+const jestEachBuildDir = path.dirname(require.resolve('@pkg-nec/jest-each'));
 
 export type SuiteLike = {
   children: Array<SuiteLike | SpecLike>;

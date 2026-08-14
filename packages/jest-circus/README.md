@@ -14,8 +14,8 @@ Circus is a flux-based test runner for Jest that is fast, maintainable, and simp
 Circus allows you to bind to events via an optional event handler on any [custom environment](https://jestjs.io/docs/configuration#testenvironment-string). See the [type definitions][type-definitions] for more information on the events and state data currently available.
 
 ```ts
-import type {Event, State} from 'jest-circus';
-import {TestEnvironment as NodeEnvironment} from 'jest-environment-node';
+import type {Event, State} from '@pkg-nec/jest-circus';
+import {TestEnvironment as NodeEnvironment} from '@pkg-nec/jest-environment-node';
 
 class MyCustomEnvironment extends NodeEnvironment {
   //...
@@ -30,27 +30,27 @@ class MyCustomEnvironment extends NodeEnvironment {
 
 Mutating event or state data is currently unsupported and may cause unexpected behavior or break in a future release without warning. New events, event data, and/or state data will not be considered a breaking change and may be added in any minor release.
 
-Note, that `jest-circus` test runner would pause until a promise returned from `handleTestEvent` gets fulfilled. **However, there are a few events that do not conform to this rule, namely**: `start_describe_definition`, `finish_describe_definition`, `add_hook`, `add_test` or `error` (for the up-to-date list you can look at [SyncEvent type in the types definitions][type-definitions]). That is caused by backward compatibility reasons and `process.on('unhandledRejection', callback)` signature, but that usually should not be a problem for most of the use cases.
+Note, that `@pkg-nec/jest-circus` test runner would pause until a promise returned from `handleTestEvent` gets fulfilled. **However, there are a few events that do not conform to this rule, namely**: `start_describe_definition`, `finish_describe_definition`, `add_hook`, `add_test` or `error` (for the up-to-date list you can look at [SyncEvent type in the types definitions][type-definitions]). That is caused by backward compatibility reasons and `process.on('unhandledRejection', callback)` signature, but that usually should not be a problem for most of the use cases.
 
 ## Installation
 
-> Note: As of Jest 27, `jest-circus` is the default test runner, so you do not have to install it to use it.
+> Note: As of Jest 27, `@pkg-nec/jest-circus` is the default test runner, so you do not have to install it to use it.
 
-Install `jest-circus` using yarn:
+Install `@pkg-nec/jest-circus` using yarn:
 
 ```bash
-yarn add --dev jest-circus
+yarn add --dev @pkg-nec/jest-circus
 ```
 
 Or via npm:
 
 ```bash
-npm install --save-dev jest-circus
+npm install --save-dev @pkg-nec/jest-circus
 ```
 
 ## Configure
 
-Configure Jest to use `jest-circus` via the [`testRunner`](https://jestjs.io/docs/configuration#testrunner-string) option:
+Configure Jest to use `@pkg-nec/jest-circus` via the [`testRunner`](https://jestjs.io/docs/configuration#testrunner-string) option:
 
 ```json
 {

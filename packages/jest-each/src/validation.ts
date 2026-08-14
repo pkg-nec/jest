@@ -7,8 +7,8 @@
  */
 
 import chalk from 'chalk';
-import type {Global} from '@jest/types';
-import {format as pretty} from 'pretty-format';
+import type {Global} from '@pkg-nec/jest-types';
+import {format as pretty} from '@pkg-nec/pretty-format';
 
 type TemplateData = Global.TemplateData;
 

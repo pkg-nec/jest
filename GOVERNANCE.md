@@ -1,4 +1,4 @@
-# `jest` Project Governance
+# `@pkg-nec/jest` Project Governance
 
 ## Maintainers
 

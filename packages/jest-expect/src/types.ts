@@ -5,12 +5,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {AsymmetricMatchers, BaseExpect, Inverse, Matchers} from 'expect';
+import type {
+  AsymmetricMatchers,
+  BaseExpect,
+  Inverse,
+  Matchers,
+} from '@pkg-nec/expect';
 import type {
   SnapshotMatchers,
   SnapshotState,
   addSerializer,
-} from 'jest-snapshot';
+} from '@pkg-nec/jest-snapshot';
 
 export type JestExpect = {
   <T = unknown>(
@@ -42,7 +47,7 @@ type PromiseMatchers<T = unknown> = {
     Inverse<JestMatchers<Promise<void>, T>>;
 };
 
-declare module 'expect' {
+declare module '@pkg-nec/expect' {
   interface MatcherState {
     snapshotState: SnapshotState;
     /** Whether the test was called with `test.failing()` */

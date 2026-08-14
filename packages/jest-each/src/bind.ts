@@ -6,8 +6,8 @@
  *
  */
 
-import type {Global} from '@jest/types';
-import {ErrorWithStack, convertDescriptorToString} from 'jest-util';
+import type {Global} from '@pkg-nec/jest-types';
+import {ErrorWithStack, convertDescriptorToString} from '@pkg-nec/jest-util';
 import convertArrayTable from './table/array';
 import convertTemplateTable from './table/template';
 import {

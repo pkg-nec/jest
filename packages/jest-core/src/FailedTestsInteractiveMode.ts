@@ -7,9 +7,12 @@
 
 import ansiEscapes from 'ansi-escapes';
 import chalk from 'chalk';
-import type {AggregatedResult, AssertionLocation} from '@jest/test-result';
-import {pluralize, specialChars} from 'jest-util';
-import {KEYS} from 'jest-watcher';
+import type {
+  AggregatedResult,
+  AssertionLocation,
+} from '@pkg-nec/jest-test-result';
+import {pluralize, specialChars} from '@pkg-nec/jest-util';
+import {KEYS} from '@pkg-nec/jest-watcher';
 
 type RunnerUpdateFunction = (failure?: AssertionLocation) => void;
 

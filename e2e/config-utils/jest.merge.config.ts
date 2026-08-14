@@ -7,7 +7,7 @@
  * @jest-config-loader esbuild-register
  */
 
-import {mergeConfig} from 'jest';
+import {mergeConfig} from '@pkg-nec/jest';
 import baseConfig from './jest.config';
 
 export default mergeConfig(baseConfig, {

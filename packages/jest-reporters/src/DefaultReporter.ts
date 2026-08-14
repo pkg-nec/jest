@@ -7,20 +7,20 @@
 
 import type {WriteStream} from 'node:tty';
 import chalk from 'chalk';
-import {getConsoleOutput} from '@jest/console';
+import {getConsoleOutput} from '@pkg-nec/jest-console';
+import {
+  formatStackTrace,
+  indentAllLines,
+  separateMessageFromStack,
+} from '@pkg-nec/jest-message-util';
 import type {
   AggregatedResult,
   Test,
   TestCaseResult,
   TestResult,
-} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import {
-  formatStackTrace,
-  indentAllLines,
-  separateMessageFromStack,
-} from 'jest-message-util';
-import {clearLine, isInteractive} from 'jest-util';
+} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {clearLine, isInteractive} from '@pkg-nec/jest-util';
 import BaseReporter from './BaseReporter';
 import Status from './Status';
 import getResultHeader from './getResultHeader';

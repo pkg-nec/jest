@@ -1,6 +1,6 @@
 # jest-docblock
 
-`jest-docblock` is a package that can extract and parse a specially-formatted comment called a "docblock" at the top of a file.
+`@pkg-nec/jest-docblock` is a package that can extract and parse a specially-formatted comment called a "docblock" at the top of a file.
 
 A docblock looks like this:
 
@@ -30,7 +30,7 @@ Pragmas can also take arguments:
  */
 ```
 
-`jest-docblock` can:
+`@pkg-nec/jest-docblock` can:
 
 - extract the docblock from some code as a string
 - parse a docblock string's pragmas into an object
@@ -40,9 +40,9 @@ Pragmas can also take arguments:
 
 ```sh
 # with yarn
-$ yarn add jest-docblock
+$ yarn add @pkg-nec/jest-docblock
 # with npm
-$ npm install jest-docblock
+$ npm install @pkg-nec/jest-docblock
 ```
 
 ## Usage
@@ -68,7 +68,7 @@ const {
   parse,
   parseWithComments,
   print,
-} = require('jest-docblock');
+} = require('@pkg-nec/jest-docblock');
 
 const docblock = extract(code);
 console.log(docblock); // "/**\n * Everything is awesome!\n * \n * @everything is:awesome\n * @flow\n */"

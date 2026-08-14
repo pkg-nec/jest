@@ -1,6 +1,6 @@
 # jest-haste-map
 
-`jest-haste-map` is a module used by Jest, a popular JavaScript testing framework, to create a fast lookup of files in a project. It helps Jest efficiently locate and track changes in files during testing, making it particularly useful for large projects with many files.
+`@pkg-nec/jest-haste-map` is a module used by Jest, a popular JavaScript testing framework, to create a fast lookup of files in a project. It helps Jest efficiently locate and track changes in files during testing, making it particularly useful for large projects with many files.
 
 ## why jest-haste-map ?
 
@@ -14,18 +14,18 @@
 with npm :
 
 ```bash
-npm install jest-haste-map --save-dev
+npm install @pkg-nec/jest-haste-map --save-dev
 ```
 
 with yarn :
 
 ```bash
-yarn add jest-haste-map --dev
+yarn add @pkg-nec/jest-haste-map --dev
 ```
 
 ## usage
 
-`jest-haste-map` is compatible with both `ES modules` and `CommonJS`
+`@pkg-nec/jest-haste-map` is compatible with both `ES modules` and `CommonJS`
 
 ### simple usage
 
@@ -38,7 +38,7 @@ const map = new HasteMap.default({
 ### Example usage (get all files with .js extension in the project)
 
 ```javascript
-import HasteMap from 'jest-haste-map';
+import HasteMap from '@pkg-nec/jest-haste-map';
 import os from 'os';
 import {dirname} from 'path';
 import {fileURLToPath} from 'url';

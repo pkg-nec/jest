@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {AssertionResult} from '@jest/test-result';
+import type {AssertionResult} from '@pkg-nec/jest-test-result';
 import {printCollectedTestTree} from '../runJest';
 
 const makeResult = (

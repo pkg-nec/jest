@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Global} from '@jest/types';
+import type {Global} from '@pkg-nec/jest-types';
 import {
   canDeleteProperties,
   protectProperties,

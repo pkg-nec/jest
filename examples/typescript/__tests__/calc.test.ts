@@ -1,6 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-import {describe, expect, it, jest} from '@jest/globals';
+import {describe, expect, it, jest} from '@pkg-nec/jest-globals';
 import Memory from '../Memory';
 import makeCalc from '../calc';
 import sub from '../sub';

@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {isError, isPromise} from 'jest-util';
+import {isError, isPromise} from '@pkg-nec/jest-util';
 import {
   CHILD_MESSAGE_CALL,
   CHILD_MESSAGE_CALL_SETUP,

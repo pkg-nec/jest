@@ -7,7 +7,7 @@
  */
 
 import {List, OrderedMap, OrderedSet, Record} from 'immutable';
-import {stringify} from 'jest-matcher-utils';
+import {stringify} from '@pkg-nec/jest-matcher-utils';
 import {createContext, runInContext} from 'vm';
 import {equals} from '../jasmineUtils';
 import {

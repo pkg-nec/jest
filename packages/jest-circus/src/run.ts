@@ -7,9 +7,9 @@
 
 import {AsyncLocalStorage} from 'node:async_hooks';
 import pLimit from 'p-limit';
-import {jestExpect} from '@jest/expect';
-import type {Circus, Global} from '@jest/types';
-import {invariant} from 'jest-util';
+import {jestExpect} from '@pkg-nec/jest-expect';
+import type {Circus, Global} from '@pkg-nec/jest-types';
+import {invariant} from '@pkg-nec/jest-util';
 import shuffleArray, {
   type RandomNumberGenerator,
   rngBuilder,

@@ -21,7 +21,7 @@ import {
   type TestRunnerOptions,
   type TestWatcher,
   type UnsubscribeFn,
-} from 'jest-runner';
+} from '@pkg-nec/jest-runner';
 
 const globalConfig = {} as Config.GlobalConfig;
 const runnerContext = {} as TestRunnerContext;

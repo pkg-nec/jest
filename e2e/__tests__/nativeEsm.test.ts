@@ -7,8 +7,8 @@
 
 import {createRequire} from 'module';
 import {resolve} from 'path';
-import {onNodeVersions} from '@jest/test-utils';
-import {isError} from 'jest-util';
+import {onNodeVersions} from '@pkg-nec/jest-test-utils';
+import {isError} from '@pkg-nec/jest-util';
 import {extractSummary, runYarnInstall} from '../Utils';
 import runJest, {getConfig} from '../runJest';
 

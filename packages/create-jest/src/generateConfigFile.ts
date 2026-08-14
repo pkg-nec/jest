@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Config} from '@jest/types';
-import {defaults, descriptions} from 'jest-config';
+import {defaults, descriptions} from '@pkg-nec/jest-config';
+import type {Config} from '@pkg-nec/jest-types';
 import type {PromptsResults} from './types';
 
 const stringifyOption = (
@@ -85,10 +85,10 @@ const generateConfigFile = (
  */
 `;
 
-  const jsDeclaration = `/** @type {import('jest').Config} */
+  const jsDeclaration = `/** @type {import('@pkg-nec/jest').Config} */
 const config = {`;
 
-  const tsDeclaration = `import type {Config} from 'jest';
+  const tsDeclaration = `import type {Config} from '@pkg-nec/jest';
 
 const config: Config = {`;
 

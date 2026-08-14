@@ -5,7 +5,7 @@
 
 <hr />
 
-[![version](https://img.shields.io/npm/v/jest-each.svg?style=flat-square)](https://www.npmjs.com/package/jest-each) [![downloads](https://img.shields.io/npm/dm/jest-each.svg?style=flat-square)](http://npm-stat.com/charts.html?package=jest-each&from=2017-03-21) [![MIT License](https://img.shields.io/npm/l/jest-each.svg?style=flat-square)](https://github.com/jestjs/jest/blob/main/LICENSE)
+[![version](https://img.shields.io/npm/v/@pkg-nec/jest-each.svg?style=flat-square)](https://www.npmjs.com/package/@pkg-nec/jest-each) [![downloads](https://img.shields.io/npm/dm/@pkg-nec/jest-each.svg?style=flat-square)](http://npm-stat.com/charts.html?package=jest-each&from=2017-03-21) [![MIT License](https://img.shields.io/npm/l/jest-each.svg?style=flat-square)](https://github.com/jestjs/jest/blob/main/LICENSE)
 
 A parameterised testing library for [Jest](https://jestjs.io/) inspired by [mocha-each](https://github.com/ryym/mocha-each).
 
@@ -32,7 +32,7 @@ jest-each allows you to provide multiple arguments to your `test`/`describe` whi
   - Also under the aliases: `.xdescribe`
 - Asynchronous tests with `done`
 - Unique test titles with [`printf` formatting](https://nodejs.org/api/util.html#util_util_format_format_args):
-  - `%p` - [pretty-format](https://www.npmjs.com/package/pretty-format).
+  - `%p` - [pretty-format](https://www.npmjs.com/package/@pkg-nec/pretty-format).
   - `%s`- String.
   - `%d`- Number.
   - `%i` - Integer.
@@ -78,9 +78,9 @@ jest-each allows you to provide multiple arguments to your `test`/`describe` whi
 
 ## Installation
 
-`npm i --save-dev jest-each`
+`npm i --save-dev @pkg-nec/jest-each`
 
-`yarn add -D jest-each`
+`yarn add -D @pkg-nec/jest-each`
 
 ## Importing
 
@@ -88,12 +88,12 @@ jest-each is a default export so it can be imported with whatever name you like.
 
 ```js
 // es6
-import each from 'jest-each';
+import each from '@pkg-nec/jest-each';
 ```
 
 ```js
 // es5
-const each = require('jest-each').default;
+const each = require('@pkg-nec/jest-each').default;
 ```
 
 ## Array of rows
@@ -111,7 +111,7 @@ const each = require('jest-each').default;
 
 - name: `String` the title of the `test`.
   - Generate unique test titles by positionally injecting parameters with [`printf` formatting](https://nodejs.org/api/util.html#util_util_format_format_args):
-    - `%p` - [pretty-format](https://www.npmjs.com/package/pretty-format).
+    - `%p` - [pretty-format](https://www.npmjs.com/package/@pkg-nec/pretty-format).
     - `%s`- String.
     - `%d`- Number.
     - `%i` - Integer.
@@ -138,7 +138,7 @@ const each = require('jest-each').default;
 
 - name: `String` the title of the `describe`
   - Generate unique test titles by positionally injecting parameters with [`printf` formatting](https://nodejs.org/api/util.html#util_util_format_format_args):
-    - `%p` - [pretty-format](https://www.npmjs.com/package/pretty-format).
+    - `%p` - [pretty-format](https://www.npmjs.com/package/@pkg-nec/pretty-format).
     - `%s`- String.
     - `%d`- Number.
     - `%i` - Integer.

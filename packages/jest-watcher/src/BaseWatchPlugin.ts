@@ -6,7 +6,7 @@
  */
 
 import type {ReadStream, WriteStream} from 'node:tty';
-import type {Config} from '@jest/types';
+import type {Config} from '@pkg-nec/jest-types';
 import type {
   JestHookSubscriber,
   UpdateConfigCallback,

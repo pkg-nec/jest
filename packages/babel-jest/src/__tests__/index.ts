@@ -9,8 +9,8 @@ import type {
   BabelFileResult,
   TransformOptions as BabelTransformOptions,
 } from '@babel/core';
-import {makeProjectConfig, onNodeVersions} from '@jest/test-utils';
-import type {SyncTransformer, TransformOptions} from '@jest/transform';
+import {makeProjectConfig, onNodeVersions} from '@pkg-nec/jest-test-utils';
+import type {SyncTransformer, TransformOptions} from '@pkg-nec/jest-transform';
 import babelJest, {createTransformer} from '../index';
 
 // We need to use the Node.js implementation of `require` to load Babel 8
@@ -228,7 +228,7 @@ function defineTests({
     expect(mockedBabel.loadPartialConfigSync).toHaveBeenCalledTimes(1);
     expect(mockedBabel.loadPartialConfigSync).toHaveBeenCalledWith(
       expect.objectContaining({
-        presets: [require.resolve('babel-preset-jest')],
+        presets: [require.resolve('@pkg-nec/babel-preset-jest')],
       }),
     );
   });

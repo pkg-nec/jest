@@ -5,11 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-/* eslint-disable jest/no-focused-tests */
-
 import {SourceTextModule, SyntheticModule} from 'node:vm';
 import * as semver from 'semver';
-import {describe, test} from '@jest/globals';
+import {describe, test} from '@pkg-nec/jest-globals';
 
 export function isJestJasmineRun(): boolean {
   return process.env.JEST_JASMINE === '1';

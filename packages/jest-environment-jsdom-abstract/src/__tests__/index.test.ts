@@ -9,9 +9,9 @@ import BaseJSDOMEnvironment from '..';
 import type {
   EnvironmentContext,
   JestEnvironmentConfig,
-} from '@jest/environment';
+} from '@pkg-nec/jest-environment';
 import * as jsdomModule from 'jsdom';
-import {makeGlobalConfig, makeProjectConfig} from '@jest/test-utils';
+import {makeGlobalConfig, makeProjectConfig} from '@pkg-nec/jest-test-utils';
 
 class CustomJSDOMEnvironment extends BaseJSDOMEnvironment {
   constructor(

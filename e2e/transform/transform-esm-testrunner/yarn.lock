@@ -5,9 +5,9 @@ __metadata:
   version: 10
   cacheKey: 10
 
-"@jest/test-result@link:../../../packages/jest-test-result::locator=root-workspace-0b6124%40workspace%3A.":
+"@pkg-nec/jest-test-result@link:../../../packages/jest-test-result::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "@jest/test-result@link:../../../packages/jest-test-result::locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@pkg-nec/jest-test-result@link:../../../packages/jest-test-result::locator=root-workspace-0b6124%40workspace%3A."
   languageName: node
   linkType: soft
 
@@ -15,6 +15,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
-    "@jest/test-result": "link:../../../packages/jest-test-result"
+    "@pkg-nec/jest-test-result": "link:../../../packages/jest-test-result"
   languageName: unknown
   linkType: soft

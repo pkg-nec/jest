@@ -6,7 +6,7 @@
  */
 
 import * as path from 'node:path';
-import {replacePathSepForRegex} from 'jest-regex-util';
+import {replacePathSepForRegex} from '@pkg-nec/jest-regex-util';
 
 export class TestPathPatterns {
   constructor(readonly patterns: Array<string>) {}

@@ -96,7 +96,7 @@ export function defineTests({
 
       'required `jest` within `jest`': {
         code: formatResult(`
-          const {jest} = require('@jest/globals');
+          const {jest} = require('@pkg-nec/jest-globals');
 
           jest.mock('some-module', () => {
             jest.requireActual('some-module');
@@ -107,7 +107,7 @@ export function defineTests({
       },
       'imported jest.mock within jest.mock': {
         code: formatResult(`
-          import {jest} from '@jest/globals';
+          import {jest} from '@pkg-nec/jest-globals';
 
           jest.mock('some-module', () => {
             jest.mock('some-module');
@@ -127,7 +127,7 @@ export function defineTests({
       },
       'imported jest.requireActual in jest.mock': {
         code: formatResult(`
-          import {jest} from '@jest/globals';
+          import {jest} from '@pkg-nec/jest-globals';
 
           jest.mock('some-module', () => {
             jest.requireActual('some-module');

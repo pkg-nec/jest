@@ -18,7 +18,7 @@ import type {
   TransformOptions as JestTransformOptions,
   SyncTransformer,
   TransformerCreator,
-} from '@jest/transform';
+} from '@pkg-nec/jest-transform';
 import {
   transformSync as babelTransform,
   transformAsync as babelTransformAsync,
@@ -31,7 +31,7 @@ export interface TransformerConfig extends BabelTransformOptions {
 }
 
 const THIS_FILE = fs.readFileSync(__filename);
-const jestPresetPath = require.resolve('babel-preset-jest');
+const jestPresetPath = require.resolve('@pkg-nec/babel-preset-jest');
 const babelIstanbulPlugin = require.resolve('babel-plugin-istanbul');
 
 function assertLoadedBabelConfig(

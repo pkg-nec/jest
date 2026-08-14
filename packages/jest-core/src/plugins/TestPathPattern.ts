@@ -6,13 +6,13 @@
  */
 
 import type {ReadStream, WriteStream} from 'node:tty';
-import type {Config} from '@jest/types';
+import type {Config} from '@pkg-nec/jest-types';
 import {
   BaseWatchPlugin,
   Prompt,
   type UpdateConfigCallback,
   type UsageData,
-} from 'jest-watcher';
+} from '@pkg-nec/jest-watcher';
 import TestPathPatternPrompt from '../TestPathPatternPrompt';
 import activeFilters from '../lib/activeFiltersMessage';
 

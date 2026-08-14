@@ -11,9 +11,9 @@ import type {
   ModernFakeTimers,
   TemporalDurationLike,
   TemporalEpochLike,
-} from '@jest/fake-timers';
-import type {Circus, Config, Global} from '@jest/types';
-import type {Mocked, ModuleMocker} from 'jest-mock';
+} from '@pkg-nec/jest-fake-timers';
+import type {Mocked, ModuleMocker} from '@pkg-nec/jest-mock';
+import type {Circus, Config, Global} from '@pkg-nec/jest-types';
 
 export type EnvironmentContext = {
   console: Console;

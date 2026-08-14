@@ -6,9 +6,9 @@
  */
 
 import chalk from 'chalk';
-import type {TestResult} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import {formatTime} from 'jest-util';
+import type {TestResult} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {formatTime} from '@pkg-nec/jest-util';
 import formatTestPath from './formatTestPath';
 import printDisplayName from './printDisplayName';
 

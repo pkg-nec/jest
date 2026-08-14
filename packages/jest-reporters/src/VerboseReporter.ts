@@ -13,9 +13,9 @@ import type {
   Suite,
   Test,
   TestResult,
-} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import {formatTime, specialChars} from 'jest-util';
+} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {formatTime, specialChars} from '@pkg-nec/jest-util';
 import DefaultReporter from './DefaultReporter';
 
 const {ICONS} = specialChars;

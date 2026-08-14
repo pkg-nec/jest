@@ -6,7 +6,7 @@
  */
 
 import {type SyntheticModule, createContext} from 'node:vm';
-import {testWithVmEsm} from '@jest/test-utils';
+import {testWithVmEsm} from '@pkg-nec/jest-test-utils';
 import type {CjsExportsCache} from '../CjsExportsCache';
 import {
   buildCjsAsEsmSyntheticModule,

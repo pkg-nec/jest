@@ -6,7 +6,7 @@
  */
 
 import type {EncodedSourceMap} from '@jridgewell/trace-mapping';
-import type {Config, TransformTypes} from '@jest/types';
+import type {Config, TransformTypes} from '@pkg-nec/jest-types';
 
 export interface ShouldInstrumentOptions extends Pick<
   Config.GlobalConfig,

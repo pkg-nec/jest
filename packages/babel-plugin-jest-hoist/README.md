@@ -5,7 +5,7 @@ Babel plugin to hoist `jest.disableAutomock`, `jest.enableAutomock`, `jest.unmoc
 ## Installation
 
 ```sh
-$ yarn add --dev babel-plugin-jest-hoist
+$ yarn add --dev @pkg-nec/babel-plugin-jest-hoist
 ```
 
 ## Usage

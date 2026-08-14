@@ -25,10 +25,10 @@ import type {
   TestContext,
   TestResult,
   V8CoverageResult,
-} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import {clearLine, isInteractive} from 'jest-util';
-import {type JestWorkerFarm, Worker} from 'jest-worker';
+} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {clearLine, isInteractive} from '@pkg-nec/jest-util';
+import {type JestWorkerFarm, Worker} from '@pkg-nec/jest-worker';
 import BaseReporter from './BaseReporter';
 import getWatermarks from './getWatermarks';
 import type {ReporterContext} from './types';

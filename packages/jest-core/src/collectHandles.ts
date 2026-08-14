@@ -9,9 +9,9 @@ import * as asyncHooks from 'node:async_hooks';
 import {promisify, stripVTControlCharacters as stripAnsi} from 'node:util';
 import * as v8 from 'node:v8';
 import * as vm from 'node:vm';
-import type {Config} from '@jest/types';
-import {formatExecError} from 'jest-message-util';
-import {ErrorWithStack} from 'jest-util';
+import {formatExecError} from '@pkg-nec/jest-message-util';
+import type {Config} from '@pkg-nec/jest-types';
+import {ErrorWithStack} from '@pkg-nec/jest-util';
 
 export type HandleCollectionResult = () => Promise<Array<Error>>;
 

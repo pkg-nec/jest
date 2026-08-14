@@ -7,8 +7,8 @@
 
 /* eslint-disable local/prefer-spread-eventually */
 
-import {jestExpect} from '@jest/expect';
-import type {Global} from '@jest/types';
+import {jestExpect} from '@pkg-nec/jest-expect';
+import type {Global} from '@pkg-nec/jest-types';
 import type {JasmineMatchersObject} from './types';
 
 export default function jestExpectAdapter(config: {expand: boolean}): void {

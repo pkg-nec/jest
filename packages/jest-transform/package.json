@@ -1,5 +1,5 @@
 {
-  "name": "@jest/transform",
+  "name": "@pkg-nec/jest-transform",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -20,22 +20,22 @@
   },
   "dependencies": {
     "@babel/core": "^7.27.4",
-    "@jest/types": "workspace:*",
     "@jridgewell/trace-mapping": "^0.3.25",
+    "@pkg-nec/jest-haste-map": "workspace:*",
+    "@pkg-nec/jest-regex-util": "workspace:*",
+    "@pkg-nec/jest-types": "workspace:*",
+    "@pkg-nec/jest-util": "workspace:*",
     "babel-plugin-istanbul": "^7.0.1",
     "chalk": "^4.1.2",
     "convert-source-map": "^2.0.0",
     "fast-json-stable-stringify": "^2.1.0",
     "graceful-fs": "^4.2.11",
-    "jest-haste-map": "workspace:*",
-    "jest-regex-util": "workspace:*",
-    "jest-util": "workspace:*",
     "pirates": "^4.0.7",
     "slash": "^3.0.0",
     "write-file-atomic": "^5.0.1"
   },
   "devDependencies": {
-    "@jest/test-utils": "workspace:*",
+    "@pkg-nec/jest-test-utils": "workspace:*",
     "@types/babel__core": "^7.20.5",
     "@types/convert-source-map": "^2.0.3",
     "@types/graceful-fs": "^4.1.9",

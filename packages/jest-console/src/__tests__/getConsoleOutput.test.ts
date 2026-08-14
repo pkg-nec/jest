@@ -5,12 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {makeGlobalConfig} from '@jest/test-utils';
-import {formatStackTrace} from 'jest-message-util';
+import {makeGlobalConfig} from '@pkg-nec/jest-test-utils';
+import {formatStackTrace} from '@pkg-nec/jest-message-util';
 import BufferedConsole from '../BufferedConsole';
 import getConsoleOutput from '../getConsoleOutput';
 
-jest.mock('jest-message-util', () => ({
+jest.mock('@pkg-nec/jest-message-util', () => ({
   formatStackTrace: jest.fn(),
 }));
 

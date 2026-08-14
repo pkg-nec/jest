@@ -6,9 +6,9 @@
  */
 
 import {expect} from 'tstyche';
-import type {EqualsFunction, Tester} from '@jest/expect-utils';
-import {jest, expect as jestExpect} from '@jest/globals';
-import type * as jestMatcherUtils from 'jest-matcher-utils';
+import type {EqualsFunction, Tester} from '@pkg-nec/jest-expect-utils';
+import {jest, expect as jestExpect} from '@pkg-nec/jest-globals';
+import type * as jestMatcherUtils from '@pkg-nec/jest-matcher-utils';
 
 // asymmetric matchers
 
@@ -470,7 +470,7 @@ expect(
   }),
 ).type.toBe<void>();
 
-declare module 'expect' {
+declare module '@pkg-nec/expect' {
   interface AsymmetricMatchers {
     toBeWithinRange(floor: number, ceiling: number): void;
   }

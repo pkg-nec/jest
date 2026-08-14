@@ -7,14 +7,14 @@
 
 import {AssertionError} from 'node:assert';
 import chalk from 'chalk';
-import type {Circus} from '@jest/types';
 import {
   type DiffOptions,
   diff,
   printExpected,
   printReceived,
-} from 'jest-matcher-utils';
-import {format as prettyFormat} from 'pretty-format';
+} from '@pkg-nec/jest-matcher-utils';
+import type {Circus} from '@pkg-nec/jest-types';
+import {format as prettyFormat} from '@pkg-nec/pretty-format';
 
 interface AssertionErrorWithStack extends AssertionError {
   stack: string;

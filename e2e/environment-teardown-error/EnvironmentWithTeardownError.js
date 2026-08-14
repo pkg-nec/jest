@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const NodeEnvironment = require('jest-environment-node').default;
+const NodeEnvironment = require('@pkg-nec/jest-environment-node').default;
 
 class EnvironmentWithTeardownError extends NodeEnvironment {
   async teardown() {

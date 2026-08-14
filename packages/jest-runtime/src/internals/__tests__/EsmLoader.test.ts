@@ -6,8 +6,8 @@
  */
 
 import {SourceTextModule, SyntheticModule, createContext} from 'node:vm';
-import {testWithSyncEsm, testWithVmEsm} from '@jest/test-utils';
-import type {JestEnvironment} from '@jest/environment';
+import {testWithSyncEsm, testWithVmEsm} from '@pkg-nec/jest-test-utils';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
 import type {CjsExportsCache} from '../CjsExportsCache';
 import {EsmLoader, validateImportAttributes} from '../EsmLoader';
 import type {FileCache} from '../FileCache';
@@ -366,7 +366,7 @@ describe('EsmLoader bridges', () => {
   );
 
   testWithSyncEsm(
-    'routes `@jest/globals` through jestGlobals.esmGlobalsModule',
+    'routes `@pkg-nec/jest-globals` through jestGlobals.esmGlobalsModule',
     () => {
       const {context, loader, stubs} = makeLoader();
       stubs.jestGlobals.esmGlobalsModule.mockImplementation(
@@ -376,11 +376,11 @@ describe('EsmLoader bridges', () => {
             function () {
               this.setExport('jest', {kind: 'jest-stub'});
             },
-            {context: ctx, identifier: '@jest/globals'},
+            {context: ctx, identifier: '@pkg-nec/jest-globals'},
           ),
       );
       stubs.transformCache.transform.mockReturnValue(
-        "import {jest} from '@jest/globals'; globalThis.__jest = jest;",
+        "import {jest} from '@pkg-nec/jest-globals'; globalThis.__jest = jest;",
       );
 
       loader.tryLoadGraphSync('/entry.mjs', '', 'sync-preferred');
@@ -526,7 +526,7 @@ describe('EsmLoader.dynamicImportFromCjs (legacy linkAndEvaluate)', () => {
         () => {
           throw new Error('original eval error');
         },
-        {context, identifier: '@jest/globals/from.mjs'},
+        {context, identifier: '@pkg-nec/jest-globals/from.mjs'},
       );
       await errored.link(() => {
         throw new Error('no deps');
@@ -534,14 +534,18 @@ describe('EsmLoader.dynamicImportFromCjs (legacy linkAndEvaluate)', () => {
       await errored.evaluate().catch(() => {});
       expect(errored.status).toBe('errored');
 
-      // `resolveModule`'s `@jest/globals` branch returns this directly from the
+      // `resolveModule`'s `@pkg-nec/jest-globals` branch returns this directly from the
       // registry, so `dynamicImportFromCjs` ends up calling
       // `linkAndEvaluateModule(errored)` - exactly the path the new guard
       // protects.
-      esmRegistry.set('@jest/globals/from.mjs', errored);
+      esmRegistry.set('@pkg-nec/jest-globals/from.mjs', errored);
 
       await expect(
-        loader.dynamicImportFromCjs('@jest/globals', 'from.mjs', context),
+        loader.dynamicImportFromCjs(
+          '@pkg-nec/jest-globals',
+          'from.mjs',
+          context,
+        ),
       ).rejects.toThrow('original eval error');
     },
   );

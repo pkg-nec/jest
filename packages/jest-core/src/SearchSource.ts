@@ -7,15 +7,15 @@
 
 import * as os from 'node:os';
 import * as path from 'node:path';
-import type {TestPathPatternsExecutor} from '@jest/pattern';
-import type {Test, TestContext} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import type {ChangedFiles} from 'jest-changed-files';
-import {replaceRootDirInPath} from 'jest-config';
-import {escapePathForRegex} from 'jest-regex-util';
-import {DependencyResolver} from 'jest-resolve-dependencies';
-import {buildSnapshotResolver} from 'jest-snapshot';
-import {globsToMatcher} from 'jest-util';
+import type {ChangedFiles} from '@pkg-nec/jest-changed-files';
+import {replaceRootDirInPath} from '@pkg-nec/jest-config';
+import type {TestPathPatternsExecutor} from '@pkg-nec/jest-pattern';
+import {escapePathForRegex} from '@pkg-nec/jest-regex-util';
+import {DependencyResolver} from '@pkg-nec/jest-resolve-dependencies';
+import {buildSnapshotResolver} from '@pkg-nec/jest-snapshot';
+import type {Test, TestContext} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {globsToMatcher} from '@pkg-nec/jest-util';
 import type {Filter, Stats, TestPathCases} from './types';
 
 export type SearchResult = {

@@ -5,7 +5,7 @@ A module used internally by Jest to check which files have changed since you las
 ## Install
 
 ```sh
-$ npm install --save jest-changed-files
+$ npm install --save @pkg-nec/jest-changed-files
 ```
 
 ## API
@@ -51,7 +51,7 @@ A Promise of Object literal with keys
 ## Usage
 
 ```javascript
-import {getChangedFilesForRoots} from 'jest-changed-files';
+import {getChangedFilesForRoots} from '@pkg-nec/jest-changed-files';
 
 getChangedFilesForRoots(['/path/to/test'], {
   lastCommit: true,
@@ -67,7 +67,7 @@ getChangedFilesForRoots(['/path/to/test'], {
 ```
 
 ```javascript
-import {getChangedFilesForRoots} from 'jest-changed-files';
+import {getChangedFilesForRoots} from '@pkg-nec/jest-changed-files';
 
 getChangedFilesForRoots(['/path/to/test'], {
   changedSince: 'main',
@@ -82,7 +82,7 @@ getChangedFilesForRoots(['/path/to/test'], {
 ```
 
 ```javascript
-import {findRepos} from 'jest-changed-files';
+import {findRepos} from '@pkg-nec/jest-changed-files';
 
 findRepos(['/path/to/test']).then(repos => {
   /*

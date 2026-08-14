@@ -6,7 +6,7 @@
  */
 
 import chalk from 'chalk';
-import type {CompareKeys} from 'pretty-format';
+import type {CompareKeys} from '@pkg-nec/pretty-format';
 import type {DiffOptions, DiffOptionsNormalized} from './types';
 
 export const noColor = (string: string): string => string;

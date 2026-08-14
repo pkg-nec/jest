@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Circus, Global} from '@jest/types';
-import {invariant} from 'jest-util';
+import type {Circus, Global} from '@pkg-nec/jest-types';
+import {invariant} from '@pkg-nec/jest-util';
 import {
   injectGlobalErrorHandlers,
   restoreGlobalErrorHandlers,

@@ -121,7 +121,9 @@ export const validConfig = {
 };
 
 const format = (value: string) =>
-  (require('pretty-format') as typeof import('pretty-format')).format(value, {
+  (
+    require('@pkg-nec/pretty-format') as typeof import('@pkg-nec/pretty-format')
+  ).format(value, {
     min: true,
   });
 

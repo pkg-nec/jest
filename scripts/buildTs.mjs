@@ -51,20 +51,23 @@ for (const {packageDir, pkg} of packagesWithTs) {
       }
 
       // nothing should depend on these
-      if (dep === 'jest-circus' || dep === 'jest-jasmine2') {
+      if (dep === '@pkg-nec/jest-circus' || dep === '@pkg-nec/jest-jasmine2') {
         return false;
       }
 
       // these are just `require.resolve`-ed
-      if (pkg.name === 'jest-config') {
-        if (dep === '@jest/test-sequencer' || dep === 'babel-jest') {
+      if (pkg.name === '@pkg-nec/jest-config') {
+        if (
+          dep === '@pkg-nec/jest-test-sequencer' ||
+          dep === '@pkg-nec/babel-jest'
+        ) {
           return false;
         }
       }
 
-      // only test files depend on '@jest/test-utils', i.e. it is always a dev dependency
+      // only test files depend on '@pkg-nec/jest-test-utils', i.e. it is always a dev dependency
       // see additional checks below
-      if (dep === '@jest/test-utils') {
+      if (dep === '@pkg-nec/jest-test-utils') {
         return false;
       }
 
@@ -97,19 +100,19 @@ for (const {packageDir, pkg} of packagesWithTs) {
   }
 
   let hasJestTestUtils = Object.keys(pkg.dependencies || {}).includes(
-    '@jest/test-utils',
+    '@pkg-nec/jest-test-utils',
   );
 
   if (hasJestTestUtils) {
     throw new Error(
       chalk.red(
-        `Package '${pkg.name}' declares '@jest/test-utils' as dependency, but it must be declared as dev dependency`,
+        `Package '${pkg.name}' declares '@pkg-nec/jest-test-utils' as dependency, but it must be declared as dev dependency`,
       ),
     );
   }
 
   hasJestTestUtils = Object.keys(pkg.devDependencies || {}).includes(
-    '@jest/test-utils',
+    '@pkg-nec/jest-test-utils',
   );
 
   const tsConfigPaths = glob.sync('**/__tests__/tsconfig.json', {
@@ -132,7 +135,7 @@ for (const {packageDir, pkg} of packagesWithTs) {
       chalk.red(
         `Package '${
           pkg.name
-        }' declares '@jest/test-utils' as dev dependency, but it is not referenced in:\n\n${tsConfigPaths.join(
+        }' declares '@pkg-nec/jest-test-utils' as dev dependency, but it is not referenced in:\n\n${tsConfigPaths.join(
           '\n',
         )}`,
       ),
@@ -144,7 +147,7 @@ for (const {packageDir, pkg} of packagesWithTs) {
       chalk.red(
         `Package '${
           pkg.name
-        }' does not declare '@jest/test-utils' as dev dependency, but it is referenced in:\n\n${testUtilsReferences.join(
+        }' does not declare '@pkg-nec/jest-test-utils' as dev dependency, but it is referenced in:\n\n${testUtilsReferences.join(
           '\n',
         )}`,
       ),

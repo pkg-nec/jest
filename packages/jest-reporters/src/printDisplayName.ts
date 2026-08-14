@@ -6,7 +6,7 @@
  */
 
 import chalk from 'chalk';
-import type {Config} from '@jest/types';
+import type {Config} from '@pkg-nec/jest-types';
 
 export default function printDisplayName(config: Config.ProjectConfig): string {
   const {displayName} = config;

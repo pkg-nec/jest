@@ -6,7 +6,7 @@
  */
 
 import chalk from 'chalk';
-import {specialChars} from 'jest-util';
+import {specialChars} from '@pkg-nec/jest-util';
 import FailedTestsInteractiveMode from '../FailedTestsInteractiveMode';
 
 const {ARROW} = specialChars;

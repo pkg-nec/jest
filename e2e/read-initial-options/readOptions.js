@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-const {readInitialOptions} = require('jest-config');
+const {readInitialOptions} = require('@pkg-nec/jest-config');
 async function readConfig() {
   let config = process.argv[2];
   let options = undefined;

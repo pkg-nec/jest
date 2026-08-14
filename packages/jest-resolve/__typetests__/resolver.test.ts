@@ -12,7 +12,7 @@ import type {
   PackageJSON,
   ResolverOptions,
   SyncResolver,
-} from 'jest-resolve';
+} from '@pkg-nec/jest-resolve';
 
 // PackageJSON
 

@@ -9,9 +9,13 @@ import * as crypto from 'node:crypto';
 import * as path from 'node:path';
 import * as fs from 'graceful-fs';
 import slash from 'slash';
-import type {AggregatedResult, Test, TestContext} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import HasteMap from 'jest-haste-map';
+import HasteMap from '@pkg-nec/jest-haste-map';
+import type {
+  AggregatedResult,
+  Test,
+  TestContext,
+} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
 
 const FAIL = 0;
 const SUCCESS = 1;

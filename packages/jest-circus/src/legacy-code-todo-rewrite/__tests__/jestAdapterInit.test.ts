@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {beforeEach, it} from '@jest/globals';
-import type {Circus} from '@jest/types';
+import {beforeEach, it} from '@pkg-nec/jest-globals';
+import type {Circus} from '@pkg-nec/jest-types';
 import {eventHandler} from '../jestAdapterInit';
 
 beforeEach(() => expect.hasAssertions());

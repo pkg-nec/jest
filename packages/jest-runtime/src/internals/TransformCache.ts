@@ -6,13 +6,13 @@
  */
 
 import stripBOM from 'strip-bom';
-import type {SourceMapRegistry} from '@jest/source-map';
+import type {SourceMapRegistry} from '@pkg-nec/jest-source-map';
 import type {
   CallerTransformOptions,
   ScriptTransformer,
   TransformResult,
   TransformationOptions,
-} from '@jest/transform';
+} from '@pkg-nec/jest-transform';
 import type {FileCache} from './FileCache';
 
 export interface TransformOptions extends Required<CallerTransformOptions> {

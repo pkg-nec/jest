@@ -5,18 +5,18 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Config as ConfigTypes} from '@jest/types';
+import type {Config as ConfigTypes} from '@pkg-nec/jest-types';
 
 export {
   SearchSource,
   createTestScheduler,
   getVersion,
   runCLI,
-} from '@jest/core';
+} from '@pkg-nec/jest-core';
 
-export {run, buildArgv} from 'jest-cli';
+export {run, buildArgv} from '@pkg-nec/jest-cli';
 
-export {defineConfig, mergeConfig} from 'jest-config';
+export {defineConfig, mergeConfig} from '@pkg-nec/jest-config';
 
 export type Config = ConfigTypes.InitialOptions;
 export type GlobalConfig = ConfigTypes.GlobalConfig;

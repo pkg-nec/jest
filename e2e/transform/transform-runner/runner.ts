@@ -10,15 +10,15 @@ import {
   type Test,
   type TestResult,
   createEmptyTestResult,
-} from '@jest/test-result';
-import type {Config} from '@jest/types';
+} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
 import type {
   OnTestFailure,
   OnTestStart,
   OnTestSuccess,
   TestRunnerContext,
-} from 'jest-runner';
-import type {TestWatcher} from 'jest-watcher';
+} from '@pkg-nec/jest-runner';
+import type {TestWatcher} from '@pkg-nec/jest-watcher';
 
 export default class BaseTestRunner {
   private _globalConfig: Config.GlobalConfig;

@@ -7,8 +7,8 @@
 
 import * as path from 'node:path';
 import * as fs from 'graceful-fs';
-import {testWithVmEsm} from '@jest/test-utils';
-import type Resolver from 'jest-resolve';
+import {testWithVmEsm} from '@pkg-nec/jest-test-utils';
+import type Resolver from '@pkg-nec/jest-resolve';
 import {Resolution} from '../Resolution';
 
 jest.mock('graceful-fs', () => ({

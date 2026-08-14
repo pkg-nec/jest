@@ -7,7 +7,8 @@
 
 'use strict';
 
-const JSDOMEnvironment = require('jest-environment-jsdom').TestEnvironment;
+const JSDOMEnvironment =
+  require('@pkg-nec/jest-environment-jsdom').TestEnvironment;
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 

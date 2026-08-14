@@ -7,7 +7,13 @@
 
 import {stripVTControlCharacters as stripAnsi} from 'node:util';
 import chalk from 'chalk';
-import {type ConsoleBuffer, getConsoleOutput} from '@jest/console';
+import {type ConsoleBuffer, getConsoleOutput} from '@pkg-nec/jest-console';
+import {
+  formatPath,
+  getStackTraceLines,
+  getTopFrame,
+  separateMessageFromStack,
+} from '@pkg-nec/jest-message-util';
 import type {
   AggregatedResult,
   AssertionResult,
@@ -15,15 +21,9 @@ import type {
   Test,
   TestContext,
   TestResult,
-} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import {
-  formatPath,
-  getStackTraceLines,
-  getTopFrame,
-  separateMessageFromStack,
-} from 'jest-message-util';
-import {specialChars} from 'jest-util';
+} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {specialChars} from '@pkg-nec/jest-util';
 import BaseReporter from './BaseReporter';
 
 type AnnotationOptions = {

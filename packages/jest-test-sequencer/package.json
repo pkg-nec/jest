@@ -1,5 +1,5 @@
 {
-  "name": "@jest/test-sequencer",
+  "name": "@pkg-nec/jest-test-sequencer",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -19,13 +19,13 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/test-result": "workspace:*",
+    "@pkg-nec/jest-haste-map": "workspace:*",
+    "@pkg-nec/jest-test-result": "workspace:*",
     "graceful-fs": "^4.2.11",
-    "jest-haste-map": "workspace:*",
     "slash": "^3.0.0"
   },
   "devDependencies": {
-    "@jest/test-utils": "workspace:*",
+    "@pkg-nec/jest-test-utils": "workspace:*",
     "@types/graceful-fs": "^4.1.9"
   },
   "engines": {

@@ -10,8 +10,8 @@ import type {
   AggregatedResult,
   SnapshotSummary,
   TestContext,
-} from '@jest/test-result';
-import type {Config} from '@jest/types';
+} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
 import BaseReporter from './BaseReporter';
 import getResultHeader from './getResultHeader';
 import getSnapshotSummary from './getSnapshotSummary';

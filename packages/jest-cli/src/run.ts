@@ -9,12 +9,12 @@ import * as path from 'node:path';
 import chalk from 'chalk';
 import exit from 'exit-x';
 import yargs from 'yargs';
-import {getVersion, runCLI} from '@jest/core';
-import type {AggregatedResult} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import {deprecationEntries} from 'jest-config';
-import {clearLine, tryRealpath} from 'jest-util';
-import {validateCLIOptions} from 'jest-validate';
+import {deprecationEntries} from '@pkg-nec/jest-config';
+import {getVersion, runCLI} from '@pkg-nec/jest-core';
+import type {AggregatedResult} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {clearLine, tryRealpath} from '@pkg-nec/jest-util';
+import {validateCLIOptions} from '@pkg-nec/jest-validate';
 import * as args from './args';
 
 export async function run(

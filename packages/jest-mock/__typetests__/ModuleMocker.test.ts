@@ -6,7 +6,7 @@
  */
 
 import {expect, test} from 'tstyche';
-import {type MockMetadata, type Mocked, ModuleMocker} from 'jest-mock';
+import {type MockMetadata, type Mocked, ModuleMocker} from '@pkg-nec/jest-mock';
 
 class ExampleClass {
   memberA: Array<number>;

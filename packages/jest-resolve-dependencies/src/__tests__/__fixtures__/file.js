@@ -7,5 +7,5 @@
  */
 'use strict';
 
-require('jest-resolve-dependencies');
-require('jest-regex-util');
+require('@pkg-nec/jest-resolve-dependencies');
+require('@pkg-nec/jest-regex-util');

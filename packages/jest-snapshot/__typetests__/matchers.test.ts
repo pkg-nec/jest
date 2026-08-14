@@ -6,7 +6,7 @@
  */
 
 import {expect} from 'tstyche';
-import type {ExpectationResult} from 'expect';
+import type {ExpectationResult} from '@pkg-nec/expect';
 import {
   type Context,
   type SnapshotState,
@@ -14,7 +14,7 @@ import {
   toMatchSnapshot,
   toThrowErrorMatchingInlineSnapshot,
   toThrowErrorMatchingSnapshot,
-} from 'jest-snapshot';
+} from '@pkg-nec/jest-snapshot';
 
 // Context
 

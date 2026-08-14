@@ -3,7 +3,7 @@ id: jest-object
 title: The Jest Object
 ---
 
-The `jest` object is automatically in scope within every test file. The methods in the `jest` object help create mocks and let you control Jest's overall behavior. It can also be imported explicitly by via `import {jest} from '@jest/globals'`.
+The `@pkg-nec/jest` object is automatically in scope within every test file. The methods in the `@pkg-nec/jest` object help create mocks and let you control Jest's overall behavior. It can also be imported explicitly by via `import {jest} from '@pkg-nec/jest-globals'`.
 
 import TypeScriptExamplesNote from './_TypeScriptExamplesNote.md';
 
@@ -28,7 +28,7 @@ Disables automatic mocking in the module loader.
 Automatic mocking should be enabled via [`automock`](Configuration.md#automock-boolean) configuration option for this method to have any effect. Also see documentation of the configuration option for more details.
 
 ```js tab
-/** @type {import('jest').Config} */
+/** @type {import('@pkg-nec/jest').Config} */
 const config = {
   automock: true,
 };
@@ -37,7 +37,7 @@ module.exports = config;
 ```
 
 ```ts tab
-import type {Config} from 'jest';
+import type {Config} from '@pkg-nec/jest';
 
 const config: Config = {
   automock: true,
@@ -74,11 +74,11 @@ This is usually useful when you have a scenario where the number of dependencies
 
 Examples of dependencies that might be considered "implementation details" are things ranging from language built-ins (e.g. `Array.prototype` methods) to highly common utility methods (e.g. `underscore`, `lodash`, array utilities, etc) and entire libraries like `React.js`.
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 :::tip
 
-When using `babel-jest`, calls to `disableAutomock()` will automatically be hoisted to the top of the code block. Use `autoMockOff()` if you want to explicitly avoid this behavior.
+When using `@pkg-nec/babel-jest`, calls to `disableAutomock()` will automatically be hoisted to the top of the code block. Use `autoMockOff()` if you want to explicitly avoid this behavior.
 
 :::
 
@@ -115,11 +115,11 @@ test('original implementation', () => {
 });
 ```
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 :::tip
 
-When using `babel-jest`, calls to `enableAutomock` will automatically be hoisted to the top of the code block. Use `autoMockOn` if you want to explicitly avoid this behavior.
+When using `@pkg-nec/babel-jest`, calls to `enableAutomock` will automatically be hoisted to the top of the code block. Use `autoMockOn` if you want to explicitly avoid this behavior.
 
 :::
 
@@ -340,7 +340,7 @@ Importing a module in a setup file (as specified by [`setupFilesAfterEnv`](Confi
 
 Modules that are mocked with `jest.mock` are mocked only for the file that calls `jest.mock`. Another file that imports the module will get the original implementation even if it runs after the test file that mocks the module.
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 :::tip
 
@@ -362,17 +362,17 @@ Indicates that the module system should never return a mocked version of the spe
 
 The most common use of this API is for specifying the module a given test intends to be testing (and thus doesn't want automatically mocked).
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 ### `jest.deepUnmock(moduleName)`
 
 Indicates that the module system should never return a mocked version of the specified module and its dependencies.
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 ### `jest.doMock(moduleName, factory, options)`
 
-When using `babel-jest`, calls to `mock` will automatically be hoisted to the top of the code block. Use this method if you want to explicitly avoid this behavior.
+When using `@pkg-nec/babel-jest`, calls to `mock` will automatically be hoisted to the top of the code block. Use this method if you want to explicitly avoid this behavior.
 
 One example when this is useful is when you want to mock a module differently within the same file:
 
@@ -461,13 +461,13 @@ test('moduleName 2', () => {
 });
 ```
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 ### `jest.dontMock(moduleName)`
 
-When using `babel-jest`, calls to `unmock` will automatically be hoisted to the top of the code block. Use this method if you want to explicitly avoid this behavior.
+When using `@pkg-nec/babel-jest`, calls to `unmock` will automatically be hoisted to the top of the code block. Use this method if you want to explicitly avoid this behavior.
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 ### `jest.setMock(moduleName, moduleExports)`
 
@@ -477,7 +477,7 @@ On occasion, there are times where the automatically generated mock the module s
 
 In these rare scenarios you can use this API to manually fill the slot in the module system's mock-module registry.
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 :::info
 
@@ -559,7 +559,7 @@ test('works too', () => {
 });
 ```
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 ### `jest.isolateModules(fn)`
 
@@ -780,13 +780,13 @@ See [TypeScript Usage](MockFunctionAPI.md#jestspiedsource) chapter of Mock Funct
 
 Clears the `mock.calls`, `mock.instances`, `mock.contexts` and `mock.results` properties of all mocks. Equivalent to calling [`.mockClear()`](MockFunctionAPI.md#mockfnmockclear) on every mocked function.
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 ### `jest.resetAllMocks()`
 
 Resets the state of all mocks. Equivalent to calling [`.mockReset()`](MockFunctionAPI.md#mockfnmockreset) on every mocked function.
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 ### `jest.restoreAllMocks()`
 
@@ -884,7 +884,7 @@ Legacy fake timers will swap out `setImmediate()`, `clearImmediate()`, `setInter
 
 :::
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 ### `jest.useRealTimers()`
 
@@ -905,7 +905,7 @@ test('do something with real timers', () => {
 });
 ```
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 ### `jest.runAllTicks()`
 
@@ -1061,7 +1061,7 @@ test('will fail', () => {
 });
 ```
 
-Returns the `jest` object for chaining.
+Returns the `@pkg-nec/jest` object for chaining.
 
 :::caution
 

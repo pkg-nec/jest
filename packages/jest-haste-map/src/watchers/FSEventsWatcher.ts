@@ -12,7 +12,7 @@ import anymatch, {type Matcher} from 'anymatch';
 import * as fs from 'graceful-fs';
 // @ts-expect-error -- no types
 import walker from 'walker';
-import {globsToMatcher} from 'jest-util';
+import {globsToMatcher} from '@pkg-nec/jest-util';
 
 // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error, @typescript-eslint/ban-ts-comment
 // @ts-ignore: this is for CI which runs linux and might not have this

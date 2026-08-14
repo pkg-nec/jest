@@ -9,7 +9,7 @@
 
 /**
  * @class
- * @implements {import('@jest/reporters').Reporter}
+ * @implements {import('@pkg-nec/jest-reporters').Reporter}
  */
 class TestCaseStartReporter {
   onTestCaseStart(test, testCaseStartInfo) {

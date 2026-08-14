@@ -9,7 +9,7 @@ import * as path from 'node:path';
 import chalk from 'chalk';
 import * as fs from 'graceful-fs';
 import naturalCompare from 'natural-compare';
-import type {Config} from '@jest/types';
+import type {Config} from '@pkg-nec/jest-types';
 import type {SnapshotData} from './types';
 
 export const SNAPSHOT_VERSION = '1';

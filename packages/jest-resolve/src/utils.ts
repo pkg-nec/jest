@@ -7,7 +7,7 @@
 
 import * as path from 'node:path';
 import chalk from 'chalk';
-import {ValidationError} from 'jest-validate';
+import {ValidationError} from '@pkg-nec/jest-validate';
 import Resolver from './resolver';
 
 const BULLET: string = chalk.bold('\u25CF ');
@@ -17,6 +17,11 @@ const DOCUMENTATION_NOTE = `  ${chalk.bold('Configuration Documentation:')}
 
 const createValidationError = (message: string) =>
   new ValidationError(`${BULLET}Validation Error`, message, DOCUMENTATION_NOTE);
+
+const BUILT_IN_TEST_ENVIRONMENTS = new Map([
+  ['jsdom', '@pkg-nec/jest-environment-jsdom'],
+  ['node', '@pkg-nec/jest-environment-node'],
+]);
 
 const replaceRootDirInPath = (rootDir: string, filePath: string): string => {
   if (!filePath.startsWith('<rootDir>')) {
@@ -98,10 +103,7 @@ export const resolveTestEnvironment = ({
   testEnvironment: string;
   requireResolveFunction: (moduleName: string) => string;
 }): string => {
-  // we don't want to resolve the actual `jsdom` module if `jest-environment-jsdom` is not installed, but `jsdom` package is
-  if (filePath === 'jsdom') {
-    filePath = 'jest-environment-jsdom';
-  }
+  filePath = BUILT_IN_TEST_ENVIRONMENTS.get(filePath) ?? filePath;
 
   try {
     return resolveWithPrefix(undefined, {
@@ -113,9 +115,9 @@ export const resolveTestEnvironment = ({
       rootDir,
     });
   } catch (error: any) {
-    if (filePath === 'jest-environment-jsdom') {
+    if (filePath === '@pkg-nec/jest-environment-jsdom') {
       error.message +=
-        '\n\nAs of Jest 28 "jest-environment-jsdom" is no longer shipped by default, make sure to install it separately.';
+        '\n\nAs of Jest 28 "@pkg-nec/jest-environment-jsdom" is no longer shipped by default, make sure to install it separately.';
     }
 
     throw error;

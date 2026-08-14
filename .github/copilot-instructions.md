@@ -109,7 +109,7 @@ yarn test-ts            # Run TypeScript integration tests
 - Main config: `jest.config.mjs`
 - CI config: `jest.config.ci.mjs` (includes junit reporter, GitHub Actions reporter)
 - TypeScript integration tests: `jest.config.ts.mjs`
-- Tests use `jest-circus` as the default test runner
+- Tests use `@pkg-nec/jest-circus` as the default test runner
 
 ### Environment Variables
 
@@ -363,16 +363,16 @@ Prettier config in `package.json`:
 
 Core packages in `packages/`:
 
-- `jest` - Main entry point
-- `jest-cli` - Command-line interface
-- `jest-config` - Configuration handling
+- `@pkg-nec/jest` - Main entry point
+- `@pkg-nec/jest-cli` - Command-line interface
+- `@pkg-nec/jest-config` - Configuration handling
 - `jest-core` - Core test runner
-- `jest-runtime` - Module runtime
-- `jest-circus` - Default test runner
-- `jest-jasmine2` - Legacy test runner
-- `expect` - Assertion library
-- `jest-snapshot` - Snapshot testing
-- `babel-jest` - Babel transformer
+- `@pkg-nec/jest-runtime` - Module runtime
+- `@pkg-nec/jest-circus` - Default test runner
+- `@pkg-nec/jest-jasmine2` - Legacy test runner
+- `@pkg-nec/expect` - Assertion library
+- `@pkg-nec/jest-snapshot` - Snapshot testing
+- `@pkg-nec/babel-jest` - Babel transformer
 
 ## Common Pitfalls & Workarounds
 

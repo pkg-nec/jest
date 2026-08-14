@@ -6,7 +6,7 @@
  */
 
 import chalk from 'chalk';
-import type {DeprecatedOptions} from 'jest-validate';
+import type {DeprecatedOptions} from '@pkg-nec/jest-validate';
 
 function formatDeprecation(message: string): string {
   const lines = [

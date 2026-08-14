@@ -14,11 +14,14 @@ import type {
   TraversalAncestors,
 } from '@babel/types';
 import * as fs from 'graceful-fs';
-import {escapeBacktickString, normalizeNewlines} from '@jest/snapshot-utils';
+import {
+  escapeBacktickString,
+  normalizeNewlines,
+} from '@pkg-nec/jest-snapshot-utils';
 import {
   type OptionsReceived as PrettyFormatOptions,
   format as prettyFormat,
-} from 'pretty-format';
+} from '@pkg-nec/pretty-format';
 import {getSerializers} from './plugins';
 import type {InlineSnapshot} from './types';
 

@@ -13,8 +13,8 @@
 import co from 'co';
 import isGeneratorFn from 'is-generator-fn';
 import pLimit from 'p-limit';
-import type {Config, Global} from '@jest/types';
-import {isPromise} from 'jest-util';
+import type {Config, Global} from '@pkg-nec/jest-types';
+import {isPromise} from '@pkg-nec/jest-util';
 import isError from './isError';
 import type Spec from './jasmine/Spec';
 import type {DoneFn, QueueableFn} from './queueRunner';

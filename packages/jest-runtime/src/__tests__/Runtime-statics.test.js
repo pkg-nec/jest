@@ -6,11 +6,11 @@
  *
  */
 
-import {makeProjectConfig} from '@jest/test-utils';
-import HasteMap from 'jest-haste-map';
+import {makeProjectConfig} from '@pkg-nec/jest-test-utils';
+import HasteMap from '@pkg-nec/jest-haste-map';
 import Runtime from '../';
 
-jest.mock('jest-haste-map');
+jest.mock('@pkg-nec/jest-haste-map');
 
 describe('Runtime statics', () => {
   const projectConfig = makeProjectConfig({

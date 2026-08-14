@@ -1,4 +1,4 @@
-# `@jest/utils`
+# `@pkg-nec/jest-util`
 
 This packages is a collection of utilities and helper functions
 

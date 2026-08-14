@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {formatTime} from 'jest-util';
+import {formatTime} from '@pkg-nec/jest-util';
 import PCancelable from './PCancelable';
 import pTimeout from './pTimeout';
 

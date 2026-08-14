@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import diffSequences from '@jest/diff-sequences';
+import diffSequences from '@pkg-nec/jest-diff-sequences';
 import {DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, Diff} from './cleanupSemantic';
 
 const diffStrings = (a: string, b: string): Array<Diff> => {

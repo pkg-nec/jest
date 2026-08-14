@@ -9,7 +9,7 @@
 
 // `require('expect')` in a test file must resolve to the same module instance
 // that backs the global `expect`, so JestAssertionError is the same class.
-const {JestAssertionError} = require('expect');
+const {JestAssertionError} = require('@pkg-nec/expect');
 
 test('toThrow(JestAssertionError) passes when a matcher assertion fails', () => {
   expect(() => {

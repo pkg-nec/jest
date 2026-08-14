@@ -6,7 +6,7 @@
  */
 
 import {expect} from 'tstyche';
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 import type {
   Mock,
   MockInstance,
@@ -16,7 +16,7 @@ import type {
   MockedObject,
   MockedShallow,
   ModuleMocker,
-} from 'jest-mock';
+} from '@pkg-nec/jest-mock';
 
 expect(
   jest

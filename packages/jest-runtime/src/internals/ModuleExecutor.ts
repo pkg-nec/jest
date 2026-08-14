@@ -15,11 +15,11 @@ import type {
   JestEnvironment,
   Module,
   ModuleWrapper,
-} from '@jest/environment';
-import {handlePotentialSyntaxError} from '@jest/transform';
-import type {Config, Global} from '@jest/types';
-import Resolver from 'jest-resolve';
-import {invariant, isError, isNonNullable} from 'jest-util';
+} from '@pkg-nec/jest-environment';
+import Resolver from '@pkg-nec/jest-resolve';
+import {handlePotentialSyntaxError} from '@pkg-nec/jest-transform';
+import type {Config, Global} from '@pkg-nec/jest-types';
+import {invariant, isError, isNonNullable} from '@pkg-nec/jest-util';
 import type {JestGlobals} from './JestGlobals';
 import type {Resolution} from './Resolution';
 import type {TestMainModule} from './TestMainModule';

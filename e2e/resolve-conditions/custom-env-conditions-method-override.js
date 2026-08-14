@@ -7,7 +7,7 @@
 
 'use strict';
 
-const NodeEnv = require('jest-environment-node').TestEnvironment;
+const NodeEnv = require('@pkg-nec/jest-environment-node').TestEnvironment;
 
 module.exports = class CustomEnvWithConditions extends NodeEnv {
   exportConditions() {

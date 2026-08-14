@@ -1,5 +1,5 @@
 {
-  "name": "jest-changed-files",
+  "name": "@pkg-nec/jest-changed-files",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -19,8 +19,8 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@pkg-nec/jest-util": "workspace:*",
     "execa": "^5.1.1",
-    "jest-util": "workspace:*",
     "p-limit": "^3.1.0"
   },
   "engines": {

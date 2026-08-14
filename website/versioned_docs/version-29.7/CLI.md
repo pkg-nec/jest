@@ -3,7 +3,7 @@ id: cli
 title: Jest CLI Options
 ---
 
-The `jest` command line runner has a number of useful options. You can run `jest --help` to view all available options. Many of the options shown below can also be used together to run tests exactly the way you want. Every one of Jest's [Configuration](Configuration.md) options can also be specified through the CLI.
+The `@pkg-nec/jest` command line runner has a number of useful options. You can run `jest --help` to view all available options. Many of the options shown below can also be used together to run tests exactly the way you want. Every one of Jest's [Configuration](Configuration.md) options can also be specified through the CLI.
 
 Here is a brief overview:
 
@@ -98,7 +98,7 @@ import TOCInline from '@theme/TOCInline';
 
 ### `jest <regexForTestFiles>`
 
-When you run `jest` with an argument, that argument is treated as a regular expression to match against files in your project. It is possible to run test suites by providing a pattern. Only the files that the pattern matches will be picked up and executed. Depending on your terminal, you may need to quote this argument: `jest "my.*(complex)?pattern"`. On Windows, you will need to use `/` as a path separator or escape `\` as `\\`.
+When you run `@pkg-nec/jest` with an argument, that argument is treated as a regular expression to match against files in your project. It is possible to run test suites by providing a pattern. Only the files that the pattern matches will be picked up and executed. Depending on your terminal, you may need to quote this argument: `jest "my.*(complex)?pattern"`. On Windows, you will need to use `/` as a path separator or escape `\` as `\\`.
 
 ### `--bail[=<n>]`
 
@@ -236,10 +236,10 @@ Generate a basic configuration file. Based on your project, Jest will ask you a 
 
 ### `--injectGlobals`
 
-Insert Jest's globals (`expect`, `test`, `describe`, `beforeEach` etc.) into the global environment. If you set this to `false`, you should import from `@jest/globals`, e.g.
+Insert Jest's globals (`@pkg-nec/expect`, `test`, `describe`, `beforeEach` etc.) into the global environment. If you set this to `false`, you should import from `@pkg-nec/jest-globals`, e.g.
 
 ```ts
-import {expect, jest, test} from '@jest/globals';
+import {expect, jest, test} from '@pkg-nec/jest-globals';
 
 jest.useFakeTimers();
 
@@ -250,7 +250,7 @@ test('some test', () => {
 
 :::note
 
-This option is only supported using the default `jest-circus` test runner.
+This option is only supported using the default `@pkg-nec/jest-circus` test runner.
 
 :::
 
@@ -330,7 +330,7 @@ jest --randomize --seed 1234
 
 :::note
 
-This option is only supported using the default `jest-circus` test runner.
+This option is only supported using the default `@pkg-nec/jest-circus` test runner.
 
 :::
 

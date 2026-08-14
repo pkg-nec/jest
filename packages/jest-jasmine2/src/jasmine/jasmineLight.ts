@@ -30,7 +30,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* eslint-disable sort-keys */
 
-import type {Global} from '@jest/types';
+import type {Global} from '@pkg-nec/jest-types';
 import type {Jasmine, SpecDefinitionsFn} from '../types';
 import Env from './Env';
 import JsApiReporter from './JsApiReporter';

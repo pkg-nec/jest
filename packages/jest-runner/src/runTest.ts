@@ -17,18 +17,22 @@ import {
   type LogType,
   NullConsole,
   getConsoleOutput,
-} from '@jest/console';
-import type {JestEnvironment} from '@jest/environment';
-import type {TestFileEvent, TestResult} from '@jest/test-result';
-import {createScriptTransformer} from '@jest/transform';
-import type {Config} from '@jest/types';
-import * as docblock from 'jest-docblock';
-import LeakDetector from 'jest-leak-detector';
-import {formatExecError} from 'jest-message-util';
+} from '@pkg-nec/jest-console';
+import * as docblock from '@pkg-nec/jest-docblock';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
+import LeakDetector from '@pkg-nec/jest-leak-detector';
+import {formatExecError} from '@pkg-nec/jest-message-util';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-import Resolver, {resolveTestEnvironment} from 'jest-resolve';
-import type RuntimeClass from 'jest-runtime';
-import {ErrorWithStack, interopRequireDefault, setGlobal} from 'jest-util';
+import Resolver, {resolveTestEnvironment} from '@pkg-nec/jest-resolve';
+import type RuntimeClass from '@pkg-nec/jest-runtime';
+import type {TestFileEvent, TestResult} from '@pkg-nec/jest-test-result';
+import {createScriptTransformer} from '@pkg-nec/jest-transform';
+import type {Config} from '@pkg-nec/jest-types';
+import {
+  ErrorWithStack,
+  interopRequireDefault,
+  setGlobal,
+} from '@pkg-nec/jest-util';
 import type {TestFramework, TestRunnerContext} from './types';
 
 type RunTestInternalResult = {
@@ -115,13 +119,13 @@ async function runTestInternal(
   const testFramework: TestFramework =
     await transformer.requireAndTranspileModule(
       process.env.JEST_JASMINE === '1'
-        ? require.resolve('jest-jasmine2')
+        ? require.resolve('@pkg-nec/jest-jasmine2')
         : projectConfig.testRunner,
     );
   const Runtime: typeof RuntimeClass = interopRequireDefault(
     projectConfig.runtime
       ? require(projectConfig.runtime)
-      : require('jest-runtime'),
+      : require('@pkg-nec/jest-runtime'),
   ).default;
 
   const consoleOut = globalConfig.useStderr ? process.stderr : process.stdout;

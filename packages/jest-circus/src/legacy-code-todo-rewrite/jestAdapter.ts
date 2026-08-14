@@ -5,12 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {JestEnvironment} from '@jest/environment';
-import type {TestFileEvent, TestResult} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import type Runtime from 'jest-runtime';
-import type {SnapshotState} from 'jest-snapshot';
-import {deepCyclicCopy} from 'jest-util';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
+import type Runtime from '@pkg-nec/jest-runtime';
+import type {SnapshotState} from '@pkg-nec/jest-snapshot';
+import type {TestFileEvent, TestResult} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {deepCyclicCopy} from '@pkg-nec/jest-util';
 
 const FRAMEWORK_INITIALIZER = require.resolve('./jestAdapterInit');
 

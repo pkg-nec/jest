@@ -9,23 +9,29 @@ import nativeModule from 'node:module';
 import * as path from 'node:path';
 import {SourceTextModule} from 'node:vm';
 import slash from 'slash';
-import type {JestEnvironment} from '@jest/environment';
-import type {SourceMapRegistry} from '@jest/source-map';
-import type {TestContext, V8CoverageResult} from '@jest/test-result';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
+import HasteMap, {
+  type IHasteMap,
+  type IModuleMap,
+} from '@pkg-nec/jest-haste-map';
+import {
+  formatStackTrace,
+  separateMessageFromStack,
+} from '@pkg-nec/jest-message-util';
+import type {ModuleMocker} from '@pkg-nec/jest-mock';
+import {escapePathForRegex} from '@pkg-nec/jest-regex-util';
+import Resolver from '@pkg-nec/jest-resolve';
+import {EXTENSION as SnapshotExtension} from '@pkg-nec/jest-snapshot';
+import type {SourceMapRegistry} from '@pkg-nec/jest-source-map';
+import type {TestContext, V8CoverageResult} from '@pkg-nec/jest-test-result';
 import {
   type ScriptTransformer,
   type ShouldInstrumentOptions,
   type TransformationOptions,
   shouldInstrument,
-} from '@jest/transform';
-import type {Config} from '@jest/types';
-import HasteMap, {type IHasteMap, type IModuleMap} from 'jest-haste-map';
-import {formatStackTrace, separateMessageFromStack} from 'jest-message-util';
-import type {ModuleMocker} from 'jest-mock';
-import {escapePathForRegex} from 'jest-regex-util';
-import Resolver from 'jest-resolve';
-import {EXTENSION as SnapshotExtension} from 'jest-snapshot';
-import {createDirectory, deepCyclicCopy, invariant} from 'jest-util';
+} from '@pkg-nec/jest-transform';
+import type {Config} from '@pkg-nec/jest-types';
+import {createDirectory, deepCyclicCopy, invariant} from '@pkg-nec/jest-util';
 import {
   decodePossibleOutsideJestVmPath,
   findSiblingsWithFileExtension,
@@ -60,7 +66,10 @@ const INTERNAL_MODULE_REQUIRE_OUTSIDE_OPTIMIZED_MODULES = new Set(['chalk']);
 // Framework modules that define shared singleton state (e.g. `JestAssertionError`).
 // Redirecting user requires to the internal registry ensures test code and the
 // framework see the same class instances.
-const FRAMEWORK_SINGLETON_MODULES = new Set(['@jest/expect', 'expect']);
+const FRAMEWORK_SINGLETON_MODULES = new Set([
+  '@pkg-nec/jest-expect',
+  '@pkg-nec/expect',
+]);
 
 const esmIsAvailable = typeof SourceTextModule === 'function';
 
@@ -485,7 +494,7 @@ export default class Runtime {
     }
 
     // this module is unmockable
-    if (moduleName === '@jest/globals') {
+    if (moduleName === '@pkg-nec/jest-globals') {
       // @ts-expect-error: we don't care that it's not assignable to T
       return this.jestGlobals.cjsGlobals(from);
     }

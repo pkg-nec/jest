@@ -1,5 +1,5 @@
 {
-  "name": "@jest/globals",
+  "name": "@pkg-nec/jest-globals",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -20,10 +20,10 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/environment": "workspace:*",
-    "@jest/expect": "workspace:*",
-    "@jest/types": "workspace:*",
-    "jest-mock": "workspace:*"
+    "@pkg-nec/jest-environment": "workspace:*",
+    "@pkg-nec/jest-expect": "workspace:*",
+    "@pkg-nec/jest-mock": "workspace:*",
+    "@pkg-nec/jest-types": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

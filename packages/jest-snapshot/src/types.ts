@@ -6,9 +6,9 @@
  */
 
 import type {Expression} from '@babel/types';
-import type {MatcherContext} from 'expect';
-import type {Frame} from 'jest-message-util';
-import type {PrettyFormatOptions} from 'pretty-format';
+import type {MatcherContext} from '@pkg-nec/expect';
+import type {Frame} from '@pkg-nec/jest-message-util';
+import type {PrettyFormatOptions} from '@pkg-nec/pretty-format';
 import type SnapshotState from './State';
 
 export interface Context extends MatcherContext {

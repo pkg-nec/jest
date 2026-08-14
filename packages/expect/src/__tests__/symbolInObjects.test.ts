@@ -6,7 +6,7 @@
  *
  */
 
-import {expect} from '@jest/globals';
+import {expect} from '@pkg-nec/jest-globals';
 
 describe('Symbol in objects', () => {
   test('should compare objects with Symbol keys', () => {

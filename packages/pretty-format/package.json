@@ -1,5 +1,5 @@
 {
-  "name": "pretty-format",
+  "name": "@pkg-nec/pretty-format",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -21,17 +21,17 @@
   },
   "author": "James Kyle <me@thejameskyle.com>",
   "dependencies": {
-    "@jest/schemas": "workspace:*",
+    "@pkg-nec/jest-schemas": "workspace:*",
     "ansi-styles": "^5.2.0",
     "react-is-18": "npm:react-is@^18.3.1",
     "react-is-19": "npm:react-is@^19.2.5"
   },
   "devDependencies": {
+    "@pkg-nec/jest-util": "workspace:*",
     "@types/react": "^18.3.23",
     "@types/react-is": "^19.0.0",
     "@types/react-test-renderer": "^18.3.1",
     "immutable": "^5.1.2",
-    "jest-util": "workspace:*",
     "react": "18.3.1",
     "react-17": "npm:react@^17.0.2",
     "react-18": "npm:react@^18.3.1",

@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {makeGlobalConfig, makeProjectConfig} from '@jest/test-utils';
+import {makeGlobalConfig, makeProjectConfig} from '@pkg-nec/jest-test-utils';
 import JSDomEnvironment from '../';
 
 describe('JSDomEnvironment', () => {

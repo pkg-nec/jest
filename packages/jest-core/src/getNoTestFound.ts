@@ -6,8 +6,8 @@
  */
 
 import chalk from 'chalk';
-import type {Config} from '@jest/types';
-import {pluralize} from 'jest-util';
+import type {Config} from '@pkg-nec/jest-types';
+import {pluralize} from '@pkg-nec/jest-util';
 import type {TestRunData} from './types';
 
 export default function getNoTestFound(

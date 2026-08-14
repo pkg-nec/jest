@@ -8,9 +8,9 @@
 import * as path from 'node:path';
 import * as util from 'node:util';
 import exit from 'exit-x';
-import type {AggregatedResult, TestContext} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import {pluralize} from 'jest-util';
+import type {AggregatedResult, TestContext} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {pluralize} from '@pkg-nec/jest-util';
 import BaseReporter from './BaseReporter';
 import type {ReporterContext} from './types';
 

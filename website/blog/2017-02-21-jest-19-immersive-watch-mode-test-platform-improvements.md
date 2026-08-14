@@ -73,13 +73,13 @@ We now also error on invalid CLI arguments instead of ignoring them. But we've g
 
 ![cli-error](/img/blog/19-cli-error.png)
 
-## `expect` Improvements
+## `@pkg-nec/expect` Improvements
 
 - [`expect.addSnapshotSerializer`](/docs/expect#expectaddsnapshotserializerserializer)
 - [`expect.stringContaining`](/docs/expect#expectstringcontainingstring)
 - [`jest.spyOn`](/docs/jest-object#jestspyonobject-methodname)
 
-We're close to almost full feature parity with the `expect` npm package. [Michael Jackson](https://twitter.com/mjackson), the author of the package, agreed to [donate](https://github.com/jestjs/jest/issues/1679) it to the Jest project, which means that `jest-matchers` will be renamed to `expect`. Since our version of `expect` is not intended to be fully compatible, [Christopher Chedeau](https://twitter.com/Vjeux) is working on a codemod to make the transition painless. Christopher also worked on a number of improvements to `jest-matchers` which enables it to be used outside of Jest and even [works inside browsers](https://github.com/jestjs/jest/pull/2795).
+We're close to almost full feature parity with the `@pkg-nec/expect` npm package. [Michael Jackson](https://twitter.com/mjackson), the author of the package, agreed to [donate](https://github.com/jestjs/jest/issues/1679) it to the Jest project, which means that `jest-matchers` will be renamed to `@pkg-nec/expect`. Since our version of `@pkg-nec/expect` is not intended to be fully compatible, [Christopher Chedeau](https://twitter.com/Vjeux) is working on a codemod to make the transition painless. Christopher also worked on a number of improvements to `jest-matchers` which enables it to be used outside of Jest and even [works inside browsers](https://github.com/jestjs/jest/pull/2795).
 
 ## [eslint-plugin-jest](https://github.com/jest-community/eslint-plugin-jest) – our very own ESLint plugin
 
@@ -89,17 +89,17 @@ Thanks to [Jonathan Kim](https://twitter.com/jonnykim) Jest finally has its own 
 - [no-focused-tests](https://github.com/jest-community/eslint-plugin-jest/blob/main/docs/rules/no-focused-tests.md) - this rule prevents you from committing focused tests which would disable all other tests in the same suite.
 - [no-identical-title](https://github.com/jest-community/eslint-plugin-jest/blob/main/docs/rules/no-identical-title.md) - disallows identical titles in test names.
 
-You can install it using `npm install --save-dev eslint-plugin-jest` or `yarn add --dev eslint eslint-plugin-jest` and it can be enabled by adding `{"plugins": ["jest"]}` to your eslint configuration.
+You can install it using `npm install --save-dev eslint-plugin-jest` or `yarn add --dev eslint eslint-plugin-jest` and it can be enabled by adding `{"plugins": ["@pkg-nec/jest"]}` to your eslint configuration.
 
 ## New public package: [jest-validate](https://github.com/jestjs/jest/tree/main/packages/jest-validate)
 
-While we refactored the validation and normalization code for Jest's configuration, we were so happy with the new error messaging that we extracted it to its own module to share it with everyone. With Jest 19 we welcome `jest-validate` to our self-sustained packages family.
+While we refactored the validation and normalization code for Jest's configuration, we were so happy with the new error messaging that we extracted it to its own module to share it with everyone. With Jest 19 we welcome `@pkg-nec/jest-validate` to our self-sustained packages family.
 
-`jest-validate` is a generic configuration validation tool that helps you with warnings, errors and deprecation messages in your JavaScript tool. It's also capable of showing users friendly examples of correct configuration and it comes with a simple but powerful API. We hope it'll make a good addition to your projects!
+`@pkg-nec/jest-validate` is a generic configuration validation tool that helps you with warnings, errors and deprecation messages in your JavaScript tool. It's also capable of showing users friendly examples of correct configuration and it comes with a simple but powerful API. We hope it'll make a good addition to your projects!
 
 ![validate](/img/blog/19-validate.png)
 
-We're happy to announce that `jest-validate` is validating config options of [prettier](https://github.com/jlongster/prettier) since [v0.12](https://github.com/jlongster/prettier/blob/main/CHANGELOG.md#0120). Feel free to add it to your project, try it, send us feedback and improve it by making pull requests on GitHub.
+We're happy to announce that `@pkg-nec/jest-validate` is validating config options of [prettier](https://github.com/jlongster/prettier) since [v0.12](https://github.com/jlongster/prettier/blob/main/CHANGELOG.md#0120). Feel free to add it to your project, try it, send us feedback and improve it by making pull requests on GitHub.
 
 ## Improved asymmetric matchers
 
@@ -120,7 +120,7 @@ As a part of our cleanups and fixes we removed the `mocksPattern` configuration 
 As you may have already seen, [Hector Ramos](https://twitter.com/hectorramos) and [Kevin Lacker](https://twitter.com/lacker) gave Jest's documentation a fresh new look. We changed the way we organize the website and it now features Docs and API as separate pages:
 
 - Under [Docs](/docs/getting-started#content) you can find an introduction to Jest, including [Getting Started](/docs/getting-started#content) or [Testing Asynchronous Code](/docs/asynchronous#content) and handy guides like [Snapshot Testing](/docs/snapshot-testing#content), [Testing React Native App](/docs/tutorial-react-native#content), [Using with webpack](/docs/webpack#content) or [Migrating to Jest](/docs/migration-guide#content) and many more!
-- The [API](/docs/api) section on the other hand lists all available methods exposed by Jest: the `expect` and `jest` objects, mock functions, globals, along with configuration options from _package.json_ and from the CLI.
+- The [API](/docs/api) section on the other hand lists all available methods exposed by Jest: the `@pkg-nec/expect` and `@pkg-nec/jest` objects, mock functions, globals, along with configuration options from _package.json_ and from the CLI.
 
 The homepage was completely redesigned to be more descriptive of what Jest is about: “_Zero configuration testing platform_”. We also made sure it reads better on mobile devices. And for those using RSS – we finally provide a [feed for our blog](https://jestjs.io/blog/feed.xml).
 

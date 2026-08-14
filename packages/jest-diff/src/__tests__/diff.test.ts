@@ -7,7 +7,7 @@
 
 import {stripVTControlCharacters as stripAnsi} from 'util';
 import chalk from 'chalk';
-import {alignedAnsiStyleSerializer} from '@jest/test-utils';
+import {alignedAnsiStyleSerializer} from '@pkg-nec/jest-test-utils';
 import {diff} from '../';
 import {NO_DIFF_MESSAGE} from '../constants';
 import {diffLinesUnified, diffLinesUnified2} from '../diffLines';

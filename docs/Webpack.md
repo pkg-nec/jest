@@ -48,7 +48,7 @@ module.exports = {
 };
 ```
 
-If you have JavaScript files that are transformed by Babel, you can [enable support for Babel](GettingStarted.md#using-babel) by installing the `babel-jest` plugin. Non-Babel JavaScript transformations can be handled with Jest's [`transform`](Configuration.md#transform-objectstring-pathtotransformer--pathtotransformer-object) config option.
+If you have JavaScript files that are transformed by Babel, you can [enable support for Babel](GettingStarted.md#using-babel) by installing the `@pkg-nec/babel-jest` plugin. Non-Babel JavaScript transformations can be handled with Jest's [`transform`](Configuration.md#transform-objectstring-pathtotransformer--pathtotransformer-object) config option.
 
 ### Handling Static Assets
 
@@ -124,7 +124,7 @@ We've told Jest to ignore files matching a stylesheet or image extension, and in
 
 :::tip
 
-Remember to include the default `babel-jest` transformer explicitly, if you wish to use it alongside with additional code preprocessors:
+Remember to include the default `@pkg-nec/babel-jest` transformer explicitly, if you wish to use it alongside with additional code preprocessors:
 
 ```json
 "transform": {
@@ -199,7 +199,7 @@ For more complex webpack configurations, you may also want to investigate projec
 
 ## Using with webpack
 
-In addition to installing `babel-jest` as described earlier, you'll need to add `@babel/preset-env` like so:
+In addition to installing `@pkg-nec/babel-jest` as described earlier, you'll need to add `@babel/preset-env` like so:
 
 ```bash npm2yarn
 npm install --save-dev @babel/preset-env

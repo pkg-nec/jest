@@ -1,5 +1,5 @@
 {
-  "name": "babel-preset-jest",
+  "name": "@pkg-nec/babel-preset-jest",
   "version": "30.4.0",
   "repository": {
     "type": "git",
@@ -13,7 +13,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "babel-plugin-jest-hoist": "workspace:*",
+    "@pkg-nec/babel-plugin-jest-hoist": "workspace:*",
     "babel-preset-current-node-syntax": "^1.2.0"
   },
   "peerDependencies": {

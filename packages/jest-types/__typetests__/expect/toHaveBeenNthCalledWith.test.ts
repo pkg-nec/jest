@@ -6,7 +6,7 @@
  */
 
 import {expect} from 'tstyche';
-import {jest, expect as jestExpect} from '@jest/globals';
+import {jest, expect as jestExpect} from '@pkg-nec/jest-globals';
 import type {overloaded} from './toHaveBeenCalledWith.test';
 
 expect(jestExpect(jest.fn()).toHaveBeenNthCalledWith(2)).type.toBe<void>();

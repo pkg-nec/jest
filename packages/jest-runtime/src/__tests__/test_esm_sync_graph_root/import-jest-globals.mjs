@@ -5,6 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 export const hasJest = typeof jest === 'object' && jest !== null;

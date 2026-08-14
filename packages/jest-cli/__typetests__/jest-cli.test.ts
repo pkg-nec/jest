@@ -7,7 +7,7 @@
 
 import {expect, test} from 'tstyche';
 import type {Options} from 'yargs';
-import {yargsOptions} from 'jest-cli';
+import {yargsOptions} from '@pkg-nec/jest-cli';
 
 test('yargsOptions', () => {
   expect(yargsOptions).type.toBe<{[key: string]: Options}>();

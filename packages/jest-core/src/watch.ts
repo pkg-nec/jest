@@ -11,18 +11,18 @@ import ansiEscapes from 'ansi-escapes';
 import chalk from 'chalk';
 import exit from 'exit-x';
 import slash from 'slash';
-import {TestPathPatterns} from '@jest/pattern';
-import type {TestContext} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import type {IHasteMap as HasteMap} from 'jest-haste-map';
-import {formatExecError} from 'jest-message-util';
+import type {IHasteMap as HasteMap} from '@pkg-nec/jest-haste-map';
+import {formatExecError} from '@pkg-nec/jest-message-util';
+import {TestPathPatterns} from '@pkg-nec/jest-pattern';
+import type {TestContext} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
 import {
   isInteractive,
   preRunMessage,
   requireOrImportModule,
   specialChars,
-} from 'jest-util';
-import {ValidationError} from 'jest-validate';
+} from '@pkg-nec/jest-util';
+import {ValidationError} from '@pkg-nec/jest-validate';
 import {
   type AllowedConfigOptions,
   JestHook,
@@ -30,7 +30,7 @@ import {
   TestWatcher,
   type WatchPlugin,
   type WatchPluginClass,
-} from 'jest-watcher';
+} from '@pkg-nec/jest-watcher';
 import FailedTestsCache from './FailedTestsCache';
 import SearchSource from './SearchSource';
 import getChangedFilesPromise from './getChangedFilesPromise';

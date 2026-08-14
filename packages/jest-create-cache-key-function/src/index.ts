@@ -10,14 +10,14 @@ import {createHash} from 'node:crypto';
 // eslint-disable-next-line no-restricted-imports
 import {readFileSync} from 'node:fs';
 import {relative} from 'node:path';
-import type {Config} from '@jest/types';
+import type {Config} from '@pkg-nec/jest-types';
 
 type OldCacheKeyOptions = {
   config: Config.ProjectConfig;
   instrument: boolean;
 };
 
-// Should mirror `import('@jest/transform').TransformOptions`
+// Should mirror `import('@pkg-nec/jest-transform').TransformOptions`
 type NewCacheKeyOptions = {
   config: Config.ProjectConfig;
   configString: string;
@@ -31,7 +31,7 @@ type OldGetCacheKeyFunction = (
   options: OldCacheKeyOptions,
 ) => string;
 
-// Should mirror `import('@jest/transform').Transformer['getCacheKey']`
+// Should mirror `import('@pkg-nec/jest-transform').Transformer['getCacheKey']`
 type NewGetCacheKeyFunction = (
   sourceText: string,
   sourcePath: string,

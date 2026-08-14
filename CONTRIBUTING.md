@@ -123,7 +123,7 @@ Constraints can be checked with `yarn constraints`, and fixed with `yarn constra
 
 ##### Using jest-jasmine2
 
-There may be cases where you want to run jest using `jest-jasmine2` instead of `jest-circus` (which is the default runner) for integration testing. In situations like this, set the environment variable `JEST_JASMINE` to 1. That will configure jest to use `jest-jasmine2`. So something like this.
+There may be cases where you want to run jest using `@pkg-nec/jest-jasmine2` instead of `@pkg-nec/jest-circus` (which is the default runner) for integration testing. In situations like this, set the environment variable `JEST_JASMINE` to 1. That will configure jest to use `@pkg-nec/jest-jasmine2`. So something like this.
 
 ```bash
 JEST_JASMINE=1 yarn jest

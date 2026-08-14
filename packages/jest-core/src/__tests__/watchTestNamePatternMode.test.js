@@ -7,8 +7,8 @@
  */
 
 import chalk from 'chalk';
-import {TestPathPatterns} from '@jest/pattern';
-import {KEYS} from 'jest-watcher';
+import {TestPathPatterns} from '@pkg-nec/jest-pattern';
+import {KEYS} from '@pkg-nec/jest-watcher';
 
 const runJestMock = jest.fn();
 

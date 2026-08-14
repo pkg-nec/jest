@@ -12,7 +12,7 @@ import {
   RECEIVED_COLOR,
   printReceived,
   stringify,
-} from 'jest-matcher-utils';
+} from '@pkg-nec/jest-matcher-utils';
 
 // Format substring but do not enclose in double quote marks.
 // The replacement is compatible with pretty-format package.

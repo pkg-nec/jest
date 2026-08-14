@@ -5,7 +5,7 @@
 ## Install
 
 ```sh
-$ npm install --save-dev babel-preset-jest
+$ npm install --save-dev @pkg-nec/babel-preset-jest
 ```
 
 ## Usage

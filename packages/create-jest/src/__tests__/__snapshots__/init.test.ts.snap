@@ -139,7 +139,7 @@ exports[`init project using jest.config.ts ask the user whether he wants to use 
  * https://jestjs.io/docs/configuration
  */
 
-import type {Config} from 'jest';
+import type {Config} from '@pkg-nec/jest';
 
 const config: Config = {
   // All imported modules in your tests should be mocked automatically
@@ -269,7 +269,7 @@ const config: Config = {
   // ],
 
   // Allows you to use a custom runner instead of Jest's default test runner
-  // runner: "jest-runner",
+  // runner: "@pkg-nec/jest-runner",
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
   // setupFiles: [],
@@ -284,7 +284,7 @@ const config: Config = {
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  // testEnvironment: "jest-environment-node",
+  // testEnvironment: "@pkg-nec/jest-environment-node",
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -310,7 +310,7 @@ const config: Config = {
   // testResultsProcessor: undefined,
 
   // This option allows use of a custom test runner
-  // testRunner: "jest-circus/runner",
+  // testRunner: "@pkg-nec/jest-circus/runner",
 
   // A map from regular expressions to paths to transformers
   // transform: undefined,
@@ -344,7 +344,7 @@ exports[`init project with package.json and no jest config all questions answere
  * https://jestjs.io/docs/configuration
  */
 
-/** @type {import('jest').Config} */
+/** @type {import('@pkg-nec/jest').Config} */
 const config = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
@@ -473,7 +473,7 @@ const config = {
   // ],
 
   // Allows you to use a custom runner instead of Jest's default test runner
-  // runner: "jest-runner",
+  // runner: "@pkg-nec/jest-runner",
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
   // setupFiles: [],
@@ -488,7 +488,7 @@ const config = {
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  // testEnvironment: "jest-environment-node",
+  // testEnvironment: "@pkg-nec/jest-environment-node",
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -514,7 +514,7 @@ const config = {
   // testResultsProcessor: undefined,
 
   // This option allows use of a custom test runner
-  // testRunner: "jest-circus/runner",
+  // testRunner: "@pkg-nec/jest-circus/runner",
 
   // A map from regular expressions to paths to transformers
   // transform: undefined,
@@ -548,7 +548,7 @@ exports[`init project with package.json and no jest config all questions answere
  * https://jestjs.io/docs/configuration
  */
 
-/** @type {import('jest').Config} */
+/** @type {import('@pkg-nec/jest').Config} */
 const config = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
@@ -677,7 +677,7 @@ const config = {
   // ],
 
   // Allows you to use a custom runner instead of Jest's default test runner
-  // runner: "jest-runner",
+  // runner: "@pkg-nec/jest-runner",
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
   // setupFiles: [],
@@ -692,7 +692,7 @@ const config = {
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  // testEnvironment: "jest-environment-node",
+  // testEnvironment: "@pkg-nec/jest-environment-node",
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -718,7 +718,7 @@ const config = {
   // testResultsProcessor: undefined,
 
   // This option allows use of a custom test runner
-  // testRunner: "jest-circus/runner",
+  // testRunner: "@pkg-nec/jest-circus/runner",
 
   // A map from regular expressions to paths to transformers
   // transform: undefined,

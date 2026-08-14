@@ -11,8 +11,8 @@ import dedent from 'dedent';
 import isGeneratorFn from 'is-generator-fn';
 import slash from 'slash';
 import StackUtils from 'stack-utils';
-import type {Status, TestCaseResult} from '@jest/test-result';
-import type {Circus, Global} from '@jest/types';
+import type {Status, TestCaseResult} from '@pkg-nec/jest-test-result';
+import type {Circus, Global} from '@pkg-nec/jest-types';
 import {
   ErrorWithStack,
   convertDescriptorToString,
@@ -20,13 +20,15 @@ import {
   invariant,
   isError,
   isPromise,
-} from 'jest-util';
-import {format as prettyFormat} from 'pretty-format';
+} from '@pkg-nec/jest-util';
+import {format as prettyFormat} from '@pkg-nec/pretty-format';
 import {ROOT_DESCRIBE_BLOCK_NAME, getState} from './state';
 
 const stackUtils = new StackUtils({cwd: 'A path that does not exist'});
 
-const jestEachBuildDir = slash(path.dirname(require.resolve('jest-each')));
+const jestEachBuildDir = slash(
+  path.dirname(require.resolve('@pkg-nec/jest-each')),
+);
 
 function takesDoneCallback(fn: Circus.AsyncFn): fn is Global.DoneTakingTestFn {
   return fn.length > 0;

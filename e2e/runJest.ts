@@ -13,11 +13,11 @@ import dedent from 'dedent';
 import execa from 'execa';
 import * as fs from 'graceful-fs';
 import * as semver from 'semver';
-import {TestPathPatterns} from '@jest/pattern';
-import type {FormattedTestResults} from '@jest/test-result';
-import {normalizeIcons} from '@jest/test-utils';
-import type {Config} from '@jest/types';
-import {ErrorWithStack} from 'jest-util';
+import {TestPathPatterns} from '@pkg-nec/jest-pattern';
+import type {FormattedTestResults} from '@pkg-nec/jest-test-result';
+import {normalizeIcons} from '@pkg-nec/jest-test-utils';
+import type {Config} from '@pkg-nec/jest-types';
+import {ErrorWithStack} from '@pkg-nec/jest-util';
 
 export const useNativeTypeScript = semver.satisfies(
   process.versions.node,

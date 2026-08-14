@@ -13,7 +13,7 @@ The **Introduction** section will guide you from installing Jest and writing you
 
 Once you feel comfortable using Jest, proceed to the advanced **Guides** section. The new [Snapshot Testing guide](/docs/snapshot-testing) covers everything you need to know about creating and maintaining snapshot test cases.
 
-Finally, we've completely overhauled our API reference docs. You can now find detailed information on all of Jest's [Globals](/docs/api), [matchers](/docs/expect), and [every flag](/docs/cli) supported by the `jest` CLI.
+Finally, we've completely overhauled our API reference docs. You can now find detailed information on all of Jest's [Globals](/docs/api), [matchers](/docs/expect), and [every flag](/docs/cli) supported by the `@pkg-nec/jest` CLI.
 
 <!--truncate-->
 

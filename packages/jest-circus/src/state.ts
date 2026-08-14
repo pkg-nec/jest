@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Circus, Global} from '@jest/types';
-import {protectProperties, setGlobal} from 'jest-util';
+import type {Circus, Global} from '@pkg-nec/jest-types';
+import {protectProperties, setGlobal} from '@pkg-nec/jest-util';
 import eventHandler from './eventHandler';
 import formatNodeAssertErrors from './formatNodeAssertErrors';
 import {EVENT_HANDLERS, STATE_SYM} from './types';

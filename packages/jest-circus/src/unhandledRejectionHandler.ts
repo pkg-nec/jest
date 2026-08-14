@@ -5,9 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Circus} from '@jest/types';
-import type Runtime from 'jest-runtime';
-import {invariant} from 'jest-util';
+import type Runtime from '@pkg-nec/jest-runtime';
+import type {Circus} from '@pkg-nec/jest-types';
+import {invariant} from '@pkg-nec/jest-util';
 import {addErrorToEachTestUnderDescribe} from './utils';
 
 // Global values can be overwritten by mocks or tests. We'll capture

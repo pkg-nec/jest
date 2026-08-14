@@ -66,7 +66,7 @@ test('should resolve filename.json', () => {
 
 test('should preserve identity for symlinks', () => {
   expect(require('../../../packages/jest-resolve')).toBe(
-    require('jest-resolve'),
+    require('@pkg-nec/jest-resolve'),
   );
 });
 

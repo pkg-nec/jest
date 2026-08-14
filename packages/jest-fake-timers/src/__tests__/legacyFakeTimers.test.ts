@@ -9,7 +9,7 @@
 
 import * as util from 'util';
 import {runInNewContext} from 'vm';
-import {ModuleMocker} from 'jest-mock';
+import {ModuleMocker} from '@pkg-nec/jest-mock';
 import FakeTimers from '../legacyFakeTimers';
 
 const timerConfig = {

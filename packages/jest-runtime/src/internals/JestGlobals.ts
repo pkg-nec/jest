@@ -6,11 +6,14 @@
  */
 
 import type {SyntheticModule, Context as VMContext} from 'node:vm';
-import type {Jest, JestEnvironment} from '@jest/environment';
-import type {LegacyFakeTimers, ModernFakeTimers} from '@jest/fake-timers';
-import type {expect} from '@jest/globals';
-import type {Config} from '@jest/types';
-import type {ModuleMocker} from 'jest-mock';
+import type {Jest, JestEnvironment} from '@pkg-nec/jest-environment';
+import type {
+  LegacyFakeTimers,
+  ModernFakeTimers,
+} from '@pkg-nec/jest-fake-timers';
+import type {expect} from '@pkg-nec/jest-globals';
+import type {ModuleMocker} from '@pkg-nec/jest-mock';
+import type {Config} from '@pkg-nec/jest-types';
 import type {MockState} from './MockState';
 import type {TestState} from './TestState';
 import {syntheticFromExports} from './syntheticBuilders';
@@ -144,7 +147,7 @@ export class JestGlobals {
 
   esmGlobalsModule(from: string, context: VMContext): SyntheticModule {
     return syntheticFromExports(
-      '@jest/globals',
+      '@pkg-nec/jest-globals',
       context,
       this.cjsGlobals(from) as unknown as Record<string, unknown>,
     );

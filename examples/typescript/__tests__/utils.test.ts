@@ -1,6 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-import {afterEach, beforeEach, expect, it, jest} from '@jest/globals';
+import {afterEach, beforeEach, expect, it, jest} from '@pkg-nec/jest-globals';
 import {isLocalhost} from '../utils';
 
 let replacedEnv: jest.Replaced<typeof process.env> | undefined = undefined;

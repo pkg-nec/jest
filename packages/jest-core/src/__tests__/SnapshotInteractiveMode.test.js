@@ -6,7 +6,7 @@
  */
 
 import chalk from 'chalk';
-import {KEYS} from 'jest-watcher';
+import {KEYS} from '@pkg-nec/jest-watcher';
 import SnapshotInteractiveMode from '../SnapshotInteractiveMode';
 
 jest.doMock('chalk', () =>

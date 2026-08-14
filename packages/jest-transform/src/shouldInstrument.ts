@@ -6,9 +6,9 @@
  */
 
 import * as path from 'node:path';
-import type {Config} from '@jest/types';
-import {escapePathForRegex} from 'jest-regex-util';
-import {globsToMatcher, replacePathSepForGlob} from 'jest-util';
+import {escapePathForRegex} from '@pkg-nec/jest-regex-util';
+import type {Config} from '@pkg-nec/jest-types';
+import {globsToMatcher, replacePathSepForGlob} from '@pkg-nec/jest-util';
 import type {ShouldInstrumentOptions} from './types';
 
 const MOCKS_PATTERN = new RegExp(

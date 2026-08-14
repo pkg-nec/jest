@@ -1,5 +1,5 @@
 {
-  "name": "jest-phabricator",
+  "name": "@pkg-nec/jest-phabricator",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/test-result": "workspace:*"
+    "@pkg-nec/jest-test-result": "workspace:*"
   },
   "engines": {
     "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"

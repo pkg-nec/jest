@@ -3,7 +3,7 @@ id: expect
 title: Expect
 ---
 
-When you're writing tests, you often need to check that values meet certain conditions. `expect` gives you access to a number of "matchers" that let you validate different things.
+When you're writing tests, you often need to check that values meet certain conditions. `@pkg-nec/expect` gives you access to a number of "matchers" that let you validate different things.
 
 :::tip
 
@@ -27,7 +27,7 @@ import TOCInline from '@theme/TOCInline';
 
 ### `expect(value)`
 
-The `expect` function is used every time you want to test a value. You will rarely call `expect` by itself. Instead, you will use `expect` along with a "matcher" function to assert something about a value.
+The `@pkg-nec/expect` function is used every time you want to test a value. You will rarely call `@pkg-nec/expect` by itself. Instead, you will use `@pkg-nec/expect` along with a "matcher" function to assert something about a value.
 
 It's easier to understand this with an example. Let's say you have a method `bestLaCroixFlavor()` which is supposed to return the string `'grapefruit'`. Here's how you would test that:
 
@@ -39,7 +39,7 @@ test('the best flavor is grapefruit', () => {
 
 In this case, `toBe` is the matcher function. There are a lot of different matcher functions, documented below, to help you test different things.
 
-The argument to `expect` should be the value that your code produces, and any argument to the matcher should be the correct value. If you mix them up, your tests will still work, but the error messages on failing tests will look strange.
+The argument to `@pkg-nec/expect` should be the value that your code produces, and any argument to the matcher should be the correct value. If you mix them up, your tests will still work, but the error messages on failing tests will look strange.
 
 ## Modifiers
 
@@ -137,7 +137,7 @@ describe('the can', () => {
 
 Don't use `.toBe` with floating-point numbers. For example, due to rounding, in JavaScript `0.2 + 0.1` is not strictly equal to `0.3`. If you have floating point numbers, try `.toBeCloseTo` instead.
 
-Although the `.toBe` matcher **checks** referential identity, it **reports** a deep comparison of values if the assertion fails. If differences between properties do not help you to understand why a test fails, especially if the report is large, then you might move the comparison into the `expect` function. For example, to assert whether or not elements are the same instance:
+Although the `.toBe` matcher **checks** referential identity, it **reports** a deep comparison of values if the assertion fails. If differences between properties do not help you to understand why a test fails, especially if the report is large, then you might move the comparison into the `@pkg-nec/expect` function. For example, to assert whether or not elements are the same instance:
 
 - rewrite `expect(received).toBe(expected)` as `expect(Object.is(received, expected)).toBe(true)`
 - rewrite `expect(received).not.toBe(expected)` as `expect(Object.is(received, expected)).toBe(false)`
@@ -640,7 +640,7 @@ describe('the La Croix cans on my desk', () => {
 
 :::
 
-If differences between properties do not help you to understand why a test fails, especially if the report is large, then you might move the comparison into the `expect` function. For example, use `equals` method of `Buffer` class to assert whether or not buffers contain the same content:
+If differences between properties do not help you to understand why a test fails, especially if the report is large, then you might move the comparison into the `@pkg-nec/expect` function. For example, use `equals` method of `Buffer` class to assert whether or not buffers contain the same content:
 
 - rewrite `expect(received).toEqual(expected)` as `expect(received.equals(expected)).toBe(true)`
 - rewrite `expect(received).not.toEqual(expected)` as `expect(received.equals(expected)).toBe(false)`
@@ -1201,7 +1201,7 @@ export class Volume {
 ```
 
 ```js title="areVolumesEqual.js"
-import {expect} from '@jest/globals';
+import {expect} from '@pkg-nec/jest-globals';
 import {Volume} from './Volume.js';
 
 function areVolumesEqual(a, b) {
@@ -1221,7 +1221,7 @@ expect.addEqualityTesters([areVolumesEqual]);
 ```
 
 ```js title="__tests__/Volume.test.js"
-import {expect, test} from '@jest/globals';
+import {expect, test} from '@pkg-nec/jest-globals';
 import {Volume} from '../Volume.js';
 import '../areVolumesEqual.js';
 
@@ -1258,7 +1258,7 @@ export class Volume {
 ```
 
 ```ts title="areVolumesEqual.ts"
-import {expect} from '@jest/globals';
+import {expect} from '@pkg-nec/jest-globals';
 import {Volume} from './Volume.js';
 
 function areVolumesEqual(a: unknown, b: unknown): boolean | undefined {
@@ -1278,7 +1278,7 @@ expect.addEqualityTesters([areVolumesEqual]);
 ```
 
 ```ts title="__tests__/Volume.test.ts"
-import {expect, test} from '@jest/globals';
+import {expect, test} from '@pkg-nec/jest-globals';
 import {Volume} from '../Volume.js';
 import '../areVolumesEqual.js';
 
@@ -1301,7 +1301,7 @@ This is a deep-equality function that will return `true` if two objects have the
 
 #### Matchers vs Testers
 
-Matchers are methods available on `expect`, for example `expect().toEqual()`. `toEqual` is a matcher. A tester is a method used by matchers that do equality checks to determine if objects are the same.
+Matchers are methods available on `@pkg-nec/expect`, for example `expect().toEqual()`. `toEqual` is a matcher. A tester is a method used by matchers that do equality checks to determine if objects are the same.
 
 Custom matchers are good to use when you want to provide a custom assertion that test authors can use in their tests. For example, the `toBeWithinRange` example in the [`expect.extend`](#expectextendmatchers) section is a good example of a custom matcher. Sometimes a test author may want to assert two numbers are exactly equal and should use `toBe`. Other times, however, a test author may want to allow for some flexibility in their test, and `toBeWithinRange` may be a more appropriate assertion.
 
@@ -1380,7 +1380,7 @@ See [configuring Jest](Configuration.md#snapshotserializers-arraystring) for mor
 You can use `expect.extend` to add your own matchers to Jest. For example, let's say that you're testing a number utility library and you're frequently asserting that numbers appear within particular ranges of other numbers. You could abstract that into a `toBeWithinRange` matcher:
 
 ```js tab={"span":3} title="toBeWithinRange.js"
-import {expect} from '@jest/globals';
+import {expect} from '@pkg-nec/jest-globals';
 
 function toBeWithinRange(actual, floor, ceiling) {
   if (
@@ -1421,7 +1421,7 @@ expect.extend({
 ```
 
 ```js title="__tests__/ranges.test.js"
-import {expect, test} from '@jest/globals';
+import {expect, test} from '@pkg-nec/jest-globals';
 import '../toBeWithinRange';
 
 test('is within range', () => expect(100).toBeWithinRange(90, 110));
@@ -1451,8 +1451,8 @@ export {};
 ```
 
 ```ts tab={"span":2} title="toBeWithinRange.ts"
-import {expect} from '@jest/globals';
-import type {MatcherFunction} from 'expect';
+import {expect} from '@pkg-nec/jest-globals';
+import type {MatcherFunction} from '@pkg-nec/expect';
 
 const toBeWithinRange: MatcherFunction<[floor: unknown, ceiling: unknown]> =
   // `floor` and `ceiling` get types from the line above
@@ -1506,7 +1506,7 @@ declare module 'expect' {
 ```
 
 ```ts tab title="__tests__/ranges.test.ts"
-import {expect, test} from '@jest/globals';
+import {expect, test} from '@pkg-nec/jest-globals';
 import '../toBeWithinRange';
 
 test('is within range', () => expect(100).toBeWithinRange(90, 110));
@@ -1532,7 +1532,7 @@ The type declaration of the matcher can live in a `.d.ts` file or in an imported
 Instead of importing `toBeWithinRange` module to the test file, you can enable the matcher for all tests by moving the `expect.extend` call to a [`setupFilesAfterEnv`](Configuration.md#setupfilesafterenv-array) script:
 
 ```js
-import {expect} from '@jest/globals';
+import {expect} from '@pkg-nec/jest-globals';
 // remember to export `toBeWithinRange` as well
 import {toBeWithinRange} from './toBeWithinRange';
 
@@ -1615,12 +1615,12 @@ A boolean to let you know this matcher was called with an `expand` option. When 
 
 #### `this.utils`
 
-There are a number of helpful tools exposed on `this.utils` primarily consisting of the exports from [`jest-matcher-utils`](https://github.com/jestjs/jest/tree/main/packages/jest-matcher-utils).
+There are a number of helpful tools exposed on `this.utils` primarily consisting of the exports from [`@pkg-nec/jest-matcher-utils`](https://github.com/jestjs/jest/tree/main/packages/jest-matcher-utils).
 
 The most useful ones are `matcherHint`, `printExpected` and `printReceived` to format the error messages nicely. For example, take a look at the implementation for the `toBe` matcher:
 
 ```js
-const {diff} = require('jest-diff');
+const {diff} = require('@pkg-nec/jest-diff');
 expect.extend({
   toBe(received, expected) {
     const options = {
@@ -1677,12 +1677,12 @@ If your matcher does a deep equality check using `this.equals`, you may want to 
 
 #### Custom snapshot matchers
 
-To use snapshot testing inside of your custom matcher you can import `jest-snapshot` and use it from within your matcher.
+To use snapshot testing inside of your custom matcher you can import `@pkg-nec/jest-snapshot` and use it from within your matcher.
 
 Here's a snapshot matcher that trims a string to store for a given length, `.toMatchTrimmedSnapshot(length)`:
 
 ```js
-const {toMatchSnapshot} = require('jest-snapshot');
+const {toMatchSnapshot} = require('@pkg-nec/jest-snapshot');
 
 expect.extend({
   toMatchTrimmedSnapshot(received, length) {
@@ -1708,7 +1708,7 @@ exports[`stores only 10 characters: toMatchTrimmedSnapshot 1`] = `"extra long"`;
 It's also possible to create custom matchers for inline snapshots, the snapshots will be correctly added to the custom matchers. However, inline snapshot will always try to append to the first argument or the second when the first argument is the property matcher, so it's not possible to accept custom arguments in the custom matchers.
 
 ```js
-const {toMatchInlineSnapshot} = require('jest-snapshot');
+const {toMatchInlineSnapshot} = require('@pkg-nec/jest-snapshot');
 
 expect.extend({
   toMatchTrimmedInlineSnapshot(received, ...rest) {
@@ -1732,7 +1732,7 @@ it('stores only 10 characters', () => {
 If your custom inline snapshot matcher is async i.e. uses `async`-`await` you might encounter an error like "Multiple inline snapshots for the same call are not supported". Jest needs additional context information to find where the custom inline snapshot matcher was used to update the snapshots properly.
 
 ```js
-const {toMatchInlineSnapshot} = require('jest-snapshot');
+const {toMatchInlineSnapshot} = require('@pkg-nec/jest-snapshot');
 
 expect.extend({
   async toMatchObservationInlineSnapshot(fn, ...rest) {
@@ -1764,14 +1764,14 @@ it('observes something', async () => {
 
 #### Bail out
 
-Usually `jest` tries to match every snapshot that is expected in a test.
+Usually `@pkg-nec/jest` tries to match every snapshot that is expected in a test.
 
 Sometimes it might not make sense to continue the test if a prior snapshot failed. For example, when you make snapshots of a state-machine after various transitions you can abort the test once one transition produced the wrong state.
 
 In that case you can implement a custom snapshot matcher that throws on the first mismatch instead of collecting every mismatch.
 
 ```js
-const {toMatchInlineSnapshot} = require('jest-snapshot');
+const {toMatchInlineSnapshot} = require('@pkg-nec/jest-snapshot');
 
 expect.extend({
   toMatchStateInlineSnapshot(...args) {
@@ -1813,7 +1813,7 @@ Serializable properties is a set of properties that are considered serializable 
 You can add your own properties to this set to make sure that your objects are printed correctly. For example, if you have a `Volume` class, and you want to make sure that only the `amount` and `unit` properties are printed, you can add it to `SERIALIZABLE_PROPERTIES`:
 
 ```js
-import {SERIALIZABLE_PROPERTIES} from 'jest-matcher-utils';
+import {SERIALIZABLE_PROPERTIES} from '@pkg-nec/jest-matcher-utils';
 
 class Volume {
   constructor(amount, unit) {

@@ -9,7 +9,7 @@
 import * as os from 'os';
 import * as path from 'path';
 import {promises as fs} from 'graceful-fs';
-import type {Config} from '@jest/types';
+import type {Config} from '@pkg-nec/jest-types';
 import type Runtime from '..';
 import {createOutsideJestVmPath} from '../helpers';
 

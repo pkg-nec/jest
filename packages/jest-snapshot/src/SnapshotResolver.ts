@@ -7,9 +7,9 @@
 
 import * as path from 'node:path';
 import chalk from 'chalk';
-import {createTranspilingRequire} from '@jest/transform';
-import type {Config} from '@jest/types';
-import {interopRequireDefault} from 'jest-util';
+import {createTranspilingRequire} from '@pkg-nec/jest-transform';
+import type {Config} from '@pkg-nec/jest-types';
+import {interopRequireDefault} from '@pkg-nec/jest-util';
 
 export type SnapshotResolver = {
   /** Resolves from `testPath` to snapshot path. */

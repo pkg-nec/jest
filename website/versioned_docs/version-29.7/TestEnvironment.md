@@ -77,10 +77,10 @@ Here is an example of how to extend the `NodeEnvironment`:
 ```js tab title="custom-node-environment.js"
 // An example of a custom Node environment
 
-const NodeEnvironment = require('jest-environment-node');
+const NodeEnvironment = require('@pkg-nec/jest-environment-node');
 
 /**
- * @implements {import('jest-environment-node').NodeEnvironment}
+ * @implements {import('@pkg-nec/jest-environment-node').NodeEnvironment}
  */
 class CustomNodeEnvironment extends NodeEnvironment {
   constructor(config, context) {
@@ -125,7 +125,7 @@ module.exports = CustomNodeEnvironment;
 ```ts tab title="custom-node-environment.ts"
 // An example of a custom Node environment
 
-import NodeEnvironment from 'jest-environment-node';
+import NodeEnvironment from '@pkg-nec/jest-environment-node';
 
 export default class CustomNodeEnvironment extends NodeEnvironment {
   constructor(config, context) {
@@ -168,14 +168,14 @@ export default class CustomNodeEnvironment extends NodeEnvironment {
 and declare in your Jest config
 
 ```js tab title="jest.config.js"
-/** @type {import('jest').Config} */
+/** @type {import('@pkg-nec/jest').Config} */
 module.exports = {
   testEnvironment: './custom-node-environment.js',
 };
 ```
 
 ```ts tab title="jest.config.ts"
-import type {Config} from 'jest';
+import type {Config} from '@pkg-nec/jest';
 
 const config: Config = {
   testEnvironment: './custom-node-environment.ts',
@@ -204,7 +204,7 @@ It's a best practice to name your custom environment with `jest-environment-` pr
 
 ```js tab title="environment.js"
 /**
- * @implements {import('@jest/environment').JestEnvironment}
+ * @implements {import('@pkg-nec/jest-environment').JestEnvironment}
  */
 class CustomEnvironment {
   // Implement the required methods here
@@ -219,7 +219,7 @@ module.exports = CustomEnvironment;
 ```
 
 ```ts tab title="environment.ts"
-import type {JestEnvironment} from '@jest/environment';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
 
 export default class CustomEnvironment implements JestEnvironment {
   // Implement the required methods here
@@ -234,14 +234,14 @@ export default class CustomEnvironment implements JestEnvironment {
 and declare in your Jest config
 
 ```js tab title="jest.config.js"
-/** @type {import('jest').Config} */
+/** @type {import('@pkg-nec/jest').Config} */
 module.exports = {
   testEnvironment: './environment.js',
 };
 ```
 
 ```ts tab title="jest.config.ts"
-import type {Config} from 'jest';
+import type {Config} from '@pkg-nec/jest';
 
 const config: Config = {
   testEnvironment: './environment.ts',

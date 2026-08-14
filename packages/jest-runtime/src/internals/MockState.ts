@@ -6,8 +6,8 @@
  */
 
 import * as path from 'node:path';
-import type {Config} from '@jest/types';
-import type {MockMetadata, ModuleMocker} from 'jest-mock';
+import type {MockMetadata, ModuleMocker} from '@pkg-nec/jest-mock';
+import type {Config} from '@pkg-nec/jest-types';
 import type {ModuleRegistries} from './ModuleRegistries';
 import type {Resolution} from './Resolution';
 

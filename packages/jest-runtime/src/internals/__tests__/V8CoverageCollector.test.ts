@@ -8,8 +8,11 @@
 import * as path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import type {CoverageInstrumenter} from 'collect-v8-coverage';
-import {makeProjectConfig} from '@jest/test-utils';
-import type {ShouldInstrumentOptions, TransformResult} from '@jest/transform';
+import {makeProjectConfig} from '@pkg-nec/jest-test-utils';
+import type {
+  ShouldInstrumentOptions,
+  TransformResult,
+} from '@pkg-nec/jest-transform';
 import type {TransformCache} from '../TransformCache';
 import {V8CoverageCollector} from '../V8CoverageCollector';
 

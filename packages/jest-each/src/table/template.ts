@@ -6,7 +6,7 @@
  *
  */
 
-import type {Global} from '@jest/types';
+import type {Global} from '@pkg-nec/jest-types';
 import type {EachTests} from '../bind';
 import {
   type Headings,

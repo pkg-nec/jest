@@ -5,7 +5,7 @@
 ## API
 
 ```js
-import {ModuleMocker} from 'jest-mock';
+import {ModuleMocker} from '@pkg-nec/jest-mock';
 ```
 
 ### `constructor(global)`

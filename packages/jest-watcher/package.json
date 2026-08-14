@@ -1,5 +1,5 @@
 {
-  "name": "jest-watcher",
+  "name": "@pkg-nec/jest-watcher",
   "description": "Delightful JavaScript Testing.",
   "version": "30.4.1",
   "main": "./build/index.js",
@@ -14,13 +14,13 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/test-result": "workspace:*",
-    "@jest/types": "workspace:*",
+    "@pkg-nec/jest-test-result": "workspace:*",
+    "@pkg-nec/jest-types": "workspace:*",
+    "@pkg-nec/jest-util": "workspace:*",
     "@types/node": "*",
     "ansi-escapes": "^4.3.2",
     "chalk": "^4.1.2",
     "emittery": "^0.13.1",
-    "jest-util": "workspace:*",
     "string-length": "^4.0.2"
   },
   "repository": {

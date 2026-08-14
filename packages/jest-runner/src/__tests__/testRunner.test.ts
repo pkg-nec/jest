@@ -6,14 +6,14 @@
  *
  */
 
-import type {TestContext} from '@jest/test-result';
-import {makeGlobalConfig, makeProjectConfig} from '@jest/test-utils';
-import {TestWatcher} from 'jest-watcher';
+import type {TestContext} from '@pkg-nec/jest-test-result';
+import {makeGlobalConfig, makeProjectConfig} from '@pkg-nec/jest-test-utils';
+import {TestWatcher} from '@pkg-nec/jest-watcher';
 import TestRunner from '../index';
 
 let mockWorkerFarm;
 
-jest.mock('jest-worker', () => ({
+jest.mock('@pkg-nec/jest-worker', () => ({
   Worker: jest.fn(
     worker =>
       (mockWorkerFarm = {

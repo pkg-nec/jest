@@ -6,7 +6,7 @@
  */
 
 import {expect, test} from 'tstyche';
-import type {JestWorkerFarm} from 'jest-worker';
+import type {JestWorkerFarm} from '@pkg-nec/jest-worker';
 import type * as testWorker from './testWorker';
 
 type TestWorker = {

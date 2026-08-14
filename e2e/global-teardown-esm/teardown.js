@@ -8,7 +8,7 @@ import * as crypto from 'node:crypto';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import fs from 'graceful-fs';
-import {createDirectory} from 'jest-util';
+import {createDirectory} from '@pkg-nec/jest-util';
 
 const DIR = path.join(os.tmpdir(), 'jest-global-teardown-esm');
 

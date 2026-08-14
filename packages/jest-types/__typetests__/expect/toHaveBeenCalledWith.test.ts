@@ -6,7 +6,7 @@
  */
 
 import {expect} from 'tstyche';
-import {jest, expect as jestExpect} from '@jest/globals';
+import {jest, expect as jestExpect} from '@pkg-nec/jest-globals';
 
 export function overloaded(): void;
 // eslint-disable-next-line @typescript-eslint/unified-signatures

@@ -6,10 +6,10 @@
  */
 
 import {describe, expect, test} from 'tstyche';
-import {jestExpect} from '@jest/expect';
-import {expect as _expect} from 'expect';
+import {expect as _expect} from '@pkg-nec/expect';
+import {jestExpect} from '@pkg-nec/jest-expect';
 
-declare module 'expect' {
+declare module '@pkg-nec/expect' {
   interface Matchers<R, T> {
     toTypedEqual(expected: T): void;
   }

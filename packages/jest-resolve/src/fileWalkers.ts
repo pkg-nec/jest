@@ -8,7 +8,7 @@
 import {dirname, resolve} from 'node:path';
 import * as fs from 'graceful-fs';
 import type {ResolverFactory} from 'unrs-resolver';
-import {tryRealpath} from 'jest-util';
+import {tryRealpath} from '@pkg-nec/jest-util';
 import type {PackageJSON} from './types';
 
 let unrsResolver: ResolverFactory | undefined;

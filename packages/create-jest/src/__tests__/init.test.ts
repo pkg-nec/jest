@@ -9,7 +9,7 @@
 import * as path from 'path';
 import {writeFileSync} from 'graceful-fs';
 import * as prompts from 'prompts';
-import {constants} from 'jest-config';
+import {constants} from '@pkg-nec/jest-config';
 import {runCreate} from '../runCreate';
 
 const {JEST_CONFIG_EXT_ORDER} = constants;
@@ -59,6 +59,9 @@ describe('init', () => {
             '// cacheDirectory: "/tmp/jest",',
           ),
         ).toMatchSnapshot();
+        expect(writtenJestConfig).toContain(
+          "/** @type {import('@pkg-nec/jest').Config} */",
+        );
 
         const evaluatedConfig = eval(writtenJestConfig as string) as Record<
           string,
@@ -263,6 +266,9 @@ describe('init', () => {
             '// cacheDirectory: "/tmp/jest",',
           ),
         ).toMatchSnapshot();
+        expect(writtenJestConfig).toContain(
+          "import type {Config} from '@pkg-nec/jest';",
+        );
       });
 
       it('user answered with "No"', async () => {

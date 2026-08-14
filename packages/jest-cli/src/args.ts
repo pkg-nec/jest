@@ -6,8 +6,8 @@
  */
 
 import type {Options} from 'yargs';
-import type {Config} from '@jest/types';
-import {constants, isJSONString} from 'jest-config';
+import {constants, isJSONString} from '@pkg-nec/jest-config';
+import type {Config} from '@pkg-nec/jest-types';
 
 export function check(argv: Config.Argv): true {
   if (
@@ -693,7 +693,7 @@ export const options: {[key: string]: Options} = {
   testSequencer: {
     description:
       'Allows to specify a custom test sequencer. The default is ' +
-      '`@jest/test-sequencer`. A path to a custom test sequencer can be ' +
+      '`@pkg-nec/jest-test-sequencer`. A path to a custom test sequencer can be ' +
       'provided: `<rootDir>/path/to/testSequencer.js`',
     requiresArg: true,
     type: 'string',

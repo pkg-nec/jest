@@ -6,8 +6,8 @@
  */
 
 import chalk from 'chalk';
-import type {TestResult} from '@jest/test-result';
-import {pluralize} from 'jest-util';
+import type {TestResult} from '@pkg-nec/jest-test-result';
+import {pluralize} from '@pkg-nec/jest-util';
 
 const ARROW = ' \u203A ';
 const DOT = ' \u2022 ';

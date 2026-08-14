@@ -6,7 +6,7 @@
  */
 
 import {resolve} from 'path';
-import {onNodeVersions} from '@jest/test-utils';
+import {onNodeVersions} from '@pkg-nec/jest-test-utils';
 import runJest from '../runJest';
 
 const DIR = resolve(__dirname, '../native-esm-require-module');

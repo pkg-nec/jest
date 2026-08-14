@@ -28,7 +28,7 @@ _getJestObj().mock(
 );
 import {jsxDEV as _jsxDEV} from 'react/jsx-dev-runtime';
 function _getJestObj() {
-  const {jest} = require('@jest/globals');
+  const {jest} = require('@pkg-nec/jest-globals');
   _getJestObj = () => jest;
   return jest;
 }
@@ -48,7 +48,7 @@ jest.disableAutomock();
 _getJestObj().enableAutomock();
 _getJestObj().disableAutomock();
 function _getJestObj() {
-  const {jest} = require('@jest/globals');
+  const {jest} = require('@pkg-nec/jest-globals');
   _getJestObj = () => jest;
   return jest;
 }
@@ -67,7 +67,7 @@ beforeEach(() => {
       ↓ ↓ ↓ ↓ ↓ ↓
 
 function _getJestObj() {
-  const {jest} = require('@jest/globals');
+  const {jest} = require('@pkg-nec/jest-globals');
   _getJestObj = () => jest;
   return jest;
 }
@@ -88,7 +88,7 @@ beforeEach(() => {
       ↓ ↓ ↓ ↓ ↓ ↓
 
 function _getJestObj() {
-  const {jest} = require('@jest/globals');
+  const {jest} = require('@pkg-nec/jest-globals');
   _getJestObj = () => jest;
   return jest;
 }
@@ -100,7 +100,7 @@ beforeEach(() => {
 
 exports[`babel 7 babel-plugin-jest-hoist 5. required \`jest\` within \`jest\`: 5. required \`jest\` within \`jest\` 1`] = `
 
-const {jest} = require('@jest/globals');
+const {jest} = require('@pkg-nec/jest-globals');
 
 jest.mock('some-module', () => {
   jest.requireActual('some-module');
@@ -109,7 +109,7 @@ jest.mock('some-module', () => {
 
       ↓ ↓ ↓ ↓ ↓ ↓
 
-const {jest} = require('@jest/globals');
+const {jest} = require('@pkg-nec/jest-globals');
 jest.mock('some-module', () => {
   jest.requireActual('some-module');
 });
@@ -118,7 +118,7 @@ jest.mock('some-module', () => {
 
 exports[`babel 7 babel-plugin-jest-hoist 6. imported jest.mock within jest.mock: 6. imported jest.mock within jest.mock 1`] = `
 
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 jest.mock('some-module', () => {
   jest.mock('some-module');
@@ -131,11 +131,11 @@ _getJestObj().mock('some-module', () => {
   _getJestObj().mock('some-module');
 });
 function _getJestObj() {
-  const {jest} = require('@jest/globals');
+  const {jest} = require('@pkg-nec/jest-globals');
   _getJestObj = () => jest;
   return jest;
 }
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 `;
 
@@ -152,7 +152,7 @@ _getJestObj().mock('some-module', () => {
   _getJestObj().mock('some-module');
 });
 function _getJestObj() {
-  const {jest} = require('@jest/globals');
+  const {jest} = require('@pkg-nec/jest-globals');
   _getJestObj = () => jest;
   return jest;
 }
@@ -161,7 +161,7 @@ function _getJestObj() {
 
 exports[`babel 7 babel-plugin-jest-hoist 8. imported jest.requireActual in jest.mock: 8. imported jest.requireActual in jest.mock 1`] = `
 
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 jest.mock('some-module', () => {
   jest.requireActual('some-module');
@@ -176,11 +176,11 @@ _getJestObj().mock('some-module', () => {
   _getJestObj().requireActual('some-module');
 });
 function _getJestObj() {
-  const {jest} = require('@jest/globals');
+  const {jest} = require('@pkg-nec/jest-globals');
   _getJestObj = () => jest;
   return jest;
 }
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 jest.requireActual('some-module');
 
 `;
@@ -200,7 +200,7 @@ _getJestObj().mock('some-module', () => {
   _getJestObj().requireActual('some-module');
 });
 function _getJestObj() {
-  const {jest} = require('@jest/globals');
+  const {jest} = require('@pkg-nec/jest-globals');
   _getJestObj = () => jest;
   return jest;
 }
@@ -224,7 +224,7 @@ _getJestObj().mock('some-module', () => {
   return jest.fn();
 });
 function _getJestObj() {
-  const {jest} = require('@jest/globals');
+  const {jest} = require('@pkg-nec/jest-globals');
   _getJestObj = () => jest;
   return jest;
 }
@@ -248,7 +248,7 @@ _getJestObj().mock('some-module', () => {
   return module;
 });
 function _getJestObj() {
-  const {jest} = require('@jest/globals');
+  const {jest} = require('@pkg-nec/jest-globals');
   _getJestObj = () => jest;
   return jest;
 }
@@ -280,7 +280,7 @@ _getJestObj().mock('some-module', () => {
   };
 });
 function _getJestObj() {
-  const {jest} = require('@jest/globals');
+  const {jest} = require('@pkg-nec/jest-globals');
   _getJestObj = () => jest;
   return jest;
 }

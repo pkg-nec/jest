@@ -127,7 +127,7 @@ exports[`prints the config object 1`] = `
     "testFailureExitCode": 1,
     "testNamePattern": "",
     "testPathPatterns": [],
-    "testSequencer": "@jest/test-sequencer",
+    "testSequencer": "@pkg-nec/jest-test-sequencer",
     "testTimeout": 5000,
     "updateSnapshot": "none",
     "useStderr": false,

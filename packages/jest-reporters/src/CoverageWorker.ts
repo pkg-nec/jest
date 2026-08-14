@@ -7,7 +7,7 @@
 
 import exit from 'exit-x';
 import * as fs from 'graceful-fs';
-import type {Config} from '@jest/types';
+import type {Config} from '@pkg-nec/jest-types';
 import generateEmptyCoverage, {
   type CoverageWorkerResult,
 } from './generateEmptyCoverage';

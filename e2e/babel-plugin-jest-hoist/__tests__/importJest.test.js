@@ -7,9 +7,9 @@
  */
 
 /* eslint-disable no-duplicate-imports, import-x/no-duplicates */
-import {jest} from '@jest/globals';
-import {jest as aliasedJest} from '@jest/globals';
-import * as JestGlobals from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
+import {jest as aliasedJest} from '@pkg-nec/jest-globals';
+import * as JestGlobals from '@pkg-nec/jest-globals';
 /* eslint-enable no-duplicate-imports */
 import a from '../__test_modules__/a';
 import b from '../__test_modules__/b';

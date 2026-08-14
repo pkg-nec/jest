@@ -9,7 +9,7 @@ import {
   expect as importedExpect,
   jest as importedJest,
   test as importedTest,
-} from '@jest/globals';
+} from '@pkg-nec/jest-globals';
 
 importedTest('they match the globals', () => {
   importedExpect(importedExpect).toBe(expect);

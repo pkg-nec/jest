@@ -7,7 +7,7 @@
  */
 
 import pLimit from 'p-limit';
-import {isNonNullable} from 'jest-util';
+import {isNonNullable} from '@pkg-nec/jest-util';
 import git from './git';
 import hg from './hg';
 import sl from './sl';

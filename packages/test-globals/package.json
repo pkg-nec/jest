@@ -1,7 +1,13 @@
 {
-  "name": "@jest/test-globals",
+  "name": "@pkg-nec/jest-test-globals",
   "version": "30.4.1",
-  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jestjs/jest.git",
+    "directory": "packages/test-globals"
+  },
+  "homepage": "https://jestjs.io/",
+  "license": "MIT",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {
@@ -12,12 +18,15 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/environment": "workspace:*",
-    "@jest/expect": "workspace:*",
-    "@jest/types": "workspace:*",
-    "jest-mock": "workspace:*"
+    "@pkg-nec/jest-environment": "workspace:*",
+    "@pkg-nec/jest-expect": "workspace:*",
+    "@pkg-nec/jest-mock": "workspace:*",
+    "@pkg-nec/jest-types": "workspace:*"
   },
   "engines": {
     "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

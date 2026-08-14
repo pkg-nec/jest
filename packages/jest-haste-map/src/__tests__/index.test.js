@@ -20,7 +20,7 @@ jest.mock('../lib/isWatchmanInstalled', () => ({
   default: mockIsWatchmanInstalled,
 }));
 
-jest.mock('jest-worker', () => ({
+jest.mock('@pkg-nec/jest-worker', () => ({
   Worker: jest.fn(worker => {
     mockWorker = jest.fn((...args) => require(worker).worker(...args));
     mockEnd = jest.fn();
@@ -1276,7 +1276,7 @@ describe('HasteMap', () => {
   });
 
   it('distributes work across workers', async () => {
-    const jestWorker = require('jest-worker').Worker;
+    const jestWorker = require('@pkg-nec/jest-worker').Worker;
     const path = require('path');
     const dependencyExtractor = path.join(__dirname, 'dependencyExtractor.js');
     const {__hasteMapForTest: data} = await (

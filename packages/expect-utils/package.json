@@ -1,5 +1,5 @@
 {
-  "name": "@jest/expect-utils",
+  "name": "@pkg-nec/jest-expect-utils",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -19,11 +19,11 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/get-type": "workspace:*"
+    "@pkg-nec/jest-get-type": "workspace:*"
   },
   "devDependencies": {
-    "immutable": "^5.1.2",
-    "jest-matcher-utils": "workspace:*"
+    "@pkg-nec/jest-matcher-utils": "workspace:*",
+    "immutable": "^5.1.2"
   },
   "engines": {
     "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"

@@ -45,7 +45,7 @@ Asymmetric matchers are a great tool to use when you only care about asymmetric 
 
 ## Jest Each
 
-[@mattphillipsio](https://twitter.com/mattphillipsio) has donated the `jest-each` package to Jest Core (thanks Matt!). `jest-each` is a library inspired by [`mocha-each`](https://yarnpkg.com/en/package/mocha-each) and [Spock Data Tables](http://spockframework.org/spock/docs/1.1/data_driven_testing.html#data-tables) which allows you to define a table of test cases, and then run a test for each row with the specified column values. We support both array types and template literals for all flavors of `describe` and `test`. Docs are available [here](/docs/api#testeachtable-name-fn), and for those not on Jest 23 yet, we're still publishing [`jest-each`](https://yarnpkg.com/en/package/jest-each) separately!
+[@mattphillipsio](https://twitter.com/mattphillipsio) has donated the `@pkg-nec/jest-each` package to Jest Core (thanks Matt!). `@pkg-nec/jest-each` is a library inspired by [`mocha-each`](https://yarnpkg.com/en/package/mocha-each) and [Spock Data Tables](http://spockframework.org/spock/docs/1.1/data_driven_testing.html#data-tables) which allows you to define a table of test cases, and then run a test for each row with the specified column values. We support both array types and template literals for all flavors of `describe` and `test`. Docs are available [here](/docs/api#testeachtable-name-fn), and for those not on Jest 23 yet, we're still publishing [`@pkg-nec/jest-each`](https://yarnpkg.com/en/package/jest-each) separately!
 
 ![jest-each in action](/img/blog/23-jest-each.png)
 

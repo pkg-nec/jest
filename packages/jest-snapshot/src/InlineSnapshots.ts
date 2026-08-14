@@ -13,7 +13,7 @@ import type {
 } from 'prettier-v2';
 import * as semver from 'semver';
 import {createSyncFn} from 'synckit';
-import {isError} from 'jest-util';
+import {isError} from '@pkg-nec/jest-util';
 import type {InlineSnapshot} from './types';
 import {
   groupSnapshotsByFile,

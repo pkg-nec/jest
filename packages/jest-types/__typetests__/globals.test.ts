@@ -13,8 +13,8 @@ import {
   beforeEach,
   describe,
   test,
-} from '@jest/globals';
-import type {Global} from '@jest/types';
+} from '@pkg-nec/jest-globals';
+import type {Global} from '@pkg-nec/jest-types';
 
 const fn = () => {};
 const asyncFn = async () => {};

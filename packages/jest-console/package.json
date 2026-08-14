@@ -1,5 +1,5 @@
 {
-  "name": "@jest/console",
+  "name": "@pkg-nec/jest-console",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -19,15 +19,15 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/types": "workspace:*",
+    "@pkg-nec/jest-message-util": "workspace:*",
+    "@pkg-nec/jest-types": "workspace:*",
+    "@pkg-nec/jest-util": "workspace:*",
     "@types/node": "*",
     "chalk": "^4.1.2",
-    "jest-message-util": "workspace:*",
-    "jest-util": "workspace:*",
     "slash": "^3.0.0"
   },
   "devDependencies": {
-    "@jest/test-utils": "workspace:*"
+    "@pkg-nec/jest-test-utils": "workspace:*"
   },
   "engines": {
     "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"

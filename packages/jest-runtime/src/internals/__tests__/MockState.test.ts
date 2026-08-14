@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {makeProjectConfig} from '@jest/test-utils';
-import type {ModuleMocker} from 'jest-mock';
+import {makeProjectConfig} from '@pkg-nec/jest-test-utils';
+import type {ModuleMocker} from '@pkg-nec/jest-mock';
 import {MockState, generateMock} from '../MockState';
 import type {ModuleRegistries} from '../ModuleRegistries';
 import type {Resolution} from '../Resolution';

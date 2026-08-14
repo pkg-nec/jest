@@ -12,22 +12,22 @@ import chalk from 'chalk';
 import merge from 'deepmerge';
 import {glob} from 'glob';
 import {statSync} from 'graceful-fs';
-import {TestPathPatterns} from '@jest/pattern';
-import type {Config} from '@jest/types';
-import {replacePathSepForRegex} from 'jest-regex-util';
+import {TestPathPatterns} from '@pkg-nec/jest-pattern';
+import {replacePathSepForRegex} from '@pkg-nec/jest-regex-util';
 import Resolver, {
   resolveRunner,
   resolveSequencer,
   resolveTestEnvironment,
   resolveWatchPlugin,
-} from 'jest-resolve';
+} from '@pkg-nec/jest-resolve';
+import type {Config} from '@pkg-nec/jest-types';
 import {
   clearLine,
   globsToMatcher,
   replacePathSepForGlob,
   requireOrImportModule,
   tryRealpath,
-} from 'jest-util';
+} from '@pkg-nec/jest-util';
 import {
   ValidationError,
   type ValidationOptions,
@@ -35,7 +35,7 @@ import {
   format,
   logValidationWarning,
   validate,
-} from 'jest-validate';
+} from '@pkg-nec/jest-validate';
 import DEFAULT_CONFIG from './Defaults';
 import DEPRECATED_CONFIG from './Deprecated';
 import {validateReporters} from './ReporterValidationErrors';
@@ -276,14 +276,14 @@ const setupBabelJest = (options: Config.InitialOptionsWithRootDir) => {
         const customTransformer = transform[pattern];
         if (Array.isArray(customTransformer)) {
           if (customTransformer[0] === 'babel-jest') {
-            babelJest = require.resolve('babel-jest');
+            babelJest = require.resolve('@pkg-nec/babel-jest');
             customTransformer[0] = babelJest;
           } else if (customTransformer[0].includes('babel-jest')) {
             babelJest = customTransformer[0];
           }
         } else {
           if (customTransformer === 'babel-jest') {
-            babelJest = require.resolve('babel-jest');
+            babelJest = require.resolve('@pkg-nec/babel-jest');
             transform[pattern] = babelJest;
           } else if (customTransformer.includes('babel-jest')) {
             babelJest = customTransformer;
@@ -292,7 +292,7 @@ const setupBabelJest = (options: Config.InitialOptionsWithRootDir) => {
       }
     }
   } else {
-    babelJest = require.resolve('babel-jest');
+    babelJest = require.resolve('@pkg-nec/babel-jest');
     options.transform = {
       [DEFAULT_JS_PATTERN]: babelJest,
     };
@@ -589,10 +589,10 @@ export default async function normalize(
     options.testRunner === 'jest-circus' ||
     options.testRunner === 'jest-circus/runner'
   ) {
-    options.testRunner = require.resolve('jest-circus/runner');
+    options.testRunner = require.resolve('@pkg-nec/jest-circus/runner');
   } else if (options.testRunner === 'jasmine2') {
     try {
-      options.testRunner = require.resolve('jest-jasmine2');
+      options.testRunner = require.resolve('@pkg-nec/jest-jasmine2');
     } catch (error: any) {
       if (error.code === 'MODULE_NOT_FOUND') {
         throw createConfigError(

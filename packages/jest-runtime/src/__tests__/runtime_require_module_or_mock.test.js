@@ -197,7 +197,7 @@ it('mock dispatch computes moduleID once per requireModuleOrMock call', async ()
   getModuleIdSpy.mockRestore();
 });
 
-describe.each(['expect', '@jest/expect'])(
+describe.each(['@pkg-nec/expect', '@pkg-nec/jest-expect'])(
   'framework singleton module: %s',
   moduleName => {
     it('requireModuleOrMock returns the internal instance', async () => {

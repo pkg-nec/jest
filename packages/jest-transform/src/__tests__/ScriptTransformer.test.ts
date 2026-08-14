@@ -6,8 +6,8 @@
  *
  */
 
-import {makeGlobalConfig, makeProjectConfig} from '@jest/test-utils';
-import type {Config} from '@jest/types';
+import {makeGlobalConfig, makeProjectConfig} from '@pkg-nec/jest-test-utils';
+import type {Config} from '@pkg-nec/jest-types';
 import type {
   AsyncTransformer,
   FixedRawSourceMap,
@@ -59,7 +59,7 @@ jest
     }),
     /* eslint-enable */
   }))
-  .mock('jest-haste-map', () => ({
+  .mock('@pkg-nec/jest-haste-map', () => ({
     getStatic() {
       return {
         getCacheFilePath: (cacheDir: string, baseDir: string) =>
@@ -67,8 +67,10 @@ jest
       };
     },
   }))
-  .mock('jest-util', () => ({
-    ...jest.requireActual<typeof import('jest-util')>('jest-util'),
+  .mock('@pkg-nec/jest-util', () => ({
+    ...jest.requireActual<typeof import('@pkg-nec/jest-util')>(
+      '@pkg-nec/jest-util',
+    ),
     createDirectory: jest.fn(),
   }))
   .mock('path', () => jest.requireActual<typeof import('path')>('path').posix);

@@ -6,7 +6,7 @@
  *
  */
 
-import {isError} from '@jest/expect-utils';
+import {isError} from '@pkg-nec/jest-expect-utils';
 import {
   EXPECTED_COLOR,
   type MatcherHintOptions,
@@ -17,12 +17,12 @@ import {
   printExpected,
   printReceived,
   printWithType,
-} from 'jest-matcher-utils';
+} from '@pkg-nec/jest-matcher-utils';
 import {
   formatExecError,
   formatStackTrace,
   separateMessageFromStack,
-} from 'jest-message-util';
+} from '@pkg-nec/jest-message-util';
 import {
   printExpectedConstructorName,
   printExpectedConstructorNameNot,

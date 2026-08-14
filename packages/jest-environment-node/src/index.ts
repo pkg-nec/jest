@@ -10,10 +10,10 @@ import type {
   EnvironmentContext,
   JestEnvironment,
   JestEnvironmentConfig,
-} from '@jest/environment';
-import {LegacyFakeTimers, ModernFakeTimers} from '@jest/fake-timers';
-import type {Config, Global} from '@jest/types';
-import {ModuleMocker} from 'jest-mock';
+} from '@pkg-nec/jest-environment';
+import {LegacyFakeTimers, ModernFakeTimers} from '@pkg-nec/jest-fake-timers';
+import {ModuleMocker} from '@pkg-nec/jest-mock';
+import type {Config, Global} from '@pkg-nec/jest-types';
 import {
   type DeletionMode,
   canDeleteProperties,
@@ -21,8 +21,8 @@ import {
   initializeGarbageCollectionUtils,
   installCommonGlobals,
   protectProperties,
-} from 'jest-util';
-import {logValidationWarning} from 'jest-validate';
+} from '@pkg-nec/jest-util';
+import {logValidationWarning} from '@pkg-nec/jest-validate';
 
 type Timer = {
   id: number;

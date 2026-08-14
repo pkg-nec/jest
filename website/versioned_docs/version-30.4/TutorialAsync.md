@@ -72,7 +72,7 @@ it('works with promises', () => {
 });
 ```
 
-We call `jest.mock('../request')` to tell Jest to use our manual mock. `it` expects the return value to be a Promise that is going to be resolved. You can chain as many Promises as you like and call `expect` at any time, as long as you return a Promise at the end.
+We call `jest.mock('../request')` to tell Jest to use our manual mock. `it` expects the return value to be a Promise that is going to be resolved. You can chain as many Promises as you like and call `@pkg-nec/expect` at any time, as long as you return a Promise at the end.
 
 ## `.resolves`
 

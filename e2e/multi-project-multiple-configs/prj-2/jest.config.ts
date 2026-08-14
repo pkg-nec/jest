@@ -7,7 +7,7 @@
  * @jest-config-loader ts-node
  */
 
-import type {Config} from 'jest';
+import type {Config} from '@pkg-nec/jest';
 
 const config: Config = {
   displayName: 'PROJECT 2',

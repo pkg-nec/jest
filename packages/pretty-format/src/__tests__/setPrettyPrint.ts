@@ -8,7 +8,7 @@
 import prettyFormat from '../';
 import type {OptionsReceived, Plugins} from '../types';
 
-declare module 'expect' {
+declare module '@pkg-nec/expect' {
   interface Matchers<R> {
     toPrettyPrintTo(expected: unknown, options?: OptionsReceived): R;
   }

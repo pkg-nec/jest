@@ -5,13 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {TestPathPatterns} from '@jest/pattern';
-import {makeGlobalConfig} from '@jest/test-utils';
-import type {Config} from '@jest/types';
+import {TestPathPatterns} from '@pkg-nec/jest-pattern';
+import {makeGlobalConfig} from '@pkg-nec/jest-test-utils';
+import type {Config} from '@pkg-nec/jest-types';
 import getNoTestsFoundMessage from '../getNoTestsFoundMessage';
 
-jest.mock('jest-util', () => ({
-  ...jest.requireActual<typeof import('jest-util')>('jest-util'),
+jest.mock('@pkg-nec/jest-util', () => ({
+  ...jest.requireActual<typeof import('@pkg-nec/jest-util')>(
+    '@pkg-nec/jest-util',
+  ),
   isInteractive: true,
 }));
 

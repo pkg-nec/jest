@@ -7,10 +7,15 @@
 
 import type {V8Coverage} from 'collect-v8-coverage';
 import type {CoverageMap, CoverageMapData} from 'istanbul-lib-coverage';
-import type {ConsoleBuffer} from '@jest/console';
-import type {Circus, Config, TestResult, TransformTypes} from '@jest/types';
-import type {IHasteFS, IModuleMap} from 'jest-haste-map';
-import type Resolver from 'jest-resolve';
+import type {ConsoleBuffer} from '@pkg-nec/jest-console';
+import type {IHasteFS, IModuleMap} from '@pkg-nec/jest-haste-map';
+import type Resolver from '@pkg-nec/jest-resolve';
+import type {
+  Circus,
+  Config,
+  TestResult,
+  TransformTypes,
+} from '@pkg-nec/jest-types';
 
 export type RuntimeTransformResult = TransformTypes.TransformResult;
 

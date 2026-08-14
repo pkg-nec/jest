@@ -7,8 +7,8 @@
 
 import {sep} from 'node:path';
 import {isCI} from 'ci-info';
-import type {Config} from '@jest/types';
-import {replacePathSepForRegex} from 'jest-regex-util';
+import {replacePathSepForRegex} from '@pkg-nec/jest-regex-util';
+import type {Config} from '@pkg-nec/jest-types';
 import {NODE_MODULES} from './constants';
 import getCacheDirectory from './getCacheDirectory';
 
@@ -70,14 +70,14 @@ const defaultOptions: Config.DefaultOptions = {
   restoreMocks: false,
   roots: ['<rootDir>'],
   runTestsByPath: false,
-  runner: 'jest-runner',
+  runner: '@pkg-nec/jest-runner',
   setupFiles: [],
   setupFilesAfterEnv: [],
   skipFilter: false,
   slowTestThreshold: 5,
   snapshotFormat: {escapeString: false, printBasicPrototype: false},
   snapshotSerializers: [],
-  testEnvironment: 'jest-environment-node',
+  testEnvironment: '@pkg-nec/jest-environment-node',
   testEnvironmentOptions: {},
   testFailureExitCode: 1,
   testLocationInResults: false,
@@ -87,8 +87,8 @@ const defaultOptions: Config.DefaultOptions = {
   ],
   testPathIgnorePatterns: [NODE_MODULES_REGEXP],
   testRegex: [],
-  testRunner: 'jest-circus/runner',
-  testSequencer: '@jest/test-sequencer',
+  testRunner: '@pkg-nec/jest-circus/runner',
+  testSequencer: '@pkg-nec/jest-test-sequencer',
   transformIgnorePatterns: [NODE_MODULES_REGEXP, `\\.pnp\\.[^\\${sep}]+$`],
   useStderr: false,
   waitForUnhandledRejections: false,

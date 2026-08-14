@@ -8,7 +8,7 @@
 import {tmpdir} from 'os';
 import {join} from 'path';
 import {writeFileSync} from 'graceful-fs';
-import LeakDetector from 'jest-leak-detector';
+import LeakDetector from '@pkg-nec/jest-leak-detector';
 import {type JestWorkerFarm, Worker} from '../../build';
 
 describe('WorkerThreads leaks', () => {

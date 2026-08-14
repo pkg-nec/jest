@@ -5,10 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {TestPathPatterns} from '@jest/pattern';
+import {TestPathPatterns} from '@pkg-nec/jest-pattern';
 import runJest from '../runJest';
 
-jest.mock('@jest/console');
+jest.mock('@pkg-nec/jest-console');
 
 const processErrWriteFn = process.stderr.write;
 describe('runJest', () => {
@@ -25,7 +25,7 @@ describe('runJest', () => {
       globalConfig: {
         rootDir: '',
         testPathPatterns: new TestPathPatterns([]),
-        testSequencer: require.resolve('@jest/test-sequencer'),
+        testSequencer: require.resolve('@pkg-nec/jest-test-sequencer'),
         watch: true,
       },
       onComplete: () => null,
@@ -59,7 +59,7 @@ describe('runJest with collectTests', () => {
         collectTests: true,
         rootDir: '',
         testPathPatterns: new TestPathPatterns([]),
-        testSequencer: require.resolve('@jest/test-sequencer'),
+        testSequencer: require.resolve('@pkg-nec/jest-test-sequencer'),
       },
       onComplete,
       outputStream: {write: jest.fn()},

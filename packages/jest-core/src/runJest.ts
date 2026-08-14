@@ -11,8 +11,13 @@ import type {WriteStream} from 'node:tty';
 import chalk from 'chalk';
 import exit from 'exit-x';
 import * as fs from 'graceful-fs';
-import {CustomConsole} from '@jest/console';
-import {VerboseReporter} from '@jest/reporters';
+import type {
+  ChangedFiles,
+  ChangedFilesPromise,
+} from '@pkg-nec/jest-changed-files';
+import {CustomConsole} from '@pkg-nec/jest-console';
+import {VerboseReporter} from '@pkg-nec/jest-reporters';
+import Resolver from '@pkg-nec/jest-resolve';
 import {
   type AggregatedResult,
   type AssertionResult,
@@ -22,13 +27,15 @@ import {
   type TestResultsProcessor,
   formatTestResults,
   makeEmptyAggregatedTestResult,
-} from '@jest/test-result';
-import type TestSequencer from '@jest/test-sequencer';
-import type {Config} from '@jest/types';
-import type {ChangedFiles, ChangedFilesPromise} from 'jest-changed-files';
-import Resolver from 'jest-resolve';
-import {requireOrImportModule, tryRealpath} from 'jest-util';
-import {JestHook, type JestHookEmitter, type TestWatcher} from 'jest-watcher';
+} from '@pkg-nec/jest-test-result';
+import type TestSequencer from '@pkg-nec/jest-test-sequencer';
+import type {Config} from '@pkg-nec/jest-types';
+import {requireOrImportModule, tryRealpath} from '@pkg-nec/jest-util';
+import {
+  JestHook,
+  type JestHookEmitter,
+  type TestWatcher,
+} from '@pkg-nec/jest-watcher';
 import type FailedTestsCache from './FailedTestsCache';
 import SearchSource from './SearchSource';
 import {type TestSchedulerContext, createTestScheduler} from './TestScheduler';

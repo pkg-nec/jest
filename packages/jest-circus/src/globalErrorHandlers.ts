@@ -6,7 +6,7 @@
  */
 
 import type * as Process from 'node:process';
-import type {Circus} from '@jest/types';
+import type {Circus} from '@pkg-nec/jest-types';
 import {dispatchSync} from './state';
 
 const uncaughtExceptionListener: NodeJS.UncaughtExceptionListener = (

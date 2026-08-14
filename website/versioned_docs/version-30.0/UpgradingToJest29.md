@@ -36,23 +36,23 @@ If you want to keep the old behavior, you can set the `snapshotFormat` property 
 
 ## JSDOM upgrade
 
-`jest-environment-jsdom` has upgraded `jsdom` from v19 to v20.
+`@pkg-nec/jest-environment-jsdom` has upgraded `jsdom` from v19 to v20.
 
 :::info
 
-If you use `jest-environment-jsdom`, the minimum TypeScript version is set to `4.5`.
+If you use `@pkg-nec/jest-environment-jsdom`, the minimum TypeScript version is set to `4.5`.
 
 :::
 
 Notably, `jsdom@20` includes support for `crypto.getRandomValues()`, which means packages like `uuid` and `nanoid`, which doesn't work properly in Jest@28, can work without extra polyfills.
 
-## `pretty-format`
+## `@pkg-nec/pretty-format`
 
-`ConvertAnsi` plugin is removed from `pretty-format` package in favour of [`jest-serializer-ansi-escapes`](https://github.com/mrazauskas/jest-serializer-ansi-escapes).
+`ConvertAnsi` plugin is removed from `@pkg-nec/pretty-format` package in favour of [`jest-serializer-ansi-escapes`](https://github.com/mrazauskas/jest-serializer-ansi-escapes).
 
-### `jest-mock`
+### `@pkg-nec/jest-mock`
 
-Exports of `Mocked*` utility types from `jest-mock` package have changed. `MaybeMockedDeep` and `MaybeMocked` now are exported as `Mocked` and `MockedShallow` respectively; only deep mocked variants of `MockedClass`, `MockedFunction` and `MockedObject` are exposed.
+Exports of `Mocked*` utility types from `@pkg-nec/jest-mock` package have changed. `MaybeMockedDeep` and `MaybeMocked` now are exported as `Mocked` and `MockedShallow` respectively; only deep mocked variants of `MockedClass`, `MockedFunction` and `MockedObject` are exposed.
 
 ## TypeScript
 

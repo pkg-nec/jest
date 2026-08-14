@@ -18,15 +18,19 @@ import {ESLint} from 'eslint';
 import {glob} from 'glob';
 import fs from 'graceful-fs';
 import pkgDir from 'pkg-dir';
-import {rimraf} from 'rimraf';
 import {copyrightSnippet, getPackagesWithTsConfig} from './buildUtils.mjs';
+import {removeBuildDeclarations} from './removeBuildDeclarations.mjs';
+import {writeBundledDeclarations} from './writeBundledDeclarations.mjs';
 
 const require = createRequire(import.meta.url);
 const typescriptCompilerFolder = await pkgDir(require.resolve('typescript'));
 
 const typesNodeReferenceDirective = '/// <reference types="node" />';
 
-const excludedPackages = new Set(['@jest/globals', '@jest/test-globals']);
+const excludedPackages = new Set([
+  '@pkg-nec/jest-globals',
+  '@pkg-nec/jest-test-globals',
+]);
 
 const packagesToBundle = getPackagesWithTsConfig().filter(
   p => !excludedPackages.has(p.pkg.name),
@@ -162,7 +166,7 @@ await Promise.all(
 
     let definitionFile = await fs.promises.readFile(filepath, 'utf8');
 
-    await rimraf(path.resolve(packageDir, 'build/**/*.d.ts'), {glob: true});
+    await removeBuildDeclarations(path.resolve(packageDir, 'build'));
     await fs.promises.rm(path.resolve(packageDir, 'dist/'), {
       force: true,
       recursive: true,
@@ -221,13 +225,15 @@ await Promise.all(
     // if the autofixer did anything, the result is in `output`
     const formattedContent = lintResult.output || definitionFile;
 
-    await fs.promises.writeFile(
-      filepath.replace(
+    await writeBundledDeclarations({
+      content: formattedContent,
+      declarationPath: filepath.replace(
         `${path.sep}dist${path.sep}`,
         `${path.sep}build${path.sep}`,
       ),
-      formattedContent,
-    );
+      packageName: pkg.name,
+      packageVersion: pkg.version,
+    });
   }),
 );
 

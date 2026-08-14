@@ -5,9 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Jest} from '@jest/environment';
-import type {JestExpect} from '@jest/expect';
-import type {Global} from '@jest/types';
+import type {Jest} from '@pkg-nec/jest-environment';
+import type {JestExpect} from '@pkg-nec/jest-expect';
 import type {
   ClassLike,
   FunctionLike,
@@ -22,7 +21,8 @@ import type {
   SpiedGetter as JestSpiedGetter,
   SpiedSetter as JestSpiedSetter,
   UnknownFunction,
-} from 'jest-mock';
+} from '@pkg-nec/jest-mock';
+import type {Global} from '@pkg-nec/jest-types';
 
 declare global {
   const beforeAll: Global.TestFrameworkGlobals['beforeAll'];

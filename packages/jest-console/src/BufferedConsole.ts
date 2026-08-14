@@ -14,7 +14,7 @@ import {
   inspect,
 } from 'node:util';
 import chalk from 'chalk';
-import {ErrorWithStack, formatTime, invariant} from 'jest-util';
+import {ErrorWithStack, formatTime, invariant} from '@pkg-nec/jest-util';
 import type {
   ConsoleBuffer,
   LogCounters,

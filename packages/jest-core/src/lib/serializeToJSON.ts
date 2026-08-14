@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {isError} from 'jest-util';
+import {isError} from '@pkg-nec/jest-util';
 
 /**
  * When we're asked to give a JSON output with the --json flag or otherwise,

@@ -1,5 +1,5 @@
 {
-  "name": "jest-resolve",
+  "name": "@pkg-nec/jest-resolve",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -19,12 +19,12 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
+    "@pkg-nec/jest-haste-map": "workspace:*",
+    "@pkg-nec/jest-util": "workspace:*",
+    "@pkg-nec/jest-validate": "workspace:*",
     "chalk": "^4.1.2",
     "graceful-fs": "^4.2.11",
-    "jest-haste-map": "workspace:*",
     "jest-pnp-resolver": "^1.2.3",
-    "jest-util": "workspace:*",
-    "jest-validate": "workspace:*",
     "slash": "^3.0.0",
     "unrs-resolver": "^1.7.11"
   },

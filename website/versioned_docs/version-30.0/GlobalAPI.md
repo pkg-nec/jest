@@ -3,7 +3,7 @@ id: api
 title: Globals
 ---
 
-In your test files, Jest puts each of these methods and objects into the global environment. You don't have to require or import anything to use them. However, if you prefer explicit imports, you can do `import {describe, expect, test} from '@jest/globals'`.
+In your test files, Jest puts each of these methods and objects into the global environment. You don't have to require or import anything to use them. However, if you prefer explicit imports, you can do `import {describe, expect, test} from '@pkg-nec/jest-globals'`.
 
 import TypeScriptExamplesNote from './_TypeScriptExamplesNote.md';
 
@@ -240,7 +240,7 @@ Use `describe.each` if you keep duplicating the same test suites with different 
 
 - `name`: `String` the title of the test suite.
   - Generate unique test titles by positionally injecting parameters with [`printf` formatting](https://nodejs.org/api/util.html#util_util_format_format_args):
-    - `%p` - [pretty-format](https://www.npmjs.com/package/pretty-format).
+    - `%p` - [pretty-format](https://www.npmjs.com/package/@pkg-nec/pretty-format).
     - `%s`- String.
     - `%d`- Number.
     - `%i` - Integer.
@@ -543,7 +543,7 @@ Use `test.concurrent.each` if you keep duplicating the same test with different 
 - `table`: `Array` of Arrays with the arguments that are passed into the test `fn` for each row. If you pass in a 1D array of primitives, internally it will be mapped to a table i.e. `[1, 2, 3] -> [[1], [2], [3]]`
 - `name`: `String` the title of the test block.
   - Generate unique test titles by positionally injecting parameters with [`printf` formatting](https://nodejs.org/api/util.html#util_util_format_format_args):
-    - `%p` - [pretty-format](https://www.npmjs.com/package/pretty-format).
+    - `%p` - [pretty-format](https://www.npmjs.com/package/@pkg-nec/pretty-format).
     - `%s`- String.
     - `%d`- Number.
     - `%i` - Integer.
@@ -686,7 +686,7 @@ Use `test.each` if you keep duplicating the same test with different data. `test
 - `table`: `Array` of Arrays with the arguments that are passed into the test `fn` for each row. If you pass in a 1D array of primitives, internally it will be mapped to a table i.e. `[1, 2, 3] -> [[1], [2], [3]]`
 - `name`: `String` the title of the test block.
   - Generate unique test titles by positionally injecting parameters with [`printf` formatting](https://nodejs.org/api/util.html#util_util_format_format_args):
-    - `%p` - [pretty-format](https://www.npmjs.com/package/pretty-format).
+    - `%p` - [pretty-format](https://www.npmjs.com/package/@pkg-nec/pretty-format).
     - `%s`- String.
     - `%d`- Number.
     - `%i` - Integer.
@@ -993,7 +993,7 @@ For simplicity `test.each` is picked for the examples, but the type inference is
 The array of objects API is most verbose, but it makes the type inference a painless task. A `table` can be inlined:
 
 ```ts
-import {test} from '@jest/globals';
+import {test} from '@pkg-nec/jest-globals';
 
 test.each([
   {name: 'a', path: 'path/to/a', count: 1, write: true},
@@ -1006,7 +1006,7 @@ test.each([
 Or declared separately as a variable:
 
 ```ts
-import {test} from '@jest/globals';
+import {test} from '@pkg-nec/jest-globals';
 
 const table = [
   {a: 1, b: 2, expected: 'three', extra: true},
@@ -1024,7 +1024,7 @@ test.each(table)('table as a variable', ({a, b, expected, extra}) => {
 The array of arrays style will work smoothly with inlined tables:
 
 ```ts
-import {test} from '@jest/globals';
+import {test} from '@pkg-nec/jest-globals';
 
 test.each([
   [1, 2, 'three', true],
@@ -1038,7 +1038,7 @@ test.each([
 However, if a table is declared as a separate variable, it must be typed as an array of tuples for correct type inference (this is not needed only if all elements of a row are of the same type):
 
 ```ts
-import {test} from '@jest/globals';
+import {test} from '@pkg-nec/jest-globals';
 
 const table: Array<[number, number, string, boolean?]> = [
   [1, 2, 'three', true],
@@ -1056,7 +1056,7 @@ test.each(table)('table as a variable example', (a, b, expected, extra) => {
 If all input values are of the same type, the template literal API will type the arguments correctly:
 
 ```ts
-import {test} from '@jest/globals';
+import {test} from '@pkg-nec/jest-globals';
 
 test.each`
   a    | b    | expected
@@ -1071,7 +1071,7 @@ test.each`
 If the inputs have different types, the arguments will be typed as a union of all the input types (i.e. type of the variables inside the template literal):
 
 ```ts
-import {test} from '@jest/globals';
+import {test} from '@pkg-nec/jest-globals';
 
 test.each`
   a    | b    | expected
@@ -1086,7 +1086,7 @@ test.each`
 Otherwise, if you want each argument to have the right type, you have to explicitly provide the generic type argument:
 
 ```ts
-import {test} from '@jest/globals';
+import {test} from '@pkg-nec/jest-globals';
 
 test.each<{a: number; b: number; expected: string; extra?: boolean}>`
   a    | b    | expected    | extra
@@ -1103,7 +1103,7 @@ test.each<{a: number; b: number; expected: string; extra?: boolean}>`
 Keep in mind the variables inside the template literal are not type checked, so you have to ensure that their types are correct.
 
 ```ts
-import {test} from '@jest/globals';
+import {test} from '@pkg-nec/jest-globals';
 
 test.each<{a: number; expected: string}>`
   a                            | expected

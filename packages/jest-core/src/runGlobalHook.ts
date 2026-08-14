@@ -5,11 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Test} from '@jest/test-result';
-import {createScriptTransformer} from '@jest/transform';
-import type {Config} from '@jest/types';
-import {isError} from 'jest-util';
-import prettyFormat from 'pretty-format';
+import type {Test} from '@pkg-nec/jest-test-result';
+import {createScriptTransformer} from '@pkg-nec/jest-transform';
+import type {Config} from '@pkg-nec/jest-types';
+import {isError} from '@pkg-nec/jest-util';
+import prettyFormat from '@pkg-nec/pretty-format';
 
 export default async function runGlobalHook({
   allTests,

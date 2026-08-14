@@ -7,7 +7,7 @@
 
 import {tmpdir} from 'os';
 import * as path from 'path';
-import {tryRealpath} from 'jest-util';
+import {tryRealpath} from '@pkg-nec/jest-util';
 import {cleanup, writeFiles} from '../Utils';
 import runJest from '../runJest';
 

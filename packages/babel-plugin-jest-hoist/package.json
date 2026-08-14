@@ -1,5 +1,5 @@
 {
-  "name": "babel-plugin-jest-hoist",
+  "name": "@pkg-nec/babel-plugin-jest-hoist",
   "version": "30.4.0",
   "repository": {
     "type": "git",

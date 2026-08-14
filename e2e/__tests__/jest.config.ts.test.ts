@@ -7,7 +7,7 @@
 
 import * as path from 'path';
 import * as fs from 'graceful-fs';
-import {onNodeVersions} from '@jest/test-utils';
+import {onNodeVersions} from '@pkg-nec/jest-test-utils';
 import {cleanup, extractSummary, writeFiles} from '../Utils';
 import runJest from '../runJest';
 
@@ -102,7 +102,7 @@ test('traverses directory tree up until it finds jest.config', () => {
 });
 
 onNodeVersions('<23.6', () => {
-  const jestPath = require.resolve('jest');
+  const jestPath = require.resolve('@pkg-nec/jest');
   const jestTypesPath = jestPath.replace(/\.js$/, '.d.ts');
   const jestTypesExists = fs.existsSync(jestTypesPath);
 

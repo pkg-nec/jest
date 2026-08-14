@@ -6,12 +6,12 @@
  */
 
 import chalk from 'chalk';
-import type {Config} from '@jest/types';
 import {
   type StackTraceConfig,
   type StackTraceOptions,
   formatStackTrace,
-} from 'jest-message-util';
+} from '@pkg-nec/jest-message-util';
+import type {Config} from '@pkg-nec/jest-types';
 import type {ConsoleBuffer} from './types';
 
 export default function getConsoleOutput(

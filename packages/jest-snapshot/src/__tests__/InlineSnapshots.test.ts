@@ -8,7 +8,7 @@
 import {tmpdir} from 'os';
 import * as path from 'path';
 import * as fs from 'graceful-fs';
-import type {Frame} from 'jest-message-util';
+import type {Frame} from '@pkg-nec/jest-message-util';
 import {saveInlineSnapshots} from '../InlineSnapshots';
 
 const prettier = require('prettier') as typeof import('prettier-v2');

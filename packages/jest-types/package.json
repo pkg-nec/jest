@@ -1,5 +1,5 @@
 {
-  "name": "@jest/types",
+  "name": "@pkg-nec/jest-types",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -20,8 +20,8 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/pattern": "workspace:*",
-    "@jest/schemas": "workspace:*",
+    "@pkg-nec/jest-pattern": "workspace:*",
+    "@pkg-nec/jest-schemas": "workspace:*",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-reports": "^3.0.4",
     "@types/node": "*",

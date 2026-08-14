@@ -1,7 +1,7 @@
 {
   "extends": "../../../../tsconfig.test.json",
   "compilerOptions": {
-    "types": ["node", "@jest/test-globals"]
+    "types": ["node", "@pkg-nec/jest-test-globals"]
   },
   "include": ["./**/*"],
   "references": [{"path": "../../"}, {"path": "../../../test-utils"}]

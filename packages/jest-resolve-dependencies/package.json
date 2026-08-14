@@ -1,5 +1,5 @@
 {
-  "name": "jest-resolve-dependencies",
+  "name": "@pkg-nec/jest-resolve-dependencies",
   "version": "30.4.2",
   "repository": {
     "type": "git",
@@ -19,15 +19,15 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "jest-regex-util": "workspace:*",
-    "jest-snapshot": "workspace:*"
+    "@pkg-nec/jest-regex-util": "workspace:*",
+    "@pkg-nec/jest-snapshot": "workspace:*"
   },
   "devDependencies": {
-    "@jest/test-utils": "workspace:*",
-    "@jest/types": "workspace:*",
-    "jest-haste-map": "workspace:*",
-    "jest-resolve": "workspace:*",
-    "jest-runtime": "workspace:*"
+    "@pkg-nec/jest-haste-map": "workspace:*",
+    "@pkg-nec/jest-resolve": "workspace:*",
+    "@pkg-nec/jest-runtime": "workspace:*",
+    "@pkg-nec/jest-test-utils": "workspace:*",
+    "@pkg-nec/jest-types": "workspace:*"
   },
   "engines": {
     "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"

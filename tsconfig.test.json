@@ -4,7 +4,10 @@
     "composite": false,
     "emitDeclarationOnly": false,
     "noEmit": true,
+    "paths": {
+      "@jest/globals": ["./packages/jest-globals"]
+    },
     "skipLibCheck": true,
-    "types": ["@jest/test-globals"]
+    "types": ["@pkg-nec/jest-test-globals"]
   }
 }

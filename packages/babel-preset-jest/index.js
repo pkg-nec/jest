@@ -6,7 +6,7 @@
  */
 
 const jestPreset = {
-  plugins: [require.resolve('babel-plugin-jest-hoist')],
+  plugins: [require.resolve('@pkg-nec/babel-plugin-jest-hoist')],
   presets: [require.resolve('babel-preset-current-node-syntax')],
 };
 
