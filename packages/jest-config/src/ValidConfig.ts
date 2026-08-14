@@ -153,7 +153,7 @@ export const initialOptions: Config.InitialOptions = {
   snapshotFormat: PRETTY_FORMAT_DEFAULTS,
   snapshotResolver: '<rootDir>/snapshotResolver.js',
   snapshotSerializers: ['my-serializer-module'],
-  testEnvironment: 'jest-environment-node',
+  testEnvironment: '@pkg-nec/jest-environment-node',
   testEnvironmentOptions: {
     url: 'http://localhost',
     userAgent: 'Agent/007',
@@ -317,7 +317,7 @@ export const initialProjectOptions: Config.InitialProjectOptions = {
   snapshotFormat: PRETTY_FORMAT_DEFAULTS,
   snapshotResolver: '<rootDir>/snapshotResolver.js',
   snapshotSerializers: ['my-serializer-module'],
-  testEnvironment: 'jest-environment-node',
+  testEnvironment: '@pkg-nec/jest-environment-node',
   testEnvironmentOptions: {
     url: 'http://localhost',
     userAgent: 'Agent/007',

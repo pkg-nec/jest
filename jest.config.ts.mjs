@@ -7,7 +7,7 @@
 
 import baseConfig from './jest.config.mjs';
 
-/** @type {import('jest').Config} */
+/** @type {import('@pkg-nec/jest').Config} */
 export default {
   projects: [
     {

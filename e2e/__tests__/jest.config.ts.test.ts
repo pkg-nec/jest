@@ -20,7 +20,7 @@ test('works with jest.config.ts', () => {
   writeFiles(DIR, {
     '__tests__/a-giraffe.js': "test('giraffe', () => expect(1).toBe(1));",
     'jest.config.ts':
-      "export default {testEnvironment: 'jest-environment-node', testRegex: '.*-giraffe.js'};",
+      "export default {testEnvironment: '@pkg-nec/jest-environment-node', testRegex: '.*-giraffe.js'};",
     'package.json': '{}',
   });
 
@@ -37,7 +37,7 @@ test('falls back to a loader if we encounter a ESM TS config file in a CommonJs 
   writeFiles(DIR, {
     '__tests__/a-giraffe.js': "test('giraffe', () => expect(1).toBe(1));",
     'jest.config.ts':
-      "export default {testEnvironment: 'jest-environment-node', testRegex: '.*-giraffe.js'};",
+      "export default {testEnvironment: '@pkg-nec/jest-environment-node', testRegex: '.*-giraffe.js'};",
     'package.json': '{"type":"commonjs"}',
   });
 
@@ -54,7 +54,7 @@ test('works with tsconfig.json', () => {
   writeFiles(DIR, {
     '__tests__/a-giraffe.js': "test('giraffe', () => expect(1).toBe(1));",
     'jest.config.ts':
-      "export default {testEnvironment: 'jest-environment-node', testRegex: '.*-giraffe.js'};",
+      "export default {testEnvironment: '@pkg-nec/jest-environment-node', testRegex: '.*-giraffe.js'};",
     'package.json': '{}',
     'tsconfig.json': '{ "compilerOptions": { "module": "esnext" } }',
   });
@@ -76,7 +76,7 @@ test('traverses directory tree up until it finds jest.config', () => {
     test('abc', () => console.log(slash(process.cwd())));
     `,
     'jest.config.ts':
-      "export default {testEnvironment: 'jest-environment-node', testRegex: '.*-giraffe.js'};",
+      "export default {testEnvironment: '@pkg-nec/jest-environment-node', testRegex: '.*-giraffe.js'};",
     'package.json': '{}',
     'some/nested/directory/file.js': '// nothing special',
   });
@@ -113,7 +113,7 @@ onNodeVersions('<23.6', () => {
         '__tests__/a-giraffe.js': "test('giraffe', () => expect(1).toBe(1));",
         'jest.config.ts': `
         /**@jest-config-loader-options {"transpileOnly":${skipTypeCheck}}*/
-        import {Config} from 'jest';
+        import {Config} from '@pkg-nec/jest';
         const config: Config = { testTimeout: "10000" };
         export default config;
       `,
@@ -185,7 +185,7 @@ onNodeVersions('^23.6', () => {
         /** @jest-config-loader ts-node */
         import { a } from './foo'
         a();
-        import type {Config} from 'jest';
+        import type {Config} from '@pkg-nec/jest';
         const config: Config = { testTimeout: 10000 };
         export default config;
       `,

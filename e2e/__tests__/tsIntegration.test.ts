@@ -375,12 +375,12 @@ describe('when `Config` type is imported from "@pkg-nec/jest-types"', () => {
   });
 });
 
-describe('when `Config` type is imported from "jest"', () => {
+describe('when Config type is imported from "@pkg-nec/jest"', () => {
   test('with object config exported from TS file', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(123).toBe(123));",
       'jest.config.ts': `
-        import type {Config} from 'jest';
+        import type {Config} from '@pkg-nec/jest';
         const config: Config = {displayName: 'ts-object-config', verbose: true};
         export default config;
         `,
@@ -398,7 +398,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(123).toBe(123));",
       'jest.config.ts': `
-        import type {Config} from 'jest';
+        import type {Config} from '@pkg-nec/jest';
         async function getVerbose() {return true;}
         export default async (): Promise<Config> => {
           const verbose: Config['verbose'] = await getVerbose();
@@ -419,7 +419,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(123).toBe(123));",
       'jest.config.cts': `
-        import type {Config} from 'jest';
+        import type {Config} from '@pkg-nec/jest';
         const config: Config = {displayName: 'ts-object-config', verbose: true};
         export default config;
         `,
@@ -437,7 +437,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(123).toBe(123));",
       'jest.config.cts': `
-        import type {Config} from 'jest';
+        import type {Config} from '@pkg-nec/jest';
         async function getVerbose() {return true;}
         export default async (): Promise<Config> => {
           const verbose: Config['verbose'] = await getVerbose();
@@ -458,7 +458,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(123).toBe(123));",
       'jest.config.ts': `
-        import type {Config} from 'jest';
+        import type {Config} from '@pkg-nec/jest';
         const config: Config = {testTimeout: '10000'};
         export default config;
         `,
@@ -477,7 +477,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(123).toBe(123));",
       'jest.config.ts': `
-        import type {Config} from 'jest';
+        import type {Config} from '@pkg-nec/jest';
         const config: Config = {verbose: true};
         export default get config;
         `,
@@ -496,7 +496,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(123).toBe(123));",
       'jest.config.cts': `
-        import type {Config} from 'jest';
+        import type {Config} from '@pkg-nec/jest';
         const config: Config = {testTimeout: '10000'};
         export default config;
         `,
@@ -515,7 +515,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(123).toBe(123));",
       'jest.config.cts': `
-        import type {Config} from 'jest';
+        import type {Config} from '@pkg-nec/jest';
         const config: Config = {verbose: true};
         export default get config;
         `,
@@ -534,7 +534,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(12).toBe(12));",
       'jest.config.ts': `
-          import type {Config} from 'jest';
+          import type {Config} from '@pkg-nec/jest';
           const config: Config = {displayName: 'ts-esm-object-config', verbose: true};
           export default config;
           `,
@@ -552,7 +552,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(12).toBe(12));",
       'jest.config.ts': `
-          import type {Config} from 'jest';
+          import type {Config} from '@pkg-nec/jest';
           async function getVerbose() {return true;}
           export default async (): Promise<Config> => {
             const verbose: Config['verbose'] = await getVerbose();
@@ -573,7 +573,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(12).toBe(12));",
       'jest.config.cts': `
-          import type {Config} from 'jest';
+          import type {Config} from '@pkg-nec/jest';
           const config: Config = {displayName: 'ts-esm-object-config', verbose: true};
           export default config;
           `,
@@ -591,7 +591,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(12).toBe(12));",
       'jest.config.cts': `
-          import type {Config} from 'jest';
+          import type {Config} from '@pkg-nec/jest';
           async function getVerbose() {return true;}
           export default async (): Promise<Config> => {
             const verbose: Config['verbose'] = await getVerbose();
@@ -614,7 +614,7 @@ describe('when `Config` type is imported from "jest"', () => {
       writeFiles(DIR, {
         '__tests__/dummy.test.js': "test('dummy', () => expect(12).toBe(12));",
         'jest.config.ts': `
-          import type {Config} from 'jest';
+          import type {Config} from '@pkg-nec/jest';
           const config: Config = {testTimeout: '10000'};
           export default config;
           `,
@@ -634,7 +634,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(123).toBe(123));",
       'jest.config.ts': `
-          import type {Config} from 'jest';
+          import type {Config} from '@pkg-nec/jest';
           const config: Config = {verbose: true};
           export default get config;
           `,
@@ -653,7 +653,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(12).toBe(12));",
       'jest.config.cts': `
-          import type {Config} from 'jest';
+          import type {Config} from '@pkg-nec/jest';
           const config: Config = {testTimeout: '10000'};
           export default config;
           `,
@@ -672,7 +672,7 @@ describe('when `Config` type is imported from "jest"', () => {
     writeFiles(DIR, {
       '__tests__/dummy.test.js': "test('dummy', () => expect(123).toBe(123));",
       'jest.config.cts': `
-          import type {Config} from 'jest';
+          import type {Config} from '@pkg-nec/jest';
           const config: Config = {verbose: true};
           export default get config;
           `,
