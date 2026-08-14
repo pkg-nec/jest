@@ -6,7 +6,14 @@
  */
 
 import {spawnSync} from 'node:child_process';
-import {mkdir, mkdtemp, rm, writeFile} from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join, relative} from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -24,6 +31,43 @@ const repositoryFilesUrl = pathToFileURL(
 const structuredCandidatesUrl = pathToFileURL(
   join(repoRoot, 'scripts/pkgNec/structuredCandidates.mjs'),
 ).href;
+const migrationPlanUrl = pathToFileURL(
+  join(repoRoot, 'scripts/pkgNec/migrationPlan.mjs'),
+).href;
+
+function runMigrationProgram(program, cwd = repoRoot) {
+  return spawnSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '--eval',
+      `
+        import {
+          applyMigrationPlan,
+          buildMigrationPlan,
+          validateMigrationPlan,
+        } from ${JSON.stringify(migrationPlanUrl)};
+        ${program}
+      `,
+    ],
+    {cwd, encoding: 'utf8'},
+  );
+}
+
+function migrationFixtureProgram({baseline, body, identities, root}) {
+  return `
+    const identities = ${JSON.stringify(identities)};
+    const root = ${JSON.stringify(root)};
+    const inventory = {
+      byNewName: new Map([root, ...identities].map(item => [item.newName, item])),
+      byOldName: new Map([root, ...identities].map(item => [item.oldName, item])),
+      packages: identities,
+      root,
+    };
+    const baseline = ${JSON.stringify(baseline)};
+    ${body}
+  `;
+}
 
 function rewriteModule(code, filePath) {
   const program = `
@@ -384,6 +428,662 @@ describe('pkg-nec rewrite candidates', () => {
         {category: 'jsonc', path: 'tsconfig.json'},
         {category: 'lock', path: 'yarn.lock'},
       ]);
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+});
+
+describe('pkg-nec migration plan', () => {
+  test('rejects overlapping edits before writing any file', async () => {
+    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-plan-'));
+    const fixturePath = join(temporaryRepo, 'fixture.js');
+    const before = "import 'jest-util';\n";
+    await writeFile(fixturePath, before);
+
+    try {
+      const overlappingPlan = {
+        files: [
+          {
+            after: "import '@pkg-nec/jest-util';\n",
+            before,
+            edits: [
+              {
+                category: 'module',
+                end: 17,
+                oldValue: 'jest-util',
+                replacement: '@pkg-nec/jest-util',
+                start: 8,
+              },
+              {
+                category: 'module',
+                end: 12,
+                oldValue: 'jest',
+                replacement: '@pkg-nec/jest',
+                start: 8,
+              },
+            ],
+            path: fixturePath,
+          },
+        ],
+        manifestComparisons: [],
+      };
+      const child = runMigrationProgram(
+        `applyMigrationPlan(${JSON.stringify(overlappingPlan)});`,
+        temporaryRepo,
+      );
+
+      expect(child.status).not.toBe(0);
+      expect(child.stderr).toMatch(/overlapping edits/);
+      expect(await readFile(fixturePath, 'utf8')).toBe(before);
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+
+  test('rejects changed dependency values during preservation preflight', () => {
+    const rangeChangingPlan = {
+      files: [],
+      manifestComparisons: [
+        {
+          after: '^3.0.0',
+          before: '^2.1.1',
+          field: 'devDependencies.@fast-check/jest',
+          path: 'package.json',
+        },
+      ],
+    };
+    const child = runMigrationProgram(
+      `validateMigrationPlan(${JSON.stringify(rangeChangingPlan)});`,
+    );
+
+    expect(child.status).not.toBe(0);
+    expect(child.stderr).toMatch(/dependency value changed/);
+  });
+
+  test.each([
+    ['empty', []],
+    [
+      'fabricated',
+      [
+        {
+          after: '30.4.1',
+          before: '30.4.1',
+          field: 'version',
+          path: 'package.json',
+        },
+      ],
+    ],
+  ])(
+    'rejects a manifest version edit with %s comparisons',
+    async (_label, comparisons) => {
+      const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-plan-'));
+      const manifestPath = join(temporaryRepo, 'package.json');
+      const before = `${JSON.stringify(
+        {
+          name: '@jest/monorepo',
+          private: true,
+          version: '30.4.1',
+        },
+        null,
+        2,
+      )}\n`;
+      await writeFile(manifestPath, before);
+      const root = {
+        directory: temporaryRepo,
+        manifestPath,
+        newName: '@pkg-nec/monorepo',
+        oldName: '@jest/monorepo',
+        publishable: false,
+        version: '30.4.1',
+      };
+      const baseline = {
+        'package.json': {
+          name: '@jest/monorepo',
+          private: true,
+          version: '30.4.1',
+        },
+      };
+
+      try {
+        const child = runMigrationProgram(
+          migrationFixtureProgram({
+            baseline,
+            body: `
+              const plan = buildMigrationPlan({
+                baseline,
+                inventory,
+                repoRoot: ${JSON.stringify(temporaryRepo)},
+              });
+              const manifestFile = plan.files.find(
+                file => file.path === ${JSON.stringify(manifestPath)},
+              );
+              const versionStart = manifestFile.before.indexOf('30.4.1');
+              manifestFile.edits.push({
+                category: 'manifest',
+                end: versionStart + '30.4.1'.length,
+                oldValue: '30.4.1',
+                replacement: '99.0.0',
+                start: versionStart,
+              });
+              manifestFile.after = manifestFile.after.replace('30.4.1', '99.0.0');
+              plan.manifestComparisons = ${JSON.stringify(comparisons)};
+              applyMigrationPlan(plan);
+            `,
+            identities: [],
+            root,
+          }),
+          temporaryRepo,
+        );
+
+        expect(child.status).not.toBe(0);
+        expect(child.stderr).toMatch(/version changed|preservation/i);
+        expect(await readFile(manifestPath, 'utf8')).toBe(before);
+      } finally {
+        await rm(temporaryRepo, {force: true, recursive: true});
+      }
+    },
+  );
+
+  test('restores every original when a later commit rename fails', async () => {
+    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-plan-'));
+    const firstPath = join(temporaryRepo, 'first.js');
+    const secondPath = join(temporaryRepo, 'second.js');
+    const before = 'jest\n';
+    await writeFile(firstPath, before);
+    await writeFile(secondPath, before);
+    const files = [firstPath, secondPath].map(filePath => ({
+      after: '@pkg-nec/jest\n',
+      before,
+      edits: [
+        {
+          category: 'module',
+          end: 4,
+          oldValue: 'jest',
+          replacement: '@pkg-nec/jest',
+          start: 0,
+        },
+      ],
+      path: filePath,
+    }));
+
+    try {
+      const child = runMigrationProgram(
+        `
+          import fs from 'node:fs';
+          const fileSystem = Object.create(fs);
+          let renameCount = 0;
+          fileSystem.renameSync = (from, to) => {
+            renameCount += 1;
+            if (renameCount === 4) throw new Error('injected rename failure');
+            fs.renameSync(from, to);
+          };
+          applyMigrationPlan(
+            ${JSON.stringify({files, manifestComparisons: []})},
+            {fileSystem},
+          );
+        `,
+        temporaryRepo,
+      );
+
+      expect(child.status).not.toBe(0);
+      expect(child.stderr).toMatch(/injected rename failure/);
+      expect(await readFile(firstPath, 'utf8')).toBe(before);
+      expect(await readFile(secondPath, 'utf8')).toBe(before);
+      expect((await readdir(temporaryRepo)).sort()).toEqual([
+        'first.js',
+        'second.js',
+      ]);
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+
+  test.each(['root metadata', 'fixture manifest'])(
+    'rejects a post-build %s mutation',
+    async mutation => {
+      const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-plan-'));
+      const manifestPath = join(temporaryRepo, 'package.json');
+      const fixtureDirectory = join(temporaryRepo, 'fixtures');
+      const fixturePath = join(fixtureDirectory, 'package.json');
+      const manifestBefore = `${JSON.stringify(
+        {
+          description: 'upstream root',
+          name: '@jest/monorepo',
+          private: true,
+          version: '30.4.1',
+        },
+        null,
+        2,
+      )}\n`;
+      const fixtureBefore = `${JSON.stringify(
+        {
+          description: 'upstream fixture',
+          name: 'fixture',
+          private: true,
+          version: '1.0.0',
+        },
+        null,
+        2,
+      )}\n`;
+      await mkdir(fixtureDirectory, {recursive: true});
+      await writeFile(manifestPath, manifestBefore);
+      await writeFile(fixturePath, fixtureBefore);
+      const root = {
+        directory: temporaryRepo,
+        manifestPath,
+        newName: '@pkg-nec/monorepo',
+        oldName: '@jest/monorepo',
+        publishable: false,
+        version: '30.4.1',
+      };
+      const baseline = {
+        'package.json': {
+          name: '@jest/monorepo',
+          private: true,
+          version: '30.4.1',
+        },
+      };
+
+      try {
+        const child = runMigrationProgram(
+          migrationFixtureProgram({
+            baseline,
+            body: `
+              const plan = buildMigrationPlan({
+                baseline,
+                inventory,
+                repoRoot: ${JSON.stringify(temporaryRepo)},
+              });
+              if (${JSON.stringify(mutation)} === 'root metadata') {
+                const manifestFile = plan.files.find(
+                  file => file.path === ${JSON.stringify(manifestPath)},
+                );
+                const start = manifestFile.before.indexOf('upstream root');
+                manifestFile.edits.push({
+                  category: 'manifest',
+                  end: start + 'upstream root'.length,
+                  oldValue: 'upstream root',
+                  replacement: 'changed root',
+                  start,
+                });
+                manifestFile.after = manifestFile.after.replace(
+                  'upstream root',
+                  'changed root',
+                );
+              } else {
+                const before = ${JSON.stringify(fixtureBefore)};
+                const start = before.indexOf('upstream fixture');
+                plan.files.push({
+                  after: before.replace('upstream fixture', 'changed fixture'),
+                  before,
+                  edits: [{
+                    category: 'manifest',
+                    end: start + 'upstream fixture'.length,
+                    oldValue: 'upstream fixture',
+                    replacement: 'changed fixture',
+                    start,
+                  }],
+                  path: ${JSON.stringify(fixturePath)},
+                });
+              }
+              applyMigrationPlan(plan);
+            `,
+            identities: [],
+            root,
+          }),
+          temporaryRepo,
+        );
+
+        expect(child.status).not.toBe(0);
+        expect(child.stderr).toMatch(/trusted plan|metadata/i);
+        expect(await readFile(manifestPath, 'utf8')).toBe(manifestBefore);
+        expect(await readFile(fixturePath, 'utf8')).toBe(fixtureBefore);
+      } finally {
+        await rm(temporaryRepo, {force: true, recursive: true});
+      }
+    },
+  );
+
+  test('reports a retained backup when post-commit cleanup fails', async () => {
+    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-plan-'));
+    const fixturePath = join(temporaryRepo, 'fixture.js');
+    const before = 'jest\n';
+    const after = '@pkg-nec/jest\n';
+    await writeFile(fixturePath, before);
+    const plan = {
+      files: [
+        {
+          after,
+          before,
+          edits: [
+            {
+              category: 'module',
+              end: 4,
+              oldValue: 'jest',
+              replacement: '@pkg-nec/jest',
+              start: 0,
+            },
+          ],
+          path: fixturePath,
+        },
+      ],
+      manifestComparisons: [],
+    };
+
+    try {
+      const child = runMigrationProgram(
+        `
+          import fs from 'node:fs';
+          const fileSystem = Object.create(fs);
+          fileSystem.unlinkSync = filePath => {
+            if (filePath.endsWith('.backup')) {
+              const error = new Error('injected backup cleanup failure');
+              error.code = 'EACCES';
+              throw error;
+            }
+            fs.unlinkSync(filePath);
+          };
+          const report = applyMigrationPlan(
+            ${JSON.stringify(plan)},
+            {fileSystem},
+          );
+          console.log(JSON.stringify(report));
+        `,
+        temporaryRepo,
+      );
+
+      expect({status: child.status, stderr: child.stderr}).toEqual({
+        status: 0,
+        stderr: '',
+      });
+      const report = JSON.parse(child.stdout);
+      expect(report.cleanupWarnings).toHaveLength(1);
+      expect(report.cleanupWarnings[0]).toMatchObject({path: fixturePath});
+      expect(await readFile(fixturePath, 'utf8')).toBe(after);
+      expect(await readFile(report.cleanupWarnings[0].backupPath, 'utf8')).toBe(
+        before,
+      );
+      const entries = await readdir(temporaryRepo);
+      expect(entries).toHaveLength(2);
+      expect(entries).toContain('fixture.js');
+      expect(entries.some(entry => entry.endsWith('.backup'))).toBe(true);
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+
+  test('applies a valid plan once and rejects a second run', async () => {
+    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-plan-'));
+    const manifestPath = join(temporaryRepo, 'package.json');
+    const manifest = {
+      name: '@jest/monorepo',
+      private: true,
+      version: '30.4.1',
+    };
+    await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    const root = {
+      directory: temporaryRepo,
+      manifestPath,
+      newName: '@pkg-nec/monorepo',
+      oldName: '@jest/monorepo',
+      publishable: false,
+      version: '30.4.1',
+    };
+    const baseline = {
+      'package.json': {
+        name: '@jest/monorepo',
+        private: true,
+        version: '30.4.1',
+      },
+    };
+
+    try {
+      const child = runMigrationProgram(
+        migrationFixtureProgram({
+          baseline,
+          body: `
+            const validOptions = {baseline, inventory, repoRoot: ${JSON.stringify(temporaryRepo)}};
+            applyMigrationPlan(buildMigrationPlan(validOptions));
+            buildMigrationPlan(validOptions);
+          `,
+          identities: [],
+          root,
+        }),
+        temporaryRepo,
+      );
+
+      expect(child.status).not.toBe(0);
+      expect(child.stderr).toMatch(/already appears to be rebranded/);
+      expect(JSON.parse(await readFile(manifestPath, 'utf8')).name).toBe(
+        '@pkg-nec/monorepo',
+      );
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+
+  test.each([
+    {
+      expected: "import value from '@pkg-nec/monorepo' assert {type: 'json'};",
+      label: 'legacy static import assertions',
+      source: "import value from '@jest/monorepo' assert {type: 'json'};",
+    },
+    {
+      expected: "import value from '@pkg-nec/monorepo';\nconst node = <App />;",
+      label: 'JavaScript JSX',
+      source: "import value from '@jest/monorepo';\nconst node = <App />;",
+    },
+    {
+      expected: null,
+      label: 'repository symlink placeholders',
+      source: '../package/index.js',
+    },
+    {
+      expected: null,
+      label: 'unrelated experimental syntax',
+      source: '@Component({})\nclass App {}',
+    },
+    {
+      expected: "import value from '@pkg-nec/jest-util';",
+      label: 'escaped module identities',
+      source: "import value from 'jest\\u002dutil';",
+    },
+  ])('plans $label without shifting edits', async ({expected, source}) => {
+    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-plan-'));
+    const manifestPath = join(temporaryRepo, 'package.json');
+    const sourcePath = join(temporaryRepo, 'fixture.js');
+    const packageDirectory = join(temporaryRepo, 'packages/jest-util');
+    const packageManifestPath = join(packageDirectory, 'package.json');
+    await mkdir(packageDirectory, {recursive: true});
+    await writeFile(
+      manifestPath,
+      `${JSON.stringify(
+        {
+          name: '@jest/monorepo',
+          private: true,
+          version: '30.4.1',
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    await writeFile(
+      packageManifestPath,
+      `${JSON.stringify({name: 'jest-util', version: '30.4.1'}, null, 2)}\n`,
+    );
+    await writeFile(sourcePath, source);
+    const root = {
+      directory: temporaryRepo,
+      manifestPath,
+      newName: '@pkg-nec/monorepo',
+      oldName: '@jest/monorepo',
+      publishable: false,
+      version: '30.4.1',
+    };
+    const identity = {
+      directory: packageDirectory,
+      manifestPath: packageManifestPath,
+      newName: '@pkg-nec/jest-util',
+      oldName: 'jest-util',
+      publishable: true,
+      version: '30.4.1',
+    };
+    const baseline = {
+      'package.json': {
+        name: '@jest/monorepo',
+        private: true,
+        version: '30.4.1',
+      },
+      'packages/jest-util/package.json': {
+        name: 'jest-util',
+        private: false,
+        version: '30.4.1',
+      },
+    };
+
+    try {
+      const child = runMigrationProgram(
+        migrationFixtureProgram({
+          baseline,
+          body: `
+            const plan = buildMigrationPlan({
+              baseline,
+              inventory,
+              repoRoot: ${JSON.stringify(temporaryRepo)},
+            });
+            console.log(JSON.stringify(
+              plan.files.find(file => file.path === ${JSON.stringify(sourcePath)})?.after ?? null,
+            ));
+          `,
+          identities: [identity],
+          root,
+        }),
+        temporaryRepo,
+      );
+
+      expect({status: child.status, stderr: child.stderr}).toEqual({
+        status: 0,
+        stderr: '',
+      });
+      expect(child.stdout).toBe(`${JSON.stringify(expected)}\n`);
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+
+  test.each([
+    {
+      label: 'parsing',
+      pattern: /unexpected token|parse/i,
+      prepare: async temporaryRepo => {
+        await writeFile(
+          join(temporaryRepo, 'broken.js'),
+          "import value from '@jest/monorepo';\nconst =;",
+        );
+        return {};
+      },
+    },
+    {
+      label: 'canonical-name collision',
+      pattern: /collision/,
+      prepare: async temporaryRepo => {
+        const packageDirectory = join(temporaryRepo, 'packages/example');
+        await mkdir(packageDirectory, {recursive: true});
+        const manifestPath = join(packageDirectory, 'package.json');
+        await writeFile(
+          manifestPath,
+          `${JSON.stringify({name: 'example', version: '30.4.1'}, null, 2)}\n`,
+        );
+        return {
+          baselineRecord: {
+            name: 'example',
+            private: false,
+            version: '30.4.1',
+          },
+          identity: {
+            directory: packageDirectory,
+            manifestPath,
+            newName: '@pkg-nec/monorepo',
+            oldName: 'example',
+            publishable: true,
+            version: '30.4.1',
+          },
+        };
+      },
+    },
+    {
+      label: 'double prefix',
+      pattern: /double-prefix/,
+      prepare: async temporaryRepo => {
+        await writeFile(
+          join(temporaryRepo, 'README.md'),
+          `npm install ${['@pkg-nec/jest-', 'jest-util'].join('')}\n`,
+        );
+        return {};
+      },
+    },
+    {
+      label: 'manifest preservation',
+      manifestDependencies: {'@fast-check/jest': '^3.0.0'},
+      pattern: /dependency value changed/,
+    },
+  ])('writes nothing when $label preflight fails', async scenario => {
+    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-plan-'));
+    const manifestPath = join(temporaryRepo, 'package.json');
+    const manifest = {
+      devDependencies: scenario.manifestDependencies ?? {
+        '@fast-check/jest': '^2.1.1',
+      },
+      name: '@jest/monorepo',
+      private: true,
+      version: '30.4.1',
+    };
+    const before = `${JSON.stringify(manifest, null, 2)}\n`;
+    await writeFile(manifestPath, before);
+
+    try {
+      const prepared = (await scenario.prepare?.(temporaryRepo)) ?? {};
+      const root = {
+        directory: temporaryRepo,
+        manifestPath,
+        newName: '@pkg-nec/monorepo',
+        oldName: '@jest/monorepo',
+        publishable: false,
+        version: '30.4.1',
+      };
+      const identities = prepared.identity ? [prepared.identity] : [];
+      const baseline = {
+        'package.json': {
+          devDependencies: {'@fast-check/jest': '^2.1.1'},
+          name: '@jest/monorepo',
+          private: true,
+          version: '30.4.1',
+        },
+        ...(prepared.baselineRecord && {
+          'packages/example/package.json': prepared.baselineRecord,
+        }),
+      };
+      const child = runMigrationProgram(
+        migrationFixtureProgram({
+          baseline,
+          body: `
+            const plan = buildMigrationPlan({
+              baseline,
+              inventory,
+              repoRoot: ${JSON.stringify(temporaryRepo)},
+            });
+            applyMigrationPlan(plan);
+          `,
+          identities,
+          root,
+        }),
+        temporaryRepo,
+      );
+
+      expect(child.status).not.toBe(0);
+      expect(child.stderr).toMatch(scenario.pattern);
+      expect(await readFile(manifestPath, 'utf8')).toBe(before);
     } finally {
       await rm(temporaryRepo, {force: true, recursive: true});
     }
