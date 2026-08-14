@@ -108,6 +108,7 @@
     "lint:prettier": "yarn lint:prettier-script --write",
     "lint:prettier:ci": "yarn lint:prettier-script --check",
     "lint-ts-files": "node scripts/lintTs.mjs",
+    "publish:pkg-nec:dry": "node ./scripts/publishPkgNecDry.mjs",
     "rebrand:pkg-nec": "node ./scripts/rebrandPackages.mjs",
     "remove-examples": "node ./scripts/remove-examples.mjs",
     "test-ci-partial": "yarn test-ci-partial:parallel -i",
