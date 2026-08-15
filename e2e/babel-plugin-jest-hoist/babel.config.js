@@ -16,6 +16,6 @@ module.exports = {
       test: '**/*.ts',
     },
   ],
-  plugins: ['jest-hoist'],
+  plugins: ['@pkg-nec/babel-plugin-jest-hoist'],
   presets: [['@babel/preset-env', {targets: {node: 'current'}}]],
 };
