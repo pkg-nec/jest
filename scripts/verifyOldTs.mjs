@@ -59,7 +59,12 @@ function smoketest() {
     execa.sync('yarn', ['init', '--yes'], {cwd, stdio: 'inherit'});
     execa.sync(
       'yarn',
-      ['add', `typescript@~${tsVersion}`, tsconfigBasePackage],
+      [
+        'add',
+        `typescript@~${tsVersion}`,
+        tsconfigBasePackage,
+        '@types/node@18',
+      ],
       {cwd, stdio: 'inherit'},
     );
     fs.writeFileSync(
