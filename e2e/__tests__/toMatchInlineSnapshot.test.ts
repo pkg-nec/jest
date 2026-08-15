@@ -270,7 +270,7 @@ test('handles mocking native modules prettier relies on', () => {
 test('supports custom matchers', () => {
   const filename = 'custom-matchers.test.js';
   const test = `
-    const { toMatchInlineSnapshot } = require('jest-snapshot');
+    const { toMatchInlineSnapshot } = require('@pkg-nec/jest-snapshot');
     expect.extend({
       toMatchCustomInlineSnapshot(received, ...args) {
         return toMatchInlineSnapshot.call(this, received, ...args);
@@ -292,7 +292,7 @@ test('supports custom matchers', () => {
 test('supports custom matchers with property matcher', () => {
   const filename = 'custom-matchers-with-property-matcher.test.js';
   const test = `
-    const { toMatchInlineSnapshot } = require('jest-snapshot');
+    const { toMatchInlineSnapshot } = require('@pkg-nec/jest-snapshot');
     expect.extend({
       toMatchCustomInlineSnapshot(received, ...args) {
         return toMatchInlineSnapshot.call(this, received, ...args);
@@ -334,7 +334,7 @@ test('supports custom matchers with property matcher', () => {
 test('multiple custom matchers and native matchers', () => {
   const filename = 'multiple-matchers.test.js';
   const test = `
-    const { toMatchInlineSnapshot } = require('jest-snapshot');
+    const { toMatchInlineSnapshot } = require('@pkg-nec/jest-snapshot');
     expect.extend({
       toMatchCustomInlineSnapshot(received, ...args) {
         return toMatchInlineSnapshot.call(this, received, ...args);
