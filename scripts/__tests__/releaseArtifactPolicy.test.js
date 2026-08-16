@@ -58,6 +58,10 @@ function validateReleaseFiles(options) {
   return runPolicyRequest('validateReleaseFiles', options);
 }
 
+function isHelperReleasePackageName(packageName) {
+  return runPolicyRequest('isHelperReleasePackageName', packageName);
+}
+
 const manifest = {
   exports: {
     '.': {
@@ -123,6 +127,194 @@ test.each([
   ).toThrow(new RegExp(`@pkg-nec/example.*${file.split('/').at(-1)}`));
 });
 
+const upstreamBuildInputPolicies = [
+  {
+    files: [
+      'package/LICENSE',
+      'package/README.md',
+      'package/api-extractor.json',
+      'package/build/index.d.ts',
+      'package/build/index.js',
+      'package/build/index.mjs',
+      'package/package.json',
+      'package/src/__tests__/__snapshots__/TestPathPatterns.test.ts.snap',
+      'package/src/__tests__/TestPathPatterns.test.ts',
+      'package/src/index.ts',
+      'package/src/TestPathPatterns.ts',
+      'package/tsconfig.json',
+    ],
+    name: '@pkg-nec/jest-pattern',
+    normalizedFiles: [
+      'LICENSE',
+      'README.md',
+      'api-extractor.json',
+      'build/index.d.ts',
+      'build/index.js',
+      'build/index.mjs',
+      'package.json',
+      'src/TestPathPatterns.ts',
+      'src/__tests__/TestPathPatterns.test.ts',
+      'src/__tests__/__snapshots__/TestPathPatterns.test.ts.snap',
+      'src/index.ts',
+      'tsconfig.json',
+    ],
+    otherVersion: '30.4.1',
+    version: '30.4.0',
+  },
+  {
+    files: [
+      'package/LICENSE',
+      'package/api-extractor.json',
+      'package/build/index.d.ts',
+      'package/build/index.js',
+      'package/build/index.mjs',
+      'package/package.json',
+      'package/src/__tests__/utils.test.ts',
+      'package/src/index.ts',
+      'package/src/types.ts',
+      'package/src/utils.ts',
+      'package/tsconfig.json',
+    ],
+    name: '@pkg-nec/jest-snapshot-utils',
+    normalizedFiles: [
+      'LICENSE',
+      'api-extractor.json',
+      'build/index.d.ts',
+      'build/index.js',
+      'build/index.mjs',
+      'package.json',
+      'src/__tests__/utils.test.ts',
+      'src/index.ts',
+      'src/types.ts',
+      'src/utils.ts',
+      'tsconfig.json',
+    ],
+    otherVersion: '30.4.2',
+    version: '30.4.1',
+  },
+];
+
+const getTypeCompatibilityFiles = [
+  'package/LICENSE',
+  'package/build/index.d.mts',
+  'package/build/index.d.ts',
+  'package/build/index.js',
+  'package/build/index.mjs',
+  'package/package.json',
+];
+
+test('accepts the audited get-type 30.1.0 compatibility declaration', () => {
+  expect(
+    validateReleaseFiles({
+      files: getTypeCompatibilityFiles,
+      helper: false,
+      manifest: {
+        ...manifest,
+        name: '@pkg-nec/jest-get-type',
+        version: '30.1.0',
+      },
+      packageName: '@pkg-nec/jest-get-type',
+    }),
+  ).toEqual([
+    'LICENSE',
+    'build/index.d.mts',
+    'build/index.d.ts',
+    'build/index.js',
+    'build/index.mjs',
+    'package.json',
+  ]);
+});
+
+test.each([
+  ['@pkg-nec/jest-get-type', '30.1.1'],
+  ['@pkg-nec/jest-regex-util', '30.1.0'],
+])(
+  'rejects the get-type compatibility declaration for %s@%s',
+  (packageName, version) => {
+    expect(() =>
+      validateReleaseFiles({
+        files: getTypeCompatibilityFiles,
+        helper: false,
+        manifest: {...manifest, name: packageName, version},
+        packageName,
+      }),
+    ).toThrow(
+      `${packageName} release files invalid: unreachable declaration build/index.d.mts`,
+    );
+  },
+);
+
+test('rejects an unlisted declaration for get-type 30.1.0', () => {
+  expect(() =>
+    validateReleaseFiles({
+      files: [...getTypeCompatibilityFiles, 'package/build/unlisted.d.mts'],
+      helper: false,
+      manifest: {
+        ...manifest,
+        name: '@pkg-nec/jest-get-type',
+        version: '30.1.0',
+      },
+      packageName: '@pkg-nec/jest-get-type',
+    }),
+  ).toThrow(
+    '@pkg-nec/jest-get-type release files invalid: unreachable declaration build/unlisted.d.mts',
+  );
+});
+
+test.each(upstreamBuildInputPolicies)(
+  'accepts the audited upstream file inventory for $name@$version',
+  ({files, name, normalizedFiles, version}) => {
+    expect(
+      validateReleaseFiles({
+        files,
+        helper: false,
+        manifest: {...manifest, name, version},
+        packageName: name,
+      }),
+    ).toEqual(normalizedFiles);
+  },
+);
+
+test.each(upstreamBuildInputPolicies)(
+  'rejects the $name build inputs at $otherVersion',
+  ({files, name, otherVersion}) => {
+    expect(() =>
+      validateReleaseFiles({
+        files,
+        helper: false,
+        manifest: {...manifest, name, version: otherVersion},
+        packageName: name,
+      }),
+    ).toThrow(`${name} release files invalid`);
+  },
+);
+
+test.each(
+  upstreamBuildInputPolicies.flatMap(policy =>
+    [
+      'package/src/unlisted.ts',
+      'package/.eslintcache',
+      'package/tsconfig.tsbuildinfo',
+    ].map(file => ({...policy, file})),
+  ),
+)('rejects $file for $name@$version', ({file, files, name, version}) => {
+  expect(() =>
+    validateReleaseFiles({
+      files: [...files, file],
+      helper: false,
+      manifest: {...manifest, name, version},
+      packageName: name,
+    }),
+  ).toThrow(`${name} release files invalid`);
+});
+
+test.each(upstreamBuildInputPolicies)(
+  'keeps $name in ordinary upstream parity',
+  ({name}) => {
+    expect(isHelperReleasePackageName(name)).toBe(false);
+  },
+);
+
 test('accepts manifest-reachable declarations', () => {
   expect(
     validateReleaseFiles({
@@ -138,6 +330,60 @@ test('accepts manifest-reachable declarations', () => {
       packageName: '@pkg-nec/example',
     }),
   ).toContain('build/index.d.ts');
+});
+
+test.each([
+  {
+    entry: '/outside.js',
+    kind: 'Unix-absolute main',
+    unsafeManifest: {...manifest, main: '/outside.js'},
+  },
+  {
+    entry: '../outside.d.ts',
+    kind: 'backslash traversal types',
+    unsafeManifest: {...manifest, types: '..\\outside.d.ts'},
+  },
+  {
+    entry: 'C:/outside.d.ts',
+    kind: 'drive-absolute nested export',
+    unsafeManifest: {
+      ...manifest,
+      exports: {
+        ...manifest.exports,
+        './unsafe': {types: 'C:\\outside.d.ts'},
+      },
+    },
+  },
+  {
+    entry: 'C:outside.js',
+    kind: 'drive-relative main',
+    unsafeManifest: {...manifest, main: 'C:outside.js'},
+  },
+  {
+    entry: 'C:../outside.d.ts',
+    kind: 'drive-relative traversal types',
+    unsafeManifest: {...manifest, types: 'C:../outside.d.ts'},
+  },
+  {
+    entry: 'D:outside.d.ts',
+    kind: 'drive-relative nested export',
+    unsafeManifest: {
+      ...manifest,
+      exports: {
+        ...manifest.exports,
+        './unsafe': {types: 'D:outside.d.ts'},
+      },
+    },
+  },
+])('rejects a $kind manifest entry', ({entry, unsafeManifest}) => {
+  expect(() =>
+    validateReleaseFiles({
+      files: ['package/LICENSE', 'package/package.json'],
+      helper: false,
+      manifest: unsafeManifest,
+      packageName: '@pkg-nec/example',
+    }),
+  ).toThrow(`invalid manifest entry ${entry}`);
 });
 
 test('enforces the exact helper release file allowlist', () => {
@@ -180,4 +426,10 @@ test('enforces the exact helper release file allowlist', () => {
       packageName: '@pkg-nec/helper',
     }),
   ).toThrow(/@pkg-nec\/helper.*additional.*src\/index\.ts/);
+});
+
+test('names the private release helpers that use the local file policy', () => {
+  expect(isHelperReleasePackageName('@pkg-nec/jest-test-globals')).toBe(true);
+  expect(isHelperReleasePackageName('@pkg-nec/jest-test-utils')).toBe(true);
+  expect(isHelperReleasePackageName('@pkg-nec/jest-core')).toBe(false);
 });
