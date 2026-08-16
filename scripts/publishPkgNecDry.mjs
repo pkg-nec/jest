@@ -13,9 +13,18 @@ import execa from 'execa';
 import fs from 'graceful-fs';
 import {auditRepository} from './pkgNec/audit.mjs';
 import {
+  comparePackageFiles,
+  isHelperReleasePackageName,
+  validateReleaseFiles,
+} from './pkgNec/releaseArtifactPolicy.mjs';
+import {
   buildRuntimeReleaseGraph,
   topologicalReleaseOrder,
 } from './pkgNec/releaseGraph.mjs';
+import {
+  localTarArguments,
+  repackReleaseArtifact,
+} from './pkgNec/repackReleaseArtifact.mjs';
 import {canonicalName} from './pkgNecPackageIdentity.mjs';
 
 const dependencyFields = [
@@ -390,7 +399,10 @@ async function defaultRunCommand(command, args, options) {
 }
 
 async function defaultInspectTarball(tarballPath) {
-  const {stdout: listing} = await execa('tar', ['-tzf', tarballPath]);
+  const {stdout: listing} = await execa(
+    'tar',
+    localTarArguments(['-tzf', tarballPath], [1]),
+  );
   const files = listing
     .split(/\r?\n/u)
     .map(file => file.replace(/^\.\//u, ''))
@@ -401,11 +413,10 @@ async function defaultInspectTarball(tarballPath) {
     );
   }
 
-  const {stdout: manifestText} = await execa('tar', [
-    '-xOzf',
-    tarballPath,
-    'package/package.json',
-  ]);
+  const {stdout: manifestText} = await execa(
+    'tar',
+    localTarArguments(['-xOzf', tarballPath, 'package/package.json'], [1]),
+  );
   return {files, manifest: JSON.parse(manifestText)};
 }
 
@@ -454,6 +465,7 @@ export async function runPublishDryCommand({
   makeStagingDirectory = defaultMakeStagingDirectory,
   orderGraph = topologicalReleaseOrder,
   outputDirectory,
+  repackTarball = repackReleaseArtifact,
   repoRoot = defaultRepoRoot,
   runCommand = defaultRunCommand,
   write = console.log,
@@ -482,6 +494,7 @@ export async function runPublishDryCommand({
     await makeStagingDirectory(root),
   );
   let ledger;
+  let primaryError;
   try {
     const artifacts = [];
     for (const name of order) {
@@ -497,28 +510,74 @@ export async function runPublishDryCommand({
         releaseDirectoryName,
         tarballName,
       );
-      const stagingTarballPath = path.join(stagingDirectory, tarballName);
-      await runCommand(
-        'yarn',
-        ['workspace', name, 'pack', '--out', stagingTarballPath],
-        {cwd: root},
+      const rawTarballPath = path.join(
+        stagingDirectory,
+        tarballName.replace(/\.tgz$/u, '.raw-packed.tgz'),
       );
+      const stagedFinalTarballPath = path.join(stagingDirectory, tarballName);
+      let rawFailure;
+      try {
+        await runCommand(
+          'yarn',
+          ['workspace', name, 'pack', '--out', rawTarballPath],
+          {cwd: root},
+        );
 
-      const packed = await inspectTarball(stagingTarballPath);
-      inspectPackedManifest({
-        baseline,
-        manifest: packed.manifest,
-        workspace,
-      });
-      const bytes = await fs.promises.readFile(stagingTarballPath);
-      artifacts.push({
-        files: packed.files,
-        integrity: `sha512-${createHash('sha512').update(bytes).digest('base64')}`,
-        name,
-        prerequisites: [...(graph.get(name) ?? [])],
-        tarball: finalTarballPath,
-        version: workspace.version,
-      });
+        const rawPacked = await inspectTarball(rawTarballPath);
+        inspectPackedManifest({
+          baseline,
+          manifest: rawPacked.manifest,
+          workspace,
+        });
+        await repackTarball({
+          finalTarballPath: stagedFinalTarballPath,
+          licensePath: path.join(root, 'LICENSE'),
+          packageName: name,
+          rawTarballPath,
+          stagingDirectory,
+        });
+        const finalPacked = await inspectTarball(stagedFinalTarballPath);
+        if (!isDeepStrictEqual(rawPacked.manifest, finalPacked.manifest)) {
+          throw new Error(`Packed manifest changed after repacking: ${name}`);
+        }
+        const fileComparison = comparePackageFiles({
+          actualFiles: finalPacked.files,
+          expectedFiles: rawPacked.files,
+        });
+        if (
+          fileComparison.added.some(file => file !== 'LICENSE') ||
+          fileComparison.missing.length > 0
+        ) {
+          throw new Error(
+            `Packed file inventory changed after repacking: ${name}`,
+          );
+        }
+        const releaseFiles = validateReleaseFiles({
+          files: finalPacked.files,
+          helper: isHelperReleasePackageName(name),
+          manifest: finalPacked.manifest,
+          packageName: name,
+        });
+        const bytes = await fs.promises.readFile(stagedFinalTarballPath);
+        artifacts.push({
+          files: releaseFiles,
+          integrity: `sha512-${createHash('sha512').update(bytes).digest('base64')}`,
+          name,
+          prerequisites: [...(graph.get(name) ?? [])],
+          tarball: finalTarballPath,
+          version: workspace.version,
+        });
+      } catch (error) {
+        rawFailure = error;
+      }
+      let rawCleanupError;
+      try {
+        await fs.promises.rm(rawTarballPath, {force: true});
+      } catch (error) {
+        rawCleanupError = error;
+      }
+      if (rawFailure) throw rawFailure;
+      if (rawCleanupError) throw rawCleanupError;
     }
 
     ledger = createReleaseLedger({artifacts, order});
@@ -535,9 +594,17 @@ export async function runPublishDryCommand({
       repoRoot: root,
       stagingDirectory,
     });
-  } finally {
-    await fs.promises.rm(stagingDirectory, {force: true, recursive: true});
+  } catch (error) {
+    primaryError = error;
   }
+  let cleanupError;
+  try {
+    await fs.promises.rm(stagingDirectory, {force: true, recursive: true});
+  } catch (error) {
+    cleanupError = error;
+  }
+  if (primaryError) throw primaryError;
+  if (cleanupError) throw cleanupError;
   write(`Packed ${ledger.packages.length} pkg-nec release artifact(s).`);
   write(
     `Release ledger: ${path.join(releaseDirectory, 'release-ledger.json')}`,
