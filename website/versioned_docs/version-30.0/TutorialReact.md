@@ -7,12 +7,12 @@ At Facebook, we use Jest to test [React](https://reactjs.org/) applications.
 
 ## Setup
 
-If you have an existing application you'll need to install a few packages to make everything work well together. We are using the `babel-jest` package and the `react` babel preset to transform our code inside of the test environment. Also see [using babel](GettingStarted.md#using-babel).
+If you have an existing application you'll need to install a few packages to make everything work well together. We are using the `@pkg-nec/babel-jest` package and the `react` babel preset to transform our code inside of the test environment. Also see [using babel](GettingStarted.md#using-babel).
 
 Run
 
 ```bash npm2yarn
-npm install --save-dev jest babel-jest @babel/preset-env @babel/preset-react react-test-renderer
+npm install --save-dev @pkg-nec/jest @pkg-nec/babel-jest @babel/preset-env @babel/preset-react react-test-renderer
 ```
 
 Your `package.json` should look something like this (where `<current-version>` is the actual latest version number for the package). Please add the scripts and jest configuration entries:
@@ -120,7 +120,7 @@ it('changes the class when hovered', () => {
 });
 ```
 
-When you run `yarn test` or `jest`, this will produce an output file like this:
+When you run `yarn test` or `@pkg-nec/jest`, this will produce an output file like this:
 
 ```javascript title="__tests__/__snapshots__/Link.test.js.snap"
 exports[`changes the class when hovered 1`] = `
@@ -251,13 +251,13 @@ The code for this example is available at [examples/react-testing-library](https
 
 ### Custom transformers
 
-If you need more advanced functionality, you can also build your own transformer. Instead of using `babel-jest`, here is an example of using `@babel/core`:
+If you need more advanced functionality, you can also build your own transformer. Instead of using `@pkg-nec/babel-jest`, here is an example of using `@babel/core`:
 
 ```javascript title="custom-transformer.js"
 'use strict';
 
 const {transform} = require('@babel/core');
-const jestPreset = require('babel-preset-jest');
+const jestPreset = require('@pkg-nec/babel-preset-jest');
 
 module.exports = {
   process(src, filename) {
@@ -271,14 +271,14 @@ module.exports = {
 };
 ```
 
-Don't forget to install the `@babel/core` and `babel-preset-jest` packages for this example to work.
+Don't forget to install the `@babel/core` and `@pkg-nec/babel-preset-jest` packages for this example to work.
 
 To make this work with Jest you need to update your Jest configuration with this: `"transform": {"\\.js$": "path/to/custom-transformer.js"}`.
 
-If you'd like to build a transformer with babel support, you can also use `babel-jest` to compose one and pass in your custom configuration options:
+If you'd like to build a transformer with babel support, you can also use `@pkg-nec/babel-jest` to compose one and pass in your custom configuration options:
 
 ```javascript
-const babelJest = require('babel-jest');
+const babelJest = require('@pkg-nec/babel-jest');
 
 module.exports = babelJest.createTransformer({
   presets: ['my-custom-preset'],

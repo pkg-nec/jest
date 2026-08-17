@@ -14,8 +14,8 @@ import {
   type TemporalTimelike,
   withGlobal,
 } from '@sinonjs/fake-timers';
-import type {Config} from '@jest/types';
-import {formatStackTrace} from 'jest-message-util';
+import {formatStackTrace} from '@pkg-nec/jest-message-util';
+import type {Config} from '@pkg-nec/jest-types';
 
 export default class FakeTimers {
   private _clock!: InstalledClock;

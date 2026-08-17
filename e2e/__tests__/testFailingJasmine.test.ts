@@ -6,7 +6,7 @@
  */
 
 import * as path from 'path';
-import {skipSuiteOnJestCircus} from '@jest/test-utils';
+import {skipSuiteOnJestCircus} from '@pkg-nec/jest-test-utils';
 import {extractSortedSummary, replaceJestBuildLineNumbers} from '../Utils';
 import runJest from '../runJest';
 

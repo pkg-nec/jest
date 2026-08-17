@@ -1,5 +1,5 @@
 {
-  "name": "jest-each",
+  "name": "@pkg-nec/jest-each",
   "version": "30.4.1",
   "description": "Parameterised tests for Jest",
   "main": "./build/index.js",
@@ -27,11 +27,11 @@
   "author": "Matt Phillips (mattphillips)",
   "license": "MIT",
   "dependencies": {
-    "@jest/get-type": "workspace:*",
-    "@jest/types": "workspace:*",
-    "chalk": "^4.1.2",
-    "jest-util": "workspace:*",
-    "pretty-format": "workspace:*"
+    "@pkg-nec/jest-get-type": "workspace:*",
+    "@pkg-nec/jest-types": "workspace:*",
+    "@pkg-nec/jest-util": "workspace:*",
+    "@pkg-nec/pretty-format": "workspace:*",
+    "chalk": "^4.1.2"
   },
   "engines": {
     "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"

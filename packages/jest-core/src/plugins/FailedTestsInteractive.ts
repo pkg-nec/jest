@@ -5,14 +5,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {AggregatedResult, AssertionLocation} from '@jest/test-result';
-import type {Config} from '@jest/types';
+import type {
+  AggregatedResult,
+  AssertionLocation,
+} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
 import {
   BaseWatchPlugin,
   type JestHookSubscriber,
   type UpdateConfigCallback,
   type UsageData,
-} from 'jest-watcher';
+} from '@pkg-nec/jest-watcher';
 import FailedTestsInteractiveMode from '../FailedTestsInteractiveMode';
 
 export default class FailedTestsInteractivePlugin extends BaseWatchPlugin {

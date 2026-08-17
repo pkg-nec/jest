@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {EnvironmentContext} from '@jest/environment';
-import {makeGlobalConfig, makeProjectConfig} from '@jest/test-utils';
+import type {EnvironmentContext} from '@pkg-nec/jest-environment';
+import {makeGlobalConfig, makeProjectConfig} from '@pkg-nec/jest-test-utils';
 import NodeEnvironment from '../';
 
 const context: EnvironmentContext = {

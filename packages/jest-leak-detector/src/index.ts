@@ -9,8 +9,8 @@
 import {promisify} from 'node:util';
 import {getHeapSnapshot, setFlagsFromString} from 'node:v8';
 import {runInNewContext} from 'node:vm';
-import {isPrimitive} from '@jest/get-type';
-import {format as prettyFormat} from 'pretty-format';
+import {isPrimitive} from '@pkg-nec/jest-get-type';
+import {format as prettyFormat} from '@pkg-nec/pretty-format';
 
 interface LeakDetectorOptions {
   shouldGenerateV8HeapSnapshot: boolean;

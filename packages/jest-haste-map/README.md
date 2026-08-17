@@ -1,31 +1,31 @@
-# jest-haste-map
+# @pkg-nec/jest-haste-map
 
-`jest-haste-map` is a module used by Jest, a popular JavaScript testing framework, to create a fast lookup of files in a project. It helps Jest efficiently locate and track changes in files during testing, making it particularly useful for large projects with many files.
+`@pkg-nec/jest-haste-map` is a module used by Jest, a popular JavaScript testing framework, to create a fast lookup of files in a project. It helps Jest efficiently locate and track changes in files during testing, making it particularly useful for large projects with many files.
 
-## why jest-haste-map ?
+## Why @pkg-nec/jest-haste-map?
 
-- **Parallel crawling and analysis:** jest-haste-map crawls the entire project, extracts dependencies, and analyzes files in parallel across worker processes.This can significantly improve the performance of the map building process.
-- **Cached file system:** jest-haste-map keeps a cache of the file system in memory and on disk. This allows for fast file related operations, such as resolving module imports and checking for changes.
-- **Minimal work**: jest-haste-map only does the minimal amount of work necessary when files change. (If you are using [watchman](https://facebook.github.io/watchman/) (recommended for large projects), Jest will ask watchman for changed files instead of crawling the file system. This is very fast even if you have tens of thousands of files.)
-- **File system watching:** jest-haste-map can watch the file system for changes. This is useful for building interactive tools, such as watch mode.
+- **Parallel crawling and analysis:** @pkg-nec/jest-haste-map crawls the entire project, extracts dependencies, and analyzes files in parallel across worker processes.This can significantly improve the performance of the map building process.
+- **Cached file system:** @pkg-nec/jest-haste-map keeps a cache of the file system in memory and on disk. This allows for fast file related operations, such as resolving module imports and checking for changes.
+- **Minimal work**: @pkg-nec/jest-haste-map only does the minimal amount of work necessary when files change. (If you are using [watchman](https://facebook.github.io/watchman/) (recommended for large projects), Jest will ask watchman for changed files instead of crawling the file system. This is very fast even if you have tens of thousands of files.)
+- **File system watching:** @pkg-nec/jest-haste-map can watch the file system for changes. This is useful for building interactive tools, such as watch mode.
 
 ## Installation
 
 with npm :
 
 ```bash
-npm install jest-haste-map --save-dev
+npm install @pkg-nec/jest-haste-map --save-dev
 ```
 
 with yarn :
 
 ```bash
-yarn add jest-haste-map --dev
+yarn add @pkg-nec/jest-haste-map --dev
 ```
 
 ## usage
 
-`jest-haste-map` is compatible with both `ES modules` and `CommonJS`
+`@pkg-nec/jest-haste-map` is compatible with both `ES modules` and `CommonJS`
 
 ### simple usage
 
@@ -38,7 +38,7 @@ const map = new HasteMap.default({
 ### Example usage (get all files with .js extension in the project)
 
 ```javascript
-import HasteMap from 'jest-haste-map';
+import HasteMap from '@pkg-nec/jest-haste-map';
 import os from 'os';
 import {dirname} from 'path';
 import {fileURLToPath} from 'url';
@@ -47,7 +47,7 @@ const root = dirname(fileURLToPath(import.meta.url));
 
 const map = new HasteMap.default({
   id: 'myproject', //Used for caching.
-  extensions: ['js'], // Tells jest-haste-map to only crawl .js files.
+  extensions: ['js'], // Tells @pkg-nec/jest-haste-map to only crawl .js files.
   maxWorkers: os.availableParallelism(), //Parallelizes across all available CPUs.
   platforms: [], // This is only used for React Native, you can leave it empty.
   roots: [root], // Can be used to only search a subset of files within `rootDir`
@@ -89,4 +89,4 @@ console.log(files);
 | throwOnModuleCollision | boolean             | Yes      | -             |
 | useWatchman            | boolean             | No       | `true`        |
 
-For more, you can check [github](https://github.com/jestjs/jest/tree/main/packages/jest-haste-map)
+For more, you can check [GitHub](https://github.com/pkg-nec/jest/tree/main/packages/jest-haste-map)

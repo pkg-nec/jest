@@ -8,7 +8,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const {createDirectory} = require('jest-util');
+const {createDirectory} = require('@pkg-nec/jest-util');
 
 const DIR = path.join(os.tmpdir(), 'jest-global-setup');
 

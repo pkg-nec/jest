@@ -7,7 +7,7 @@
 
 import ansiEscapes from 'ansi-escapes';
 import chalk from 'chalk';
-import {specialChars} from 'jest-util';
+import {specialChars} from '@pkg-nec/jest-util';
 import type Prompt from './lib/Prompt';
 import type {ScrollOptions} from './types';
 

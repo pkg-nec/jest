@@ -6,9 +6,7 @@
  */
 
 import * as fs from 'graceful-fs';
-import {escapeBacktickString} from '@jest/snapshot-utils';
-import type {Config} from '@jest/types';
-import type {MatcherFunctionWithContext} from 'expect';
+import type {MatcherFunctionWithContext} from '@pkg-nec/expect';
 import {
   BOLD_WEIGHT,
   EXPECTED_COLOR,
@@ -18,8 +16,10 @@ import {
   matcherHint,
   printWithType,
   stringify,
-} from 'jest-matcher-utils';
-import {isError} from 'jest-util';
+} from '@pkg-nec/jest-matcher-utils';
+import {escapeBacktickString} from '@pkg-nec/jest-snapshot-utils';
+import type {Config} from '@pkg-nec/jest-types';
+import {isError} from '@pkg-nec/jest-util';
 import {EXTENSION, type SnapshotResolver} from './SnapshotResolver';
 import {
   PROPERTIES_ARG,

@@ -1,4 +1,4 @@
-# jest-phabricator
+# @pkg-nec/jest-phabricator
 
 This Repo contains the testResultsProcessor needed to create the coverage map needed by Phabricator to show inline coverage at diff time.
 

@@ -7,8 +7,8 @@
 
 const chalk = require('chalk');
 const Immutable = require('immutable');
-const {alignedAnsiStyleSerializer} = require('@jest/test-utils');
-const {stringify} = require('jest-matcher-utils');
+const {alignedAnsiStyleSerializer} = require('@pkg-nec/jest-test-utils');
+const {stringify} = require('@pkg-nec/jest-matcher-utils');
 const {expect: jestExpect} = require('../');
 const chalkEnabled = chalk.enabled;
 

@@ -6,7 +6,7 @@
  *
  */
 
-import type {Global} from '@jest/types';
+import type {Global} from '@pkg-nec/jest-types';
 import each from '../';
 
 const noop = () => {};

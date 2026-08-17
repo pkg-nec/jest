@@ -6,8 +6,8 @@
  */
 
 import chalk from 'chalk';
-import type {Config} from '@jest/types';
-import {isInteractive} from 'jest-util';
+import type {Config} from '@pkg-nec/jest-types';
+import {isInteractive} from '@pkg-nec/jest-util';
 
 export default function getNoTestFoundRelatedToChangedFiles(
   globalConfig: Config.GlobalConfig,

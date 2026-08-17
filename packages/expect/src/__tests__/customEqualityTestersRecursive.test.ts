@@ -6,7 +6,7 @@
  *
  */
 
-import {type Tester, equals} from '@jest/expect-utils';
+import {type Tester, equals} from '@pkg-nec/jest-expect-utils';
 import jestExpect from '../';
 
 // Test test file demonstrates and tests the capability of recursive custom

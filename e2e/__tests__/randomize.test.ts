@@ -6,7 +6,7 @@
  */
 
 import * as path from 'path';
-import {skipSuiteOnJasmine} from '@jest/test-utils';
+import {skipSuiteOnJasmine} from '@pkg-nec/jest-test-utils';
 import {extractSummary} from '../Utils';
 import runJest, {type RunJestResult} from '../runJest';
 

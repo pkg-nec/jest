@@ -5,9 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {beforeEach, describe, expect, it, jest} from '@jest/globals';
-import {makeProjectConfig} from '@jest/test-utils';
-import type {Circus} from '@jest/types';
+import {beforeEach, describe, expect, it, jest} from '@pkg-nec/jest-globals';
+import {makeProjectConfig} from '@pkg-nec/jest-test-utils';
+import type {Circus} from '@pkg-nec/jest-types';
 import {getState as getRunnerState, resetState} from '../../state';
 import {makeDescribe, makeTest} from '../../utils';
 import {collectTestsWithoutRunning} from '../jestAdapterInit';

@@ -6,9 +6,9 @@
  */
 
 import {describe, expect, test} from 'tstyche';
-import {expect as _expect} from 'expect';
+import {expect as _expect} from '@pkg-nec/expect';
 
-declare module 'expect' {
+declare module '@pkg-nec/expect' {
   interface Matchers<R, T> {
     toTypedEqual(expected: T): void;
   }

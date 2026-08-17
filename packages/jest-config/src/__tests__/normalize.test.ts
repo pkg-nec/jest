@@ -9,8 +9,8 @@
 import {createHash} from 'crypto';
 import * as path from 'path';
 import * as semver from 'semver';
-import type {Config} from '@jest/types';
-import {escapeStrForRegex} from 'jest-regex-util';
+import type {Config} from '@pkg-nec/jest-types';
+import {escapeStrForRegex} from '@pkg-nec/jest-regex-util';
 import Defaults from '../Defaults';
 import {DEFAULT_JS_PATTERN} from '../constants';
 import normalize, {type AllOptions} from '../normalize';
@@ -27,9 +27,11 @@ jest
       statSync: () => ({isDirectory: () => true}),
     };
   })
-  .mock('jest-util', () => {
+  .mock('@pkg-nec/jest-util', () => {
     const realUtil =
-      jest.requireActual<typeof import('jest-util')>('jest-util');
+      jest.requireActual<typeof import('@pkg-nec/jest-util')>(
+        '@pkg-nec/jest-util',
+      );
 
     return {
       ...realUtil,
@@ -77,7 +79,7 @@ beforeEach(() => {
   expectedPathAbsAnother = path.join(root, 'another', 'abs', 'path');
 
   (
-    require('jest-resolve') as typeof import('jest-resolve')
+    require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
   ).default.findNodeModule = findNodeModule;
 
   jest.spyOn(console, 'warn');
@@ -396,10 +398,11 @@ describe('roots', () => {
 });
 
 describe('reporters', () => {
-  let Resolver: typeof import('jest-resolve').default;
+  let Resolver: typeof import('@pkg-nec/jest-resolve').default;
   beforeEach(() => {
-    Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) => name);
   });
 
@@ -497,10 +500,11 @@ describe('reporters', () => {
 });
 
 describe('transform', () => {
-  let Resolver: typeof import('jest-resolve').default;
+  let Resolver: typeof import('@pkg-nec/jest-resolve').default;
   beforeEach(() => {
-    Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) => name);
   });
 
@@ -519,7 +523,7 @@ describe('transform', () => {
 
     expect(options.transform).toEqual([
       [DEFAULT_CSS_PATTERN, '/root/node_modules/jest-regex-util', {}],
-      [DEFAULT_JS_PATTERN, require.resolve('babel-jest'), {}],
+      [DEFAULT_JS_PATTERN, require.resolve('@pkg-nec/babel-jest'), {}],
       ['abs-path', '/qux/quux', {}],
     ]);
   });
@@ -537,17 +541,22 @@ describe('transform', () => {
     );
     expect(options.transform).toEqual([
       [DEFAULT_CSS_PATTERN, '/root/node_modules/jest-regex-util', {}],
-      [DEFAULT_JS_PATTERN, require.resolve('babel-jest'), {rootMode: 'upward'}],
+      [
+        DEFAULT_JS_PATTERN,
+        require.resolve('@pkg-nec/babel-jest'),
+        {rootMode: 'upward'},
+      ],
       ['abs-path', '/qux/quux', {}],
     ]);
   });
 });
 
 describe('haste', () => {
-  let Resolver: typeof import('jest-resolve').default;
+  let Resolver: typeof import('@pkg-nec/jest-resolve').default;
   beforeEach(() => {
-    Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) => name);
   });
 
@@ -569,10 +578,11 @@ describe('haste', () => {
 });
 
 describe('setupFilesAfterEnv', () => {
-  let Resolver: typeof import('jest-resolve').default;
+  let Resolver: typeof import('@pkg-nec/jest-resolve').default;
   beforeEach(() => {
-    Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) =>
       name.startsWith('/') ? name : `/root/path/foo${path.sep}${name}`,
     );
@@ -832,8 +842,9 @@ describe('testRunner', () => {
   });
 
   it('resolves jasmine', async () => {
-    const Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    const Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) => name);
     const {options} = await normalize(
       {
@@ -848,8 +859,9 @@ describe('testRunner', () => {
   });
 
   it('is overwritten by argv', async () => {
-    const Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    const Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) => name);
     const {options} = await normalize(
       {
@@ -878,12 +890,18 @@ describe('coverageDirectory', () => {
 });
 
 describe('testEnvironment', () => {
-  let Resolver: typeof import('jest-resolve').default;
+  let Resolver: typeof import('@pkg-nec/jest-resolve').default;
   beforeEach(() => {
-    Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) => {
-      if (['jsdom', 'jest-environment-jsdom'].includes(name)) {
+      if (
+        [
+          '@pkg-nec/jest-environment-jsdom',
+          '@pkg-nec/jest-environment-node',
+        ].includes(name)
+      ) {
         return `node_modules/${name}`;
       }
       if (name.startsWith('/root')) {
@@ -893,17 +911,20 @@ describe('testEnvironment', () => {
     });
   });
 
-  it('resolves to an environment and prefers jest-environment-`name`', async () => {
-    const {options} = await normalize(
-      {
-        rootDir: '/root',
-        testEnvironment: 'jsdom',
-      },
-      {} as Config.Argv,
-    );
+  it.each([
+    ['jsdom', '@pkg-nec/jest-environment-jsdom'],
+    ['node', '@pkg-nec/jest-environment-node'],
+  ])(
+    'resolves the %s shorthand to %s',
+    async (testEnvironment, packageName) => {
+      const {options} = await normalize(
+        {rootDir: '/root', testEnvironment},
+        {} as Config.Argv,
+      );
 
-    expect(options.testEnvironment).toBe('node_modules/jest-environment-jsdom');
-  });
+      expect(options.testEnvironment).toBe(`node_modules/${packageName}`);
+    },
+  );
 
   it('resolves to node environment by default', async () => {
     const {options} = await normalize(
@@ -914,7 +935,7 @@ describe('testEnvironment', () => {
     );
 
     expect(options.testEnvironment).toEqual(
-      require.resolve('jest-environment-node'),
+      require.resolve('@pkg-nec/jest-environment-node'),
     );
   });
 
@@ -944,10 +965,11 @@ describe('testEnvironment', () => {
 });
 
 describe('babel-jest', () => {
-  let Resolver: typeof import('jest-resolve').default;
+  let Resolver: typeof import('@pkg-nec/jest-resolve').default;
   beforeEach(() => {
-    Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) =>
       name.includes('babel-jest')
         ? name
@@ -964,7 +986,9 @@ describe('babel-jest', () => {
     );
 
     expect(options.transform[0][0]).toBe(DEFAULT_JS_PATTERN);
-    expect(options.transform[0][1]).toEqual(require.resolve('babel-jest'));
+    expect(options.transform[0][1]).toEqual(
+      require.resolve('@pkg-nec/babel-jest'),
+    );
   });
 
   it('uses babel-jest if babel-jest is explicitly specified in a custom transform options', async () => {
@@ -980,7 +1004,9 @@ describe('babel-jest', () => {
     );
 
     expect(options.transform[0][0]).toBe(customJSPattern);
-    expect(options.transform[0][1]).toEqual(require.resolve('babel-jest'));
+    expect(options.transform[0][1]).toEqual(
+      require.resolve('@pkg-nec/babel-jest'),
+    );
   });
 });
 
@@ -1108,8 +1134,9 @@ describe('moduleDirectories', () => {
 
 describe('preset', () => {
   beforeEach(() => {
-    const Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    const Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) => {
       if (name === 'react-native/jest-preset') {
         return '/node_modules/react-native/jest-preset.json';
@@ -1312,8 +1339,9 @@ describe('preset', () => {
   });
 
   test('searches for .json, .js, .cjs, .mjs preset files', async () => {
-    const Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    const Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
 
     await normalize(
       {
@@ -1427,8 +1455,9 @@ describe('preset', () => {
 
 describe('preset with globals', () => {
   beforeEach(() => {
-    const Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    const Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) => {
       if (name === 'global-foo/jest-preset') {
         return '/node_modules/global-foo/jest-preset.json';
@@ -1489,8 +1518,9 @@ describe.each(['setupFiles', 'setupFilesAfterEnv'] as const)(
   configKey => {
     let Resolver;
     beforeEach(() => {
-      Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-        .default;
+      Resolver = (
+        require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+      ).default;
       Resolver.findNodeModule = jest.fn(
         name => `${path.sep}node_modules${path.sep}${name}`,
       );
@@ -1530,8 +1560,9 @@ describe.each(['setupFiles', 'setupFilesAfterEnv'] as const)(
 
 describe("preset with 'reporters' option", () => {
   beforeEach(() => {
-    const Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    const Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) => {
       if (name === 'with-reporters/jest-preset') {
         return '/node_modules/with-reporters/jest-preset.json';
@@ -1579,10 +1610,11 @@ describe("preset with 'reporters' option", () => {
 });
 
 describe('runner', () => {
-  let Resolver: typeof import('jest-resolve').default;
+  let Resolver: typeof import('@pkg-nec/jest-resolve').default;
   beforeEach(() => {
-    Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) => {
       if (['eslint', 'jest-runner-eslint', 'my-runner-foo'].includes(name)) {
         return `node_modules/${name}`;
@@ -1597,7 +1629,7 @@ describe('runner', () => {
   it('defaults to `jest-runner`', async () => {
     const {options} = await normalize({rootDir: '/root'}, {} as Config.Argv);
 
-    expect(options.runner).toBe(require.resolve('jest-runner'));
+    expect(options.runner).toBe(require.resolve('@pkg-nec/jest-runner'));
   });
 
   it('resolves to runners that do not have the prefix', async () => {
@@ -1737,10 +1769,11 @@ describe('runner', () => {
 });
 
 describe('watchPlugins', () => {
-  let Resolver: typeof import('jest-resolve').default;
+  let Resolver: typeof import('@pkg-nec/jest-resolve').default;
   beforeEach(() => {
-    Resolver = (require('jest-resolve') as typeof import('jest-resolve'))
-      .default;
+    Resolver = (
+      require('@pkg-nec/jest-resolve') as typeof import('@pkg-nec/jest-resolve')
+    ).default;
     Resolver.findNodeModule = jest.fn((name: string) => {
       if (
         ['typeahead', 'jest-watch-typeahead', 'my-watch-plugin'].includes(name)
@@ -1908,8 +1941,8 @@ describe('moduleFileExtensions', () => {
     ]);
   });
 
-  it.each([undefined, 'jest-runner'] as const)(
-    'throws if missing `js` but using jest-runner',
+  it.each([undefined, '@pkg-nec/jest-runner'] as const)(
+    'throws if missing `js` but using the default runner',
     async runner => {
       await expect(
         normalize(

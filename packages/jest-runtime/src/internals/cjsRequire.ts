@@ -8,9 +8,9 @@
 import nativeModule from 'node:module';
 import * as path from 'node:path';
 import {URL, fileURLToPath} from 'node:url';
-import type {JestEnvironment} from '@jest/environment';
-import Resolver from 'jest-resolve';
-import {protectProperties} from 'jest-util';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
+import Resolver from '@pkg-nec/jest-resolve';
+import {protectProperties} from '@pkg-nec/jest-util';
 import {createOutsideJestVmPath} from '../helpers';
 import type {ModuleRegistries} from './ModuleRegistries';
 import type {Resolution} from './Resolution';

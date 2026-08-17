@@ -7,7 +7,8 @@
 
 'use strict';
 
-const JSDOMEnvironment = require('jest-environment-jsdom').TestEnvironment;
+const JSDOMEnvironment =
+  require('@pkg-nec/jest-environment-jsdom').TestEnvironment;
 
 class TestEnvironment extends JSDOMEnvironment {
   handleTestEvent(event) {

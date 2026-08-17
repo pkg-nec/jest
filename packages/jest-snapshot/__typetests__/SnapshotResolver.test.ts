@@ -6,7 +6,7 @@
  */
 
 import {expect} from 'tstyche';
-import type {SnapshotResolver} from 'jest-snapshot';
+import type {SnapshotResolver} from '@pkg-nec/jest-snapshot';
 
 // SnapshotResolver
 

@@ -7,7 +7,7 @@
  */
 
 import type {WriteStream} from 'tty';
-import {makeGlobalConfig, makeProjectConfig} from '@jest/test-utils';
+import {makeGlobalConfig, makeProjectConfig} from '@pkg-nec/jest-test-utils';
 import logDebugMessages from '../logDebugMessages';
 
 jest.mock('../../../package.json', () => ({version: 123}));

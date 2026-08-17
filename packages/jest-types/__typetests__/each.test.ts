@@ -6,7 +6,7 @@
  */
 
 import {expect} from 'tstyche';
-import {describe, test} from '@jest/globals';
+import {describe, test} from '@pkg-nec/jest-globals';
 
 const list = [1, 2, 3];
 const tupleList = ['one', 'two', 'three'] as const;

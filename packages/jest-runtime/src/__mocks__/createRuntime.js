@@ -7,10 +7,10 @@
 
 import {tmpdir} from 'os';
 import * as path from 'path';
-import {makeGlobalConfig, makeProjectConfig} from '@jest/test-utils';
-import {createScriptTransformer} from '@jest/transform';
-import NodeEnvironment from 'jest-environment-node';
-import {tryRealpath} from 'jest-util';
+import {makeGlobalConfig, makeProjectConfig} from '@pkg-nec/jest-test-utils';
+import {createScriptTransformer} from '@pkg-nec/jest-transform';
+import NodeEnvironment from '@pkg-nec/jest-environment-node';
+import {tryRealpath} from '@pkg-nec/jest-util';
 import Runtime from '../';
 
 // Copy from jest-config (since we don't want to depend on this package)
@@ -45,7 +45,9 @@ const setupTransform = (config, rootDir, cwd) => {
       path.resolve(rootDir, transform[regex]),
     ]);
   }
-  return [['^.+\\.[jt]sx?$', require.resolve('babel-jest'), {root: cwd}]];
+  return [
+    ['^.+\\.[jt]sx?$', require.resolve('@pkg-nec/babel-jest'), {root: cwd}],
+  ];
 };
 
 module.exports = async function createRuntime(filename, projectConfig) {

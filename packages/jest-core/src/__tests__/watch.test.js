@@ -7,8 +7,8 @@
  */
 
 import chalk from 'chalk';
-import {TestPathPatterns} from '@jest/pattern';
-import {JestHook, KEYS, TestWatcher} from 'jest-watcher';
+import {TestPathPatterns} from '@pkg-nec/jest-pattern';
+import {JestHook, KEYS, TestWatcher} from '@pkg-nec/jest-watcher';
 
 const runJestMock = jest.fn();
 const watchPluginPath = `${__dirname}/__fixtures__/watchPlugin`;
@@ -111,8 +111,8 @@ describe('Watch mode flows', () => {
 
   beforeEach(() => {
     isInteractive = true;
-    jest.doMock('jest-util', () => {
-      const original = jest.requireActual('jest-util');
+    jest.doMock('@pkg-nec/jest-util', () => {
+      const original = jest.requireActual('@pkg-nec/jest-util');
 
       return {
         ...original,

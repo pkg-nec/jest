@@ -83,9 +83,19 @@ function makeInventory(repoRoot = '/repo') {
       oldName: 'jest',
     }),
     makeIdentity({
+      manifestPath: join(repoRoot, 'packages/expect/package.json'),
+      newName: '@pkg-nec/expect',
+      oldName: 'expect',
+    }),
+    makeIdentity({
       manifestPath: join(repoRoot, 'packages/globals/package.json'),
       newName: '@pkg-nec/jest-globals',
       oldName: '@jest/globals',
+    }),
+    makeIdentity({
+      manifestPath: join(repoRoot, 'packages/environment/package.json'),
+      newName: '@pkg-nec/jest-environment',
+      oldName: '@jest/environment',
     }),
     makeIdentity({
       manifestPath: join(repoRoot, 'packages/jest-util/package.json'),
@@ -117,6 +127,9 @@ function makeInventory(repoRoot = '/repo') {
 
 describe('pkg-nec identity audit', () => {
   const inventory = makeInventory();
+  const oldExpect = 'expect';
+  const oldGlobals = ['@jest', 'globals'].join('/');
+  const oldUtil = ['jest', 'util'].join('-');
 
   test('reports stale manifest names and internal dependency keys', () => {
     const findings = auditText({
@@ -124,8 +137,8 @@ describe('pkg-nec identity audit', () => {
       filePath: 'packages/globals/package.json',
       inventory,
       text: JSON.stringify({
-        dependencies: {'jest-util': 'workspace:^'},
-        name: '@jest/globals',
+        dependencies: {[oldUtil]: 'workspace:^'},
+        name: oldGlobals,
       }),
     });
 
@@ -200,10 +213,10 @@ describe('pkg-nec identity audit', () => {
       filePath: 'scripts/buildTs.mjs',
       inventory,
       text: [
-        "if (dep === 'jest-util') found.push(dep);",
-        "if (pkg.name === '@jest/globals') found.push(pkg.name);",
-        "const excludedPackages = new Set(['@jest/globals', 'node']);",
-        "Object.keys(pkg.dependencies).includes('jest-util');",
+        `if (dep === '${oldUtil}') found.push(dep);`,
+        `if (pkg.name === '${oldGlobals}') found.push(pkg.name);`,
+        `const excludedPackages = new Set(['${oldGlobals}', 'node']);`,
+        `Object.keys(pkg.dependencies).includes('${oldUtil}');`,
       ].join('\n'),
     });
 
@@ -224,6 +237,84 @@ describe('pkg-nec identity audit', () => {
     expect(findings).toHaveLength(2);
   });
 
+  test('reports old package identities in TypeScript module augmentations', () => {
+    expect(
+      auditText({
+        category: 'source',
+        filePath: 'examples/expect-extend/toBeWithinRange.ts',
+        inventory,
+        text: `declare module '${oldExpect}' {}`,
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        category: 'source-identity',
+        expected: '@pkg-nec/expect',
+        literal: 'expect',
+      }),
+    ]);
+  });
+
+  test('reports mapped scoped identities anywhere in package files', () => {
+    expect(
+      auditText({
+        category: 'source',
+        filePath: 'packages/runtime/src/index.ts',
+        inventory,
+        text: [
+          "const globalsName = '@jest/globals';",
+          "// import from '@jest/globals'",
+        ].join('\n'),
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        category: 'source-identity',
+        expected: '@pkg-nec/jest-globals',
+        literal: '@jest/globals',
+      }),
+    ]);
+    expect(
+      auditText({
+        category: 'documentation',
+        filePath: 'packages/runtime/README.md',
+        inventory,
+        text: '# @jest/globals',
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        category: 'source-identity',
+        expected: '@pkg-nec/jest-globals',
+        literal: '@jest/globals',
+      }),
+    ]);
+  });
+
+  test.each([
+    [
+      'docs/GlobalAPI.md',
+      "Use `import {test} from '@jest/globals'` for explicit imports.",
+      '@pkg-nec/jest-globals',
+    ],
+    [
+      'website/versioned_docs/version-30.4/Configuration.md',
+      "import {TestEnvironment} from '@jest/environment';",
+      '@pkg-nec/jest-environment',
+    ],
+  ])(
+    'reports mapped scoped identities in documentation %s',
+    (filePath, text, expected) => {
+      expect(
+        auditText({category: 'documentation', filePath, inventory, text}),
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            category: 'source-identity',
+            expected,
+          }),
+        ]),
+      );
+    },
+  );
+
   test('preserves source shorthands, global labels, and directory paths', () => {
     expect(
       auditText({
@@ -242,6 +333,7 @@ describe('pkg-nec identity audit', () => {
 
   test('reports double prefixes and internal-looking identities without mappings', () => {
     const doublePrefixedIdentity = ['@pkg-nec/jest-', 'jest-util'].join('');
+    const unresolvedIdentity = ['@jest', 'not-inventory'].join('/');
 
     expect(
       auditText({
@@ -262,15 +354,28 @@ describe('pkg-nec identity audit', () => {
         category: 'source',
         filePath: 'src/file.ts',
         inventory,
-        text: "require('@jest/not-inventory')",
+        text: `require('${unresolvedIdentity}')`,
       }),
     ).toEqual([
       expect.objectContaining({
         category: 'unresolved-identity',
         expected: null,
-        literal: '@jest/not-inventory',
+        literal: unresolvedIdentity,
       }),
     ]);
+  });
+
+  test('allows reviewed external Jest ecosystem module specifiers', () => {
+    const externalSpecifier = ['jest', 'watch-typeahead/filename'].join('-');
+
+    expect(
+      auditText({
+        category: 'config',
+        filePath: 'jest.config.mjs',
+        inventory,
+        text: `require.resolve('${externalSpecifier}')`,
+      }),
+    ).toEqual([]);
   });
 
   test('enforces exact fixture link values and rejects published local links', () => {
@@ -330,8 +435,8 @@ describe('pkg-nec identity audit', () => {
       '  version: 29.6.3',
       '  resolution: "@jest/types@npm:29.6.3"',
       '  dependencies:',
-      '    "@jest/globals": "npm:^29.6.3"',
-      '    jest-util: "npm:^29.7.0"',
+      `    "${oldGlobals}": "npm:^29.6.3"`,
+      `    ${oldUtil}: "npm:^29.7.0"`,
     ].join('\n');
 
     expect(
@@ -344,6 +449,51 @@ describe('pkg-nec identity audit', () => {
     ).toEqual([]);
   });
 
+  test('allows old identities throughout upstream npm root-lock records', () => {
+    const npmRecord = [
+      `"${oldUtil}@npm:^29.7.0":`,
+      '  version: 29.7.0',
+      `  resolution: "${oldUtil}@npm:29.7.0"`,
+      '  dependencies:',
+      `    "${oldGlobals}": "npm:^29.6.3"`,
+    ].join('\n');
+
+    expect(
+      auditText({
+        category: 'lock',
+        filePath: 'yarn.lock',
+        inventory,
+        text: npmRecord,
+      }),
+    ).toEqual([]);
+  });
+
+  test('preserves CLI bin labels while auditing workspace dependencies', () => {
+    const workspaceRecord = [
+      '"@pkg-nec/jest@workspace:packages/jest":',
+      '  version: 0.0.0-use.local',
+      '  dependencies:',
+      `    ${oldUtil}: "workspace:*"`,
+      '  bin:',
+      '    jest: ./bin/jest.js',
+    ].join('\n');
+
+    expect(
+      auditText({
+        category: 'lock',
+        filePath: 'yarn.lock',
+        inventory,
+        text: workspaceRecord,
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        category: 'lock-identity',
+        expected: '@pkg-nec/jest-util',
+        literal: 'jest-util',
+      }),
+    ]);
+  });
+
   test.each(['workspace:.', 'link:../../packages/jest-util'])(
     'audits old identities in local fixture-lock %s records',
     protocol => {
@@ -352,7 +502,7 @@ describe('pkg-nec identity audit', () => {
         '  version: 0.0.0-use.local',
         `  resolution: "fixture@${protocol}"`,
         '  dependencies:',
-        '    jest-util: "npm:*"',
+        `    ${oldUtil}: "npm:*"`,
       ].join('\n');
 
       expect(
@@ -373,6 +523,34 @@ describe('pkg-nec identity audit', () => {
   );
 
   test('preserves shorthands, paths, CLI labels, and exact reviewed exceptions', () => {
+    const mapperKey = `^${oldGlobals}$`;
+    const compilerBridge = JSON.stringify({
+      compilerOptions: {paths: {[oldGlobals]: ['./packages/jest-globals']}},
+    });
+
+    expect(
+      auditText({
+        category: 'jsonc',
+        filePath: 'tsconfig.test.json',
+        inventory,
+        text: compilerBridge,
+      }),
+    ).toEqual([]);
+    expect(
+      auditText({
+        category: 'jsonc',
+        filePath: 'tsconfig.other.json',
+        inventory,
+        text: compilerBridge,
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        category: 'compiler-path',
+        expected: '@pkg-nec/jest-globals',
+        literal: '@jest/globals',
+      }),
+    ]);
+
     expect(
       auditText({
         category: 'config',
@@ -417,7 +595,7 @@ describe('pkg-nec identity audit', () => {
         category: 'source',
         filePath: mappedGlobalsPath,
         inventory,
-        text: "require('@jest/globals')",
+        text: `require('${oldGlobals}')`,
       }),
     ).toEqual([]);
     expect(
@@ -425,7 +603,7 @@ describe('pkg-nec identity audit', () => {
         category: 'source',
         filePath: 'jest.config.mjs',
         inventory,
-        text: "const mapper = {'^@jest/globals$': '<rootDir>/bridge.js'};",
+        text: `const mapper = {'${mapperKey}': '<rootDir>/bridge.js'};`,
       }),
     ).toEqual([]);
     expect(
@@ -433,7 +611,7 @@ describe('pkg-nec identity audit', () => {
         category: 'source',
         filePath: 'src/not-jest-config.js',
         inventory,
-        text: "const mapper = {'^@jest/globals$': '<rootDir>/bridge.js'};",
+        text: `const mapper = {'${mapperKey}': '<rootDir>/bridge.js'};`,
       }),
     ).toEqual([
       expect.objectContaining({
@@ -445,6 +623,8 @@ describe('pkg-nec identity audit', () => {
   });
 
   test.each([
+    'CHANGELOG.md',
+    'CHANGELOG_PRE_v30.md',
     'docs/pkg-nec-rebrand-technical-guide.md',
     'docs/superpowers/plans/2026-08-12-pkg-nec-package-rebrand.md',
     'docs/superpowers/specs/2026-08-12-pkg-nec-package-rebrand-design.md',
@@ -535,7 +715,7 @@ describe('pkg-nec identity audit', () => {
     repositoryInventory.packages = [];
     const baseline = {
       'package.json': {
-        dependencies: {'@jest/globals': 'workspace:*'},
+        dependencies: {[oldGlobals]: 'workspace:*'},
         name: '@jest/monorepo',
         private: true,
         version: '1.0.0',
@@ -729,6 +909,74 @@ describe('pkg-nec identity audit', () => {
     }
   });
 
+  test('ignores generated upstream parity evidence but audits the same stale identity in source', async () => {
+    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-audit-'));
+    const generatedDirectory = join(temporaryRepo, '.pkg-nec-release');
+    const sourceDirectory = join(temporaryRepo, 'src');
+    const manifestPath = join(temporaryRepo, 'package.json');
+    const sourcePath = join(sourceDirectory, 'file.ts');
+    const manifest = `${JSON.stringify({
+      name: '@pkg-nec/monorepo',
+      private: true,
+      version: '1.0.0',
+    })}\n`;
+    const temporaryInventory = makeInventory(temporaryRepo);
+    temporaryInventory.packages = [];
+    temporaryInventory.byOldName = new Map([
+      [temporaryInventory.root.oldName, temporaryInventory.root],
+      ['@jest/globals', inventory.byOldName.get('@jest/globals')],
+    ]);
+    temporaryInventory.byNewName = new Map(
+      [...temporaryInventory.byOldName.values()].map(identity => [
+        identity.newName,
+        identity,
+      ]),
+    );
+    const baseline = {
+      'package.json': {
+        name: '@jest/monorepo',
+        private: true,
+        version: '1.0.0',
+      },
+    };
+
+    try {
+      await mkdir(generatedDirectory, {recursive: true});
+      await mkdir(sourceDirectory, {recursive: true});
+      await writeFile(manifestPath, manifest);
+      await writeFile(
+        join(generatedDirectory, 'upstream-parity.md'),
+        `| ${oldGlobals} | upstream |\n`,
+      );
+      await writeFile(sourcePath, `import '${oldGlobals}';\n`);
+
+      expect(
+        auditRepository({
+          baseline,
+          inventory: temporaryInventory,
+          repoRoot: temporaryRepo,
+        }),
+      ).toEqual([
+        expect.objectContaining({
+          filePath: 'src/file.ts',
+          literal: oldGlobals,
+        }),
+      ]);
+
+      await rm(sourcePath);
+
+      expect(
+        auditRepository({
+          baseline,
+          inventory: temporaryInventory,
+          repoRoot: temporaryRepo,
+        }),
+      ).toEqual([]);
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+
   test('audits a repository repeatably without modifying it', async () => {
     const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-audit-'));
     const manifestPath = join(temporaryRepo, 'package.json');
@@ -761,7 +1009,7 @@ describe('pkg-nec identity audit', () => {
       'package.json': {
         name: '@jest/monorepo',
         peerDependenciesMeta: {
-          '@jest/globals': {optional: true},
+          [oldGlobals]: {optional: true},
         },
         private: true,
         version: '1.0.0',

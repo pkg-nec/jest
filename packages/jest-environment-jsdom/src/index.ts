@@ -9,8 +9,8 @@ import * as JSDOM from 'jsdom';
 import type {
   EnvironmentContext,
   JestEnvironmentConfig,
-} from '@jest/environment';
-import BaseEnv from '@jest/environment-jsdom-abstract';
+} from '@pkg-nec/jest-environment';
+import BaseEnv from '@pkg-nec/jest-environment-jsdom-abstract';
 
 export default class JSDOMEnvironment extends BaseEnv {
   constructor(config: JestEnvironmentConfig, context: EnvironmentContext) {

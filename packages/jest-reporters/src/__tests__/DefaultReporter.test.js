@@ -7,8 +7,8 @@
 
 import DefaultReporter from '../DefaultReporter';
 
-jest.mock('jest-util', () => ({
-  ...jest.requireActual('jest-util'),
+jest.mock('@pkg-nec/jest-util', () => ({
+  ...jest.requireActual('@pkg-nec/jest-util'),
   // This is not a CI environment, which removes all output by default.
   isInteractive: true,
 }));

@@ -44,7 +44,7 @@ export const defaultConfig = {
   restoreMocks: false,
   roots: ['<rootDir>'],
   snapshotSerializers: [],
-  testEnvironment: 'jest-environment-node',
+  testEnvironment: '@pkg-nec/jest-environment-node',
   testPathIgnorePatterns: [NODE_MODULES_REGEXP],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.[mc]?[jt]sx?$',
   testResultsProcessor: null,
@@ -101,7 +101,7 @@ export const validConfig = {
   setupFilesAfterEnv: ['<rootDir>/testSetupFile.js'],
   silent: true,
   snapshotSerializers: ['my-serializer-module'],
-  testEnvironment: 'jest-environment-node',
+  testEnvironment: '@pkg-nec/jest-environment-node',
   testNamePattern: 'test signature',
   testPathIgnorePatterns: [NODE_MODULES_REGEXP],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.[mc]?[jt]sx?$',
@@ -121,7 +121,9 @@ export const validConfig = {
 };
 
 const format = (value: string) =>
-  (require('pretty-format') as typeof import('pretty-format')).format(value, {
+  (
+    require('@pkg-nec/pretty-format') as typeof import('@pkg-nec/pretty-format')
+  ).format(value, {
     min: true,
   });
 

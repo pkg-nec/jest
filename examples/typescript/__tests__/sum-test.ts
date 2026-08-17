@@ -1,6 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-import {expect, it} from '@jest/globals';
+import {expect, it} from '@pkg-nec/jest-globals';
 
 it('adds 1 + 2 to equal 3 in TScript', () => {
   // Generally, `import` should be used for TypeScript

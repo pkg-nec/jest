@@ -7,17 +7,17 @@
  */
 
 import exit from 'exit-x';
+import HasteMap, {type SerializableModuleMap} from '@pkg-nec/jest-haste-map';
+import {separateMessageFromStack} from '@pkg-nec/jest-message-util';
+import type Resolver from '@pkg-nec/jest-resolve';
+import Runtime from '@pkg-nec/jest-runtime';
 import type {
   SerializableError,
   TestFileEvent,
   TestResult,
-} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import HasteMap, {type SerializableModuleMap} from 'jest-haste-map';
-import {separateMessageFromStack} from 'jest-message-util';
-import type Resolver from 'jest-resolve';
-import Runtime from 'jest-runtime';
-import {messageParent} from 'jest-worker';
+} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {messageParent} from '@pkg-nec/jest-worker';
 import runTest from './runTest';
 import type {ErrorWithCode, TestRunnerSerializedContext} from './types';
 

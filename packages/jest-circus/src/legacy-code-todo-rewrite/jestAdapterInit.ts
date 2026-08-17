@@ -6,23 +6,23 @@
  */
 
 import type * as Process from 'node:process';
-import type {JestEnvironment} from '@jest/environment';
-import {type JestExpect, jestExpect} from '@jest/expect';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
+import {type JestExpect, jestExpect} from '@pkg-nec/jest-expect';
+import {formatExecError, formatResultsErrors} from '@pkg-nec/jest-message-util';
+import type Runtime from '@pkg-nec/jest-runtime';
+import {
+  SnapshotState,
+  addSerializer,
+  buildSnapshotResolver,
+} from '@pkg-nec/jest-snapshot';
 import {
   type AssertionResult,
   type Status,
   type TestFileEvent,
   type TestResult,
   createEmptyTestResult,
-} from '@jest/test-result';
-import type {Circus, Config, Global} from '@jest/types';
-import {formatExecError, formatResultsErrors} from 'jest-message-util';
-import type Runtime from 'jest-runtime';
-import {
-  SnapshotState,
-  addSerializer,
-  buildSnapshotResolver,
-} from 'jest-snapshot';
+} from '@pkg-nec/jest-test-result';
+import type {Circus, Config, Global} from '@pkg-nec/jest-types';
 import globals from '..';
 import run from '../run';
 import {

@@ -7,7 +7,7 @@
  */
 
 import * as fs from 'graceful-fs';
-import {type IModuleMap, ModuleMap} from 'jest-haste-map';
+import {type IModuleMap, ModuleMap} from '@pkg-nec/jest-haste-map';
 import * as path from 'path';
 import {pathToFileURL} from 'url';
 

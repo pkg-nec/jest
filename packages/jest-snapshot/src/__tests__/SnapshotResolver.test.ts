@@ -6,7 +6,7 @@
  */
 
 import * as path from 'path';
-import {makeProjectConfig} from '@jest/test-utils';
+import {makeProjectConfig} from '@pkg-nec/jest-test-utils';
 import {
   type SnapshotResolver,
   buildSnapshotResolver,

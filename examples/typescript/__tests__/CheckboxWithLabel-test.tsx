@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import * as TestUtils from 'react-dom/test-utils';
-import {expect, it} from '@jest/globals';
+import {expect, it} from '@pkg-nec/jest-globals';
 import CheckboxWithLabel from '../CheckboxWithLabel';
 
 it('CheckboxWithLabel changes the text after click', () => {

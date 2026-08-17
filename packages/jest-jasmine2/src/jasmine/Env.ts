@@ -31,8 +31,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* eslint-disable sort-keys */
 
 import {AssertionError} from 'node:assert';
-import type {Circus} from '@jest/types';
-import {ErrorWithStack, convertDescriptorToString, isPromise} from 'jest-util';
+import type {Circus} from '@pkg-nec/jest-types';
+import {
+  ErrorWithStack,
+  convertDescriptorToString,
+  isPromise,
+} from '@pkg-nec/jest-util';
 import assertionErrorMessage from '../assertionErrorMessage';
 import isError from '../isError';
 import queueRunner, {

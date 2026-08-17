@@ -8,7 +8,7 @@
 import {createRequire} from 'node:module';
 const require = createRequire(import.meta.url);
 
-/** @type {import('jest').Config} */
+/** @type {import('@pkg-nec/jest').Config} */
 export default {
   collectCoverageFrom: [
     '**/packages/*/**/*.js',
@@ -23,6 +23,10 @@ export default {
     '!**/vendor/**',
     '!e2e/**',
   ],
+  moduleNameMapper: {
+    '^@jest/globals$':
+      '<rootDir>/packages/jest-runtime/src/__tests__/test_root/MappedGlobals.js',
+  },
   modulePathIgnorePatterns: [
     'examples/.*',
     'packages/.*/build',
@@ -38,6 +42,7 @@ export default {
     printBasicPrototype: true,
   },
   snapshotSerializers: [require.resolve('jest-serializer-ansi-escapes')],
+  testEnvironment: '<rootDir>/packages/jest-environment-node/build/index.js',
   testEnvironmentOptions: {
     globalsCleanup: process.env.GLOBALS_CLEANUP ?? 'on',
   },
@@ -75,7 +80,7 @@ export default {
   ],
   testTimeout: 70_000,
   transform: {
-    '\\.[jt]sx?$': require.resolve('babel-jest'),
+    '\\.[jt]sx?$': require.resolve('@pkg-nec/babel-jest'),
   },
   watchPathIgnorePatterns: [
     'coverage',

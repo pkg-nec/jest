@@ -6,7 +6,7 @@
  */
 
 import chalk from 'chalk';
-import type {Config} from '@jest/types';
+import type {Config} from '@pkg-nec/jest-types';
 import getProjectDisplayName from './getProjectDisplayName';
 
 export default function getProjectNamesMissingWarning(

@@ -16,15 +16,15 @@ import * as fs from 'graceful-fs';
 import {addHook} from 'pirates';
 import slash from 'slash';
 import {sync as writeFileAtomic} from 'write-file-atomic';
-import type {Config} from '@jest/types';
-import HasteMap from 'jest-haste-map';
+import HasteMap from '@pkg-nec/jest-haste-map';
+import type {Config} from '@pkg-nec/jest-types';
 import {
   createDirectory,
   invariant,
   isPromise,
   requireOrImportModule,
   tryRealpath,
-} from 'jest-util';
+} from '@pkg-nec/jest-util';
 import handlePotentialSyntaxError from './enhanceUnexpectedTokenMessage';
 import {
   makeInvalidReturnValueError,
@@ -351,7 +351,7 @@ class ScriptTransformer {
       auxiliaryCommentBefore: ' istanbul ignore next ',
       babelrc: false,
       caller: {
-        name: '@jest/transform',
+        name: '@pkg-nec/jest-transform',
         supportsDynamicImport: options.supportsDynamicImport,
         supportsExportNamespaceFrom: options.supportsExportNamespaceFrom,
         supportsStaticESM: options.supportsStaticESM,

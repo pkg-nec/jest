@@ -6,15 +6,15 @@
  */
 
 import * as fs from 'graceful-fs';
+import {getStackTraceLines, getTopFrame} from '@pkg-nec/jest-message-util';
 import {
   type SnapshotData,
   getSnapshotData,
   keyToTestName,
   saveSnapshotFile,
   testNameToKey,
-} from '@jest/snapshot-utils';
-import type {Config} from '@jest/types';
-import {getStackTraceLines, getTopFrame} from 'jest-message-util';
+} from '@pkg-nec/jest-snapshot-utils';
+import type {Config} from '@pkg-nec/jest-types';
 import {saveInlineSnapshots} from './InlineSnapshots';
 import type {InlineSnapshot, SnapshotFormat} from './types';
 import {

@@ -5,15 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import {formatResultsErrors} from '@pkg-nec/jest-message-util';
 import {
   type AssertionResult,
   type FailedAssertion,
   type TestResult,
   createEmptyTestResult,
-} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import {formatResultsErrors} from 'jest-message-util';
-import {isError} from 'jest-util';
+} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {isError} from '@pkg-nec/jest-util';
 import type {SpecResult} from './jasmine/Spec';
 import type {SuiteResult} from './jasmine/Suite';
 import type {Reporter, RunDetails} from './types';

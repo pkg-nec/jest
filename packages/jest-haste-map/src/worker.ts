@@ -8,7 +8,7 @@
 import {createHash} from 'node:crypto';
 import * as path from 'node:path';
 import * as fs from 'graceful-fs';
-import {requireOrImportModule} from 'jest-util';
+import {requireOrImportModule} from '@pkg-nec/jest-util';
 import blacklist from './blacklist';
 import H from './constants';
 import {extractor as defaultDependencyExtractor} from './lib/dependencyExtractor';

@@ -89,9 +89,9 @@ Use local `link:` only in an E2E fixture manifest for a canonical package unavai
 
 During migration, run `yarn install --mode=update-lockfile` only from `e2e/global-setup` and `e2e/global-teardown`, after converting their manifests. Do not regenerate a lock during validation. During validation, run only `yarn install --immutable --immutable-cache` against each checked-in nested lock.
 
-## Validate with Git Bash and Node 22
+## Prepare release artifacts with Git Bash and Node 22
 
-Run the following from the monorepo root in Git Bash. Use the installed Node manager to select local Node `22.23.1`; do not hardcode a user-specific NVM directory. Confirm the selected version before enabling Corepack or Yarn.
+Run the following complete, non-publishing preparation sequence from the monorepo root in Git Bash. Use the installed Node manager to select local Node `22.23.1`; do not hardcode a user-specific NVM directory. Confirm the selected version before enabling Corepack or Yarn.
 
 ```bash
 # Select Node 22.23.1 with the local Node manager, then:
@@ -99,14 +99,14 @@ node --version
 corepack enable
 yarn --version
 yarn install --immutable --immutable-cache
-yarn check:pkg-nec-identity
-yarn jest scripts/__tests__/rebrandPackages.test.js --runInBand --color
-yarn constraints
-yarn lint
-yarn build:js
-yarn typecheck:tests
-yarn publish:pkg-nec:dry
+yarn prepare:pkg-nec-release
 ```
+
+`yarn prepare:pkg-nec-release` cleans generated output, runs the complete build, creates the non-publishing release artifacts, and checks them against upstream. `yarn build:js` alone is not a release build. Running `yarn build:ts` with `yarn build:js` but without `yarn bundle:ts` is also not a release build.
+
+Dry packaging writes `.pkg-nec-release/release-ledger.json` and `.pkg-nec-release/release-ledger.md`. The upstream comparison writes `.pkg-nec-release/upstream-parity.json` and `.pkg-nec-release/upstream-parity.md`. It requires exact normalized filename comparisons for 53 packages and applies the dedicated helper policies to `@pkg-nec/jest-test-globals` and `@pkg-nec/jest-test-utils`. Helper artifacts may contain only `LICENSE`, `README.md`, `package.json`, and files referenced by `main`, `types`, or string `exports` leaves; no additional files are allowed. Any preparation or parity failure blocks publication.
+
+Run the targeted tests and checks below as additional evidence; they do not replace `yarn prepare:pkg-nec-release`.
 
 Use a package directory pattern with a trailing slash. `jest` can prefix-match `jest-*`; `packages/$pkg/` selects the intended package directory.
 

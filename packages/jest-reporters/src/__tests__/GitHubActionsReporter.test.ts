@@ -12,8 +12,8 @@ import type {
   Test,
   TestCaseResult,
   TestResult,
-} from '@jest/test-result';
-import {makeGlobalConfig, normalizeIcons} from '@jest/test-utils';
+} from '@pkg-nec/jest-test-result';
+import {makeGlobalConfig, normalizeIcons} from '@pkg-nec/jest-test-utils';
 import BaseGitHubActionsReporter from '../GitHubActionsReporter';
 
 afterEach(() => {

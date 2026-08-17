@@ -5,9 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Jest} from '@jest/environment';
-import type {JestExpect} from '@jest/expect';
-import type {Global} from '@jest/types';
+import type {Jest} from '@pkg-nec/jest-environment';
+import type {JestExpect} from '@pkg-nec/jest-expect';
 import type {
   ClassLike,
   FunctionLike,
@@ -23,7 +22,8 @@ import type {
   SpiedGetter as JestSpiedGetter,
   SpiedSetter as JestSpiedSetter,
   UnknownFunction,
-} from 'jest-mock';
+} from '@pkg-nec/jest-mock';
+import type {Global} from '@pkg-nec/jest-types';
 
 export declare const expect: JestExpect;
 
@@ -93,5 +93,5 @@ declare namespace jest {
 export {jest};
 
 throw new Error(
-  'Do not import `@jest/globals` outside of the Jest test environment',
+  'Do not import `@pkg-nec/jest-globals` outside of the Jest test environment',
 );

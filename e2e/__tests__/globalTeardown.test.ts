@@ -8,7 +8,7 @@
 import {tmpdir} from 'os';
 import * as path from 'path';
 import * as fs from 'graceful-fs';
-import {createDirectory} from 'jest-util';
+import {createDirectory} from '@pkg-nec/jest-util';
 import {cleanup, runYarnInstall} from '../Utils';
 import runJest, {json as runWithJson} from '../runJest';
 

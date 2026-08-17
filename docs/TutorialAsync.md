@@ -72,7 +72,7 @@ it('works with promises', () => {
 });
 ```
 
-We call `jest.mock('../request')` to tell Jest to use our manual mock. `it` expects the return value to be a Promise that is going to be resolved. You can chain as many Promises as you like and call `expect` at any time, as long as you return a Promise at the end.
+We call `jest.mock('../request')` to tell Jest to use our manual mock. `it` expects the return value to be a Promise that is going to be resolved. You can chain as many Promises as you like and call `@pkg-nec/expect` at any time, as long as you return a Promise at the end.
 
 ## `.resolves`
 
@@ -156,6 +156,6 @@ it('tests error with async/await and rejects', async () => {
 });
 ```
 
-The code for this example is available at [examples/async](https://github.com/jestjs/jest/tree/main/examples/async).
+The code for this example is available at [examples/async](https://github.com/pkg-nec/jest/tree/main/examples/async).
 
 If you'd like to test timers, like `setTimeout`, take a look at the [Timer mocks](TimerMocks.md) documentation.

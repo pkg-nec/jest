@@ -6,12 +6,12 @@
  */
 
 import chalk from 'chalk';
-import {getType} from '@jest/get-type';
+import {getType} from '@pkg-nec/jest-get-type';
 import {
   type PrettyFormatOptions,
   format as prettyFormat,
   plugins as prettyFormatPlugins,
-} from 'pretty-format';
+} from '@pkg-nec/pretty-format';
 import {DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, Diff} from './cleanupSemantic';
 import {NO_DIFF_MESSAGE, SIMILAR_MESSAGE} from './constants';
 import {diffLinesRaw, diffLinesUnified, diffLinesUnified2} from './diffLines';

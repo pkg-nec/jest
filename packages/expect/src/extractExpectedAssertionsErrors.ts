@@ -11,7 +11,7 @@ import {
   RECEIVED_COLOR,
   matcherHint,
   pluralize,
-} from 'jest-matcher-utils';
+} from '@pkg-nec/jest-matcher-utils';
 import {getState, setState} from './jestMatchersObject';
 import type {Expect, ExpectedAssertionsErrors} from './types';
 

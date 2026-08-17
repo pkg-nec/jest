@@ -7,7 +7,7 @@
 
 import {tmpdir} from 'os';
 import * as path from 'path';
-import {skipSuiteOnJasmine} from '@jest/test-utils';
+import {skipSuiteOnJasmine} from '@pkg-nec/jest-test-utils';
 import {
   cleanup,
   createEmptyPackage,
@@ -26,7 +26,7 @@ beforeEach(() => {
   createEmptyPackage(DIR);
 
   const content = `
-    const {expect: importedExpect, test: importedTest} = require('@jest/globals');
+    const {expect: importedExpect, test: importedTest} = require('@pkg-nec/jest-globals');
 
     importedTest('no globals injected', () =>{
       importedExpect(typeof expect).toBe('undefined');

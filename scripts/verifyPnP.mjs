@@ -42,8 +42,8 @@ try {
     JSON.stringify(
       {
         dependencies: {
-          jest: '*',
-          'jest-environment-jsdom': '*',
+          '@pkg-nec/jest': '*',
+          '@pkg-nec/jest-environment-jsdom': '*',
         },
         name: 'test-pnp',
       },

@@ -31,8 +31,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* eslint-disable sort-keys */
 
-import type {Circus} from '@jest/types';
-import {convertDescriptorToString} from 'jest-util';
+import type {Circus} from '@pkg-nec/jest-types';
+import {convertDescriptorToString} from '@pkg-nec/jest-util';
 import ExpectationFailed from '../ExpectationFailed';
 import expectationResultFactory from '../expectationResultFactory';
 import type {QueueableFn} from '../queueRunner';

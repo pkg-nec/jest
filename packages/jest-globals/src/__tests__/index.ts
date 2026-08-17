@@ -9,6 +9,6 @@ test('throw when directly imported', () => {
   expect(() => {
     require('../');
   }).toThrow(
-    'Do not import `@jest/globals` outside of the Jest test environment',
+    'Do not import `@pkg-nec/jest-globals` outside of the Jest test environment',
   );
 });

@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import {createRequire} from 'node:module';
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 const require = createRequire(import.meta.url);
 

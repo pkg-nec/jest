@@ -1,5 +1,5 @@
 {
-  "name": "expect",
+  "name": "@pkg-nec/expect",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -21,16 +21,16 @@
     "./build/toThrowMatchers": "./build/toThrowMatchers.js"
   },
   "dependencies": {
-    "@jest/expect-utils": "workspace:*",
-    "@jest/get-type": "workspace:*",
-    "jest-matcher-utils": "workspace:*",
-    "jest-message-util": "workspace:*",
-    "jest-mock": "workspace:*",
-    "jest-util": "workspace:*"
+    "@pkg-nec/jest-expect-utils": "workspace:*",
+    "@pkg-nec/jest-get-type": "workspace:*",
+    "@pkg-nec/jest-matcher-utils": "workspace:*",
+    "@pkg-nec/jest-message-util": "workspace:*",
+    "@pkg-nec/jest-mock": "workspace:*",
+    "@pkg-nec/jest-util": "workspace:*"
   },
   "devDependencies": {
     "@fast-check/jest": "^2.1.1",
-    "@jest/test-utils": "workspace:*",
+    "@pkg-nec/jest-test-utils": "workspace:*",
     "chalk": "^4.1.2",
     "immutable": "^5.1.2"
   },

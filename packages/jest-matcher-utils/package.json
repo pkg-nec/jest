@@ -1,5 +1,5 @@
 {
-  "name": "jest-matcher-utils",
+  "name": "@pkg-nec/jest-matcher-utils",
   "description": "A set of utility functions for expect and related packages",
   "version": "30.4.1",
   "repository": {
@@ -23,13 +23,13 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/get-type": "workspace:*",
-    "chalk": "^4.1.2",
-    "jest-diff": "workspace:*",
-    "pretty-format": "workspace:*"
+    "@pkg-nec/jest-diff": "workspace:*",
+    "@pkg-nec/jest-get-type": "workspace:*",
+    "@pkg-nec/pretty-format": "workspace:*",
+    "chalk": "^4.1.2"
   },
   "devDependencies": {
-    "@jest/test-utils": "workspace:*",
+    "@pkg-nec/jest-test-utils": "workspace:*",
     "@types/node": "*"
   },
   "publishConfig": {

@@ -5,15 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Reporter, ReporterOnStartOptions} from '@jest/reporters';
+import type {Reporter, ReporterOnStartOptions} from '@pkg-nec/jest-reporters';
 import type {
   AggregatedResult,
   Test,
   TestCaseResult,
   TestContext,
   TestResult,
-} from '@jest/test-result';
-import type {Circus} from '@jest/types';
+} from '@pkg-nec/jest-test-result';
+import type {Circus} from '@pkg-nec/jest-types';
 import type {ReporterConstructor} from './TestScheduler';
 
 export default class ReporterDispatcher {

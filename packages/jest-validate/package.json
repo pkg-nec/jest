@@ -1,5 +1,5 @@
 {
-  "name": "jest-validate",
+  "name": "@pkg-nec/jest-validate",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -19,12 +19,12 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/get-type": "workspace:*",
-    "@jest/types": "workspace:*",
+    "@pkg-nec/jest-get-type": "workspace:*",
+    "@pkg-nec/jest-types": "workspace:*",
+    "@pkg-nec/pretty-format": "workspace:*",
     "camelcase": "^6.3.0",
     "chalk": "^4.1.2",
-    "leven": "^3.1.0",
-    "pretty-format": "workspace:*"
+    "leven": "^3.1.0"
   },
   "devDependencies": {
     "@types/yargs": "^17.0.33"

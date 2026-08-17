@@ -7,8 +7,8 @@
 
 import * as path from 'node:path';
 import chalk from 'chalk';
-import Resolver from 'jest-resolve';
-import {ValidationError} from 'jest-validate';
+import Resolver from '@pkg-nec/jest-resolve';
+import {ValidationError} from '@pkg-nec/jest-validate';
 
 type ResolveOptions = {
   rootDir: string;

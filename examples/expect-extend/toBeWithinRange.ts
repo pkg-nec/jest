@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {expect} from '@jest/globals';
-import type {MatcherFunction} from 'expect';
+import type {MatcherFunction} from '@pkg-nec/expect';
+import {expect} from '@pkg-nec/jest-globals';
 
 const toBeWithinRange: MatcherFunction<[floor: unknown, ceiling: unknown]> =
   function (actual, floor, ceiling) {
@@ -46,7 +46,7 @@ expect.extend({
   toBeWithinRange,
 });
 
-declare module 'expect' {
+declare module '@pkg-nec/expect' {
   interface AsymmetricMatchers {
     toBeWithinRange(floor: number, ceiling: number): void;
   }

@@ -7,8 +7,8 @@
  */
 
 import * as util from 'node:util';
-import type {Global} from '@jest/types';
-import {format as pretty} from 'pretty-format';
+import type {Global} from '@pkg-nec/jest-types';
+import {format as pretty} from '@pkg-nec/pretty-format';
 import type {EachTests} from '../bind';
 import {type Templates, interpolateVariables} from './interpolation';
 

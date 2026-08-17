@@ -44,7 +44,7 @@ jobs:
         id: cpu-cores
         uses: SimenB/github-actions-cpu-cores@97330871fe1b7d3529392ea000e3d2c4b357e403 # v3
       - name: Run node-env tests
-        run: yarn workspace jest-environment-node test
+        run: yarn workspace @pkg-nec/jest-environment-node test
       - name: Run tests
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
         with:

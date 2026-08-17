@@ -6,7 +6,7 @@
  */
 
 import {isMainThread, parentPort} from 'node:worker_threads';
-import {isError} from 'jest-util';
+import {isError} from '@pkg-nec/jest-util';
 import {PARENT_MESSAGE_CUSTOM} from '../types';
 import {isDataCloneError} from './isDataCloneError';
 import {packMessage} from './safeMessageTransferring';

@@ -10,6 +10,10 @@ import {GITHUB_ACTIONS} from 'ci-info';
 import exit from 'exit-x';
 import stableStringify from 'fast-json-stable-stringify';
 import {
+  formatExecError,
+  separateMessageFromStack,
+} from '@pkg-nec/jest-message-util';
+import {
   AgentReporter,
   CoverageReporter,
   DefaultReporter,
@@ -21,7 +25,12 @@ import {
   SummaryReporter,
   type SummaryReporterOptions,
   VerboseReporter,
-} from '@jest/reporters';
+} from '@pkg-nec/jest-reporters';
+import type {JestTestRunner, TestRunnerContext} from '@pkg-nec/jest-runner';
+import {
+  buildSnapshotResolver,
+  cleanup as cleanupSnapshots,
+} from '@pkg-nec/jest-snapshot';
 import {
   type AggregatedResult,
   type SerializableError,
@@ -31,17 +40,15 @@ import {
   addResult,
   buildFailureTestResult,
   makeEmptyAggregatedTestResult,
-} from '@jest/test-result';
-import {createScriptTransformer} from '@jest/transform';
-import type {Config} from '@jest/types';
-import {formatExecError, separateMessageFromStack} from 'jest-message-util';
-import type {JestTestRunner, TestRunnerContext} from 'jest-runner';
+} from '@pkg-nec/jest-test-result';
+import {createScriptTransformer} from '@pkg-nec/jest-transform';
+import type {Config} from '@pkg-nec/jest-types';
 import {
-  buildSnapshotResolver,
-  cleanup as cleanupSnapshots,
-} from 'jest-snapshot';
-import {ErrorWithStack, invariant, requireOrImportModule} from 'jest-util';
-import type {TestWatcher} from 'jest-watcher';
+  ErrorWithStack,
+  invariant,
+  requireOrImportModule,
+} from '@pkg-nec/jest-util';
+import type {TestWatcher} from '@pkg-nec/jest-watcher';
 import ReporterDispatcher from './ReporterDispatcher';
 import runGlobalHook from './runGlobalHook';
 import {shouldRunInBand} from './testSchedulerHelper';

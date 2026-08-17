@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Test, TestContext} from '@jest/test-result';
+import type {Test, TestContext} from '@pkg-nec/jest-test-result';
 
 export type Stats = {
   roots: number;

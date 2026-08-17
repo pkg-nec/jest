@@ -13,15 +13,15 @@ Jest will cache the result of a transformation and attempt to invalidate that re
 
 ## Defaults
 
-Jest ships with one transformer out of the box &ndash; [`babel-jest`](https://github.com/jestjs/jest/tree/main/packages/babel-jest#setup). It will load your project's Babel configuration and transform any file matching the `/\.[jt]sx?$/` RegExp (in other words, any `.js`, `.jsx`, `.ts` or `.tsx` file). In addition, `babel-jest` will inject the Babel plugin necessary for mock hoisting talked about in [ES Module mocking](ManualMocks.md#using-with-es-module-imports).
+Jest ships with one transformer out of the box &ndash; [`@pkg-nec/babel-jest`](https://github.com/pkg-nec/jest/tree/main/packages/babel-jest#setup). It will load your project's Babel configuration and transform any file matching the `/\.[jt]sx?$/` RegExp (in other words, any `.js`, `.jsx`, `.ts` or `.tsx` file). In addition, `@pkg-nec/babel-jest` will inject the Babel plugin necessary for mock hoisting talked about in [ES Module mocking](ManualMocks.md#using-with-es-module-imports).
 
 :::note
 
-By default, `babel-jest` includes `babel-preset-jest`. You can disable this behavior by specifying `excludeJestPreset: true` to `babel-jest`. Note that this will also stop hoisting `jest.mock`, which may break your tests.
+By default, `@pkg-nec/babel-jest` includes `@pkg-nec/babel-preset-jest`. You can disable this behavior by specifying `excludeJestPreset: true` to `@pkg-nec/babel-jest`. Note that this will also stop hoisting `jest.mock`, which may break your tests.
 
 ```json
 "transform": {
-  "\\.[jt]sx?$": ["babel-jest", { "excludeJestPreset": true }],
+  "\\.[jt]sx?$": ["@pkg-nec/babel-jest", { "excludeJestPreset": true }],
 }
 ```
 
@@ -29,11 +29,11 @@ By default, `babel-jest` includes `babel-preset-jest`. You can disable this beha
 
 :::tip
 
-Remember to include the default `babel-jest` transformer explicitly, if you wish to use it alongside with additional code preprocessors:
+Remember to include the default `@pkg-nec/babel-jest` transformer explicitly, if you wish to use it alongside with additional code preprocessors:
 
 ```json
 "transform": {
-  "\\.[jt]sx?$": "babel-jest",
+  "\\.[jt]sx?$": "@pkg-nec/babel-jest",
   "\\.css$": "some-css-transformer",
 }
 ```
@@ -59,7 +59,7 @@ interface TransformOptions<TransformerConfig = unknown> {
   supportsStaticESM: boolean;
   supportsTopLevelAwait: boolean;
   instrument: boolean;
-  /** Cached file system which is used by `jest-runtime` to improve performance. */
+  /** Cached file system which is used by `@pkg-nec/jest-runtime` to improve performance. */
   cacheFS: Map<string, string>;
   /** Jest configuration of currently running project. */
   config: ProjectConfig;
@@ -146,7 +146,7 @@ type TransformerFactory<X extends Transformer> = {
 
 :::note
 
-The definitions above were trimmed down for brevity. Full code can be found in [Jest repo on GitHub](https://github.com/jestjs/jest/blob/main/packages/jest-transform/src/types.ts) (remember to choose the right tag/commit for your version of Jest).
+The definitions above were trimmed down for brevity. Full code can be found in the [@pkg-nec/jest repository on GitHub](https://github.com/pkg-nec/jest/blob/main/packages/jest-transform/src/types.ts) (remember to choose the right tag/commit for your version of Jest).
 
 :::
 
@@ -158,7 +158,7 @@ Be aware that `node_modules` is not transpiled with default config, the `transfo
 
 Semi-related to this are the supports flags we pass (see `CallerTransformOptions` above), but those should be used within the transform to figure out if it should return ESM or CJS, and has no direct bearing on sync vs async
 
-Though not required, we _highly recommend_ implementing `getCacheKey` as well, so we do not waste resources transpiling when we could have read its previous result from disk. You can use [`@jest/create-cache-key-function`](https://www.npmjs.com/package/@jest/create-cache-key-function) to help implement it.
+Though not required, we _highly recommend_ implementing `getCacheKey` as well, so we do not waste resources transpiling when we could have read its previous result from disk. You can use [`@pkg-nec/jest-create-cache-key-function`](https://www.npmjs.com/package/@pkg-nec/jest-create-cache-key-function) to help implement it.
 
 Instead of having your custom transformer implement the `Transformer` interface directly, you can choose to export `createTransformer`, a factory function to dynamically create transformers. This is to allow having a transformer config in your jest config.
 
@@ -180,7 +180,7 @@ During the development of a transformer it can be useful to run Jest with `--no-
 
 ### TypeScript with type checking
 
-While `babel-jest` by default will transpile TypeScript files, Babel will not verify the types. If you want that you can use [`ts-jest`](https://github.com/kulshekhar/ts-jest).
+While `@pkg-nec/babel-jest` by default will transpile TypeScript files, Babel will not verify the types. If you want that you can use [`ts-jest`](https://github.com/kulshekhar/ts-jest).
 
 #### Transforming images to their path
 

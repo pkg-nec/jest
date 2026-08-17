@@ -29,10 +29,10 @@ With the warnings out of the way, this is how you activate ESM support in your t
 
 ## Differences between ESM and CommonJS
 
-Most of the differences are explained in [Node's documentation](https://nodejs.org/api/esm.html#esm_differences_between_es_modules_and_commonjs), but in addition to the things mentioned there, Jest injects a special variable into all executed files - the [`jest` object](JestObjectAPI.md). To access this object in ESM, you need to import it from the `@jest/globals` module or use `import.meta`.
+Most of the differences are explained in [Node's documentation](https://nodejs.org/api/esm.html#esm_differences_between_es_modules_and_commonjs), but in addition to the things mentioned there, Jest injects a special variable into all executed files - the [`@pkg-nec/jest` object](JestObjectAPI.md). To access this object in ESM, you need to import it from the `@pkg-nec/jest-globals` module or use `import.meta`.
 
 ```js
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 jest.useFakeTimers();
 
@@ -53,7 +53,7 @@ ESM mocking is supported through `jest.unstable_mockModule`. As the name suggest
 The usage of `jest.unstable_mockModule` is essentially the same as `jest.mock` with two differences: the factory function is required and it can be sync or async:
 
 ```js
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 jest.unstable_mockModule('node:child_process', () => ({
   execSync: jest.fn(),
@@ -77,7 +77,7 @@ module.exports = {example};
 
 ```js title="main.test.cjs"
 import {createRequire} from 'node:module';
-import {jest} from '@jest/globals';
+import {jest} from '@pkg-nec/jest-globals';
 
 const require = createRequire(import.meta.url);
 

@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {skipSuiteOnJestCircus} from '@jest/test-utils';
+import {skipSuiteOnJestCircus} from '@pkg-nec/jest-test-utils';
 import runJest from '../runJest';
 
 skipSuiteOnJestCircus(); // Circus does not support funky async definitions

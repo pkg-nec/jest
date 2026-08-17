@@ -6,8 +6,11 @@
  */
 import path from 'path';
 import execa from 'execa';
-import {onNodeVersions} from '@jest/test-utils';
-import type {ReadJestConfigOptions, readInitialOptions} from 'jest-config';
+import {onNodeVersions} from '@pkg-nec/jest-test-utils';
+import type {
+  ReadJestConfigOptions,
+  readInitialOptions,
+} from '@pkg-nec/jest-config';
 
 function resolveFixture(...pathSegments: Array<string>) {
   return path.resolve(__dirname, '..', 'read-initial-options', ...pathSegments);

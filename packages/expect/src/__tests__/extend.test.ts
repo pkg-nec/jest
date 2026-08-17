@@ -6,9 +6,13 @@
  *
  */
 
-import {equals, iterableEquality, subsetEquality} from '@jest/expect-utils';
-import {alignedAnsiStyleSerializer} from '@jest/test-utils';
-import * as matcherUtils from 'jest-matcher-utils';
+import {
+  equals,
+  iterableEquality,
+  subsetEquality,
+} from '@pkg-nec/jest-expect-utils';
+import {alignedAnsiStyleSerializer} from '@pkg-nec/jest-test-utils';
+import * as matcherUtils from '@pkg-nec/jest-matcher-utils';
 import jestExpect from '../';
 
 expect.addSnapshotSerializer(alignedAnsiStyleSerializer);

@@ -9,7 +9,7 @@ import * as path from 'node:path';
 import chalk from 'chalk';
 import * as fs from 'graceful-fs';
 import slash from 'slash';
-import {ValidationError} from 'jest-validate';
+import {ValidationError} from '@pkg-nec/jest-validate';
 import {
   JEST_CONFIG_BASE_NAME,
   JEST_CONFIG_EXT_ORDER,

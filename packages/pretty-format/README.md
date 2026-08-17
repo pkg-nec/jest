@@ -1,4 +1,4 @@
-# pretty-format
+# @pkg-nec/pretty-format
 
 Stringify any JavaScript value.
 
@@ -8,17 +8,17 @@ Stringify any JavaScript value.
 ## Installation
 
 ```sh
-$ yarn add pretty-format
+$ yarn add @pkg-nec/pretty-format
 ```
 
 ## Usage
 
 ```js
-const {format: prettyFormat} = require('pretty-format'); // CommonJS
+const {format: prettyFormat} = require('@pkg-nec/pretty-format'); // CommonJS
 ```
 
 ```js
-import {format as prettyFormat} from 'pretty-format'; // ES2015 modules
+import {format as prettyFormat} from '@pkg-nec/pretty-format'; // ES2015 modules
 ```
 
 ```js
@@ -96,7 +96,7 @@ const DEFAULT_THEME = {
 
 ## Usage with plugins
 
-The `pretty-format` package provides some built-in plugins, including:
+The `@pkg-nec/pretty-format` package provides some built-in plugins, including:
 
 - `ReactElement` for elements from `react`
 - `ReactTestComponent` for test objects from `react-test-renderer`
@@ -105,7 +105,7 @@ The `pretty-format` package provides some built-in plugins, including:
 // CommonJS
 const React = require('react');
 const renderer = require('react-test-renderer');
-const {format: prettyFormat, plugins} = require('pretty-format');
+const {format: prettyFormat, plugins} = require('@pkg-nec/pretty-format');
 
 const {ReactElement, ReactTestComponent} = plugins;
 ```
@@ -114,7 +114,7 @@ const {ReactElement, ReactTestComponent} = plugins;
 // ES2015 modules and destructuring assignment
 import React from 'react';
 import renderer from 'react-test-renderer';
-import {plugins, format as prettyFormat} from 'pretty-format';
+import {plugins, format as prettyFormat} from '@pkg-nec/pretty-format';
 
 const {ReactElement, ReactTestComponent} = plugins;
 ```
@@ -142,7 +142,7 @@ const formatted2 = prettyFormat(renderer.create(element).toJSON(), {
 
 ## Usage in Jest
 
-For snapshot tests, Jest uses `pretty-format` with options that include some of its built-in plugins. For this purpose, plugins are also known as **snapshot serializers**.
+For snapshot tests, Jest uses `@pkg-nec/pretty-format` with options that include some of its built-in plugins. For this purpose, plugins are also known as **snapshot serializers**.
 
 To serialize application-specific data types, you can add modules to `devDependencies` of a project, and then:
 
@@ -188,7 +188,7 @@ const elementSymbol = Symbol.for('react.element');
 const test = val => val && val.$$typeof === elementSymbol;
 ```
 
-Pay attention to efficiency in `test` because `pretty-format` calls it often.
+Pay attention to efficiency in `test` because `@pkg-nec/pretty-format` calls it often.
 
 ### serialize
 
@@ -233,7 +233,7 @@ Some properties in `config` are derived from `min` in `options`:
 
 ### Example of serialize and test
 
-This plugin is a pattern you can apply to serialize composite data types. Side note: `pretty-format` does not need a plugin to serialize arrays.
+This plugin is a pattern you can apply to serialize composite data types. Side note: `@pkg-nec/pretty-format` does not need a plugin to serialize arrays.
 
 ```js
 // We reused more code when we factored out a function for child items

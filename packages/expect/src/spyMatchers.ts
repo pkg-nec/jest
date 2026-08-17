@@ -7,8 +7,8 @@
 
 /* eslint-disable unicorn/consistent-function-scoping */
 
-import {equals, iterableEquality} from '@jest/expect-utils';
-import {getType, isPrimitive} from '@jest/get-type';
+import {equals, iterableEquality} from '@pkg-nec/jest-expect-utils';
+import {getType, isPrimitive} from '@pkg-nec/jest-get-type';
 import {
   DIM_COLOR,
   EXPECTED_COLOR,
@@ -23,7 +23,7 @@ import {
   printReceived,
   printWithType,
   stringify,
-} from 'jest-matcher-utils';
+} from '@pkg-nec/jest-matcher-utils';
 import {getCustomEqualityTesters} from './jestMatchersObject';
 import type {
   MatcherFunction,

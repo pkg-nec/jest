@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import {skipSuiteOnJasmine} from '@jest/test-utils';
+import {skipSuiteOnJasmine} from '@pkg-nec/jest-test-utils';
 import {json as runWithJson} from '../runJest';
 
 skipSuiteOnJasmine();

@@ -6,8 +6,6 @@
  */
 
 import chalk from 'chalk';
-import {getObjectSubset} from '@jest/expect-utils';
-import {getType, isPrimitive} from '@jest/get-type';
 import {
   DIFF_DELETE,
   DIFF_EQUAL,
@@ -18,7 +16,9 @@ import {
   diffLinesUnified2,
   diffStringsRaw,
   diffStringsUnified,
-} from 'jest-diff';
+} from '@pkg-nec/jest-diff';
+import {getObjectSubset} from '@pkg-nec/jest-expect-utils';
+import {getType, isPrimitive} from '@pkg-nec/jest-get-type';
 import {
   BOLD_WEIGHT,
   EXPECTED_COLOR,
@@ -28,8 +28,8 @@ import {
   getLabelPrinter,
   matcherHint,
   replaceMatchedToAsymmetricMatcher,
-} from 'jest-matcher-utils';
-import {format as prettyFormat} from 'pretty-format';
+} from '@pkg-nec/jest-matcher-utils';
+import {format as prettyFormat} from '@pkg-nec/pretty-format';
 import {
   aBackground2,
   aBackground3,

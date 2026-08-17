@@ -1,5 +1,5 @@
 {
-  "name": "jest-docblock",
+  "name": "@pkg-nec/jest-docblock",
   "version": "30.4.0",
   "repository": {
     "type": "git",

@@ -12,8 +12,8 @@ import type {
   SerializableError,
   Test,
   TestContext,
-} from '@jest/test-result';
-import {makeGlobalConfig, makeProjectConfig} from '@jest/test-utils';
+} from '@pkg-nec/jest-test-result';
+import {makeGlobalConfig, makeProjectConfig} from '@pkg-nec/jest-test-utils';
 import TestSequencer from '../index';
 
 jest.mock('graceful-fs', () => ({

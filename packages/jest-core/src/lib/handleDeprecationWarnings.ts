@@ -7,7 +7,7 @@
 
 import type {ReadStream, WriteStream} from 'node:tty';
 import chalk from 'chalk';
-import {KEYS} from 'jest-watcher';
+import {KEYS} from '@pkg-nec/jest-watcher';
 
 export default function handleDeprecationWarnings(
   pipe: WriteStream,

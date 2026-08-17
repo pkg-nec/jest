@@ -1,7 +1,7 @@
 {
   "type": "module",
   "dependencies": {
-    "@jest/test-result": "link:../../../packages/jest-test-result"
+    "@pkg-nec/jest-test-result": "link:../../../packages/jest-test-result"
   },
   "jest": {
     "rootDir": "./",

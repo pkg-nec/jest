@@ -8,7 +8,7 @@
 
 'use strict';
 
-const {testWithVmEsm} = require('@jest/test-utils');
+const {testWithVmEsm} = require('@pkg-nec/jest-test-utils');
 
 let createRuntime;
 

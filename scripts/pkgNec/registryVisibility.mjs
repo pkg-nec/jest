@@ -128,7 +128,7 @@ export async function waitForExactVersion({
   query,
   intervalMs = 5000,
   queryTimeoutMs = 10_000,
-  deadlineMs = 120_000,
+  deadlineMs = 480_000,
   now = Date.now,
   sleep = defaultSleep,
 }) {

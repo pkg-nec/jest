@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Module} from '@jest/environment';
+import type {Module} from '@pkg-nec/jest-environment';
 
 // Shared cell for `require.main`: the executor writes it when the test file
 // loads, the require-builder reads it when attaching `module.require`.

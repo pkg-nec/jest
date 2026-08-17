@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {FailedAssertion} from '@jest/test-result';
-import {format as prettyFormat} from 'pretty-format';
+import type {FailedAssertion} from '@pkg-nec/jest-test-result';
+import {format as prettyFormat} from '@pkg-nec/pretty-format';
 
 function messageFormatter({error, message, passed}: Options) {
   if (passed) {

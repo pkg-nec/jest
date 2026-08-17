@@ -6,12 +6,12 @@
  */
 
 import chalk from 'chalk';
-import type {Config} from '@jest/types';
 import {
   type ChangedFilesPromise,
   getChangedFilesForRoots,
-} from 'jest-changed-files';
-import {formatExecError} from 'jest-message-util';
+} from '@pkg-nec/jest-changed-files';
+import {formatExecError} from '@pkg-nec/jest-message-util';
+import type {Config} from '@pkg-nec/jest-types';
 
 export default function getChangedFilesPromise(
   globalConfig: Config.GlobalConfig,

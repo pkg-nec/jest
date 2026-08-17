@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {plugins as builtinPlugins, format} from 'pretty-format';
+import {plugins as builtinPlugins, format} from '@pkg-nec/pretty-format';
 import {dedentLines} from '../dedentLines';
 
 const $$typeof = Symbol.for('react.test.json');

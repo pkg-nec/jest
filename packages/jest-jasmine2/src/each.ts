@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {JestEnvironment} from '@jest/environment';
-import {bind as bindEach} from 'jest-each';
+import {bind as bindEach} from '@pkg-nec/jest-each';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
 
 export default function each(environment: JestEnvironment): void {
   environment.global.it.each = bindEach(environment.global.it);

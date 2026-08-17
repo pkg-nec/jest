@@ -1,3 +1,3 @@
-Please note this issue tracker is not a help forum. We recommend using [StackOverflow](https://stackoverflow.com/questions/tagged/jest) or [Reactiflux](https://discord.gg/j6FKKQQrW9) for questions.
+For support with this `@pkg-nec/jest` fork, use the repository's [issue templates](https://github.com/pkg-nec/jest/issues/new/choose) and include a minimal reproduction when reporting a problem.
 
-<!-- Love Jest? Please consider supporting our collective: 👉  https://opencollective.com/jest/donate -->
+For general upstream Jest community questions, the upstream project recommends [StackOverflow](https://stackoverflow.com/questions/tagged/jest) and [Reactiflux](https://discord.gg/j6FKKQQrW9). Those services are upstream community resources and are not support channels operated by this fork.

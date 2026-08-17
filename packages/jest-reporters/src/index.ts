@@ -21,8 +21,8 @@ export type {
   TestCaseResult,
   TestContext,
   TestResult,
-} from '@jest/test-result';
-export type {Config} from '@jest/types';
+} from '@pkg-nec/jest-test-result';
+export type {Config} from '@pkg-nec/jest-types';
 export {default as AgentReporter} from './AgentReporter';
 export {default as BaseReporter} from './BaseReporter';
 export {default as CoverageReporter} from './CoverageReporter';

@@ -1,11 +1,11 @@
-# jest-create-cache-key-function
+# @pkg-nec/jest-create-cache-key-function
 
 This module creates a function which is used for generating cache keys used by code transformers in Jest.
 
 ## Install
 
 ```sh
-$ npm install --save-dev @jest/create-cache-key-function
+$ npm install --save-dev @pkg-nec/jest-create-cache-key-function
 ```
 
 ## API
@@ -30,7 +30,7 @@ Here is some sample usage code while creating a new transformer for Jest
 
 ```javascript
 const createCacheKeyFunction =
-  require('@jest/create-cache-key-function').default;
+  require('@pkg-nec/jest-create-cache-key-function').default;
 
 const filesToAccountFor = [
   __filename,

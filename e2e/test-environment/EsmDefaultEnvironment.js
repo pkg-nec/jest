@@ -8,7 +8,8 @@
 
 exports.__esModule = true;
 
-const NodeEnvironment = require('jest-environment-node').TestEnvironment;
+const NodeEnvironment =
+  require('@pkg-nec/jest-environment-node').TestEnvironment;
 
 class Env extends NodeEnvironment {
   constructor(config, options) {

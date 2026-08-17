@@ -15,7 +15,7 @@ import {
   inspect,
 } from 'node:util';
 import chalk from 'chalk';
-import {clearLine, formatTime} from 'jest-util';
+import {clearLine, formatTime} from '@pkg-nec/jest-util';
 import type {LogCounters, LogMessage, LogTimers, LogType} from './types';
 
 type Formatter = (type: LogType, message: LogMessage) => string;

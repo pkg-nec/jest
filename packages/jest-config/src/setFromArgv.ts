@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Config} from '@jest/types';
+import type {Config} from '@pkg-nec/jest-types';
 import {isJSONString} from './utils';
 
 const specialArgs = new Set(['_', '$0', 'h', 'help', 'config']);

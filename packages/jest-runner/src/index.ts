@@ -13,14 +13,14 @@ import type {
   TestEvents,
   TestFileEvent,
   TestResult,
-} from '@jest/test-result';
-import {deepCyclicCopy} from 'jest-util';
-import type {TestWatcher} from 'jest-watcher';
+} from '@pkg-nec/jest-test-result';
+import {deepCyclicCopy} from '@pkg-nec/jest-util';
+import type {TestWatcher} from '@pkg-nec/jest-watcher';
 import {
   type JestWorkerFarm,
   type PromiseWithCustomMessage,
   Worker,
-} from 'jest-worker';
+} from '@pkg-nec/jest-worker';
 import runTest from './runTest';
 import type {SerializableResolver} from './testWorker';
 import {
@@ -29,9 +29,9 @@ import {
   type UnsubscribeFn,
 } from './types';
 
-export type {Test, TestEvents} from '@jest/test-result';
-export type {Config} from '@jest/types';
-export type {TestWatcher} from 'jest-watcher';
+export type {Test, TestEvents} from '@pkg-nec/jest-test-result';
+export type {Config} from '@pkg-nec/jest-types';
+export type {TestWatcher} from '@pkg-nec/jest-watcher';
 export {CallbackTestRunner, EmittingTestRunner} from './types';
 export type {
   CallbackTestRunnerInterface,

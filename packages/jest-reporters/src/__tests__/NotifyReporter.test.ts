@@ -5,10 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {AggregatedResult, TestContext} from '@jest/test-result';
-import {makeGlobalConfig} from '@jest/test-utils';
-import type {Config} from '@jest/types';
-import Resolver from 'jest-resolve';
+import type {AggregatedResult, TestContext} from '@pkg-nec/jest-test-result';
+import {makeGlobalConfig} from '@pkg-nec/jest-test-utils';
+import type {Config} from '@pkg-nec/jest-types';
+import Resolver from '@pkg-nec/jest-resolve';
 import NotifyReporter from '../NotifyReporter';
 import type {ReporterContext} from '../types';
 

@@ -1,14 +1,15 @@
+> **Independent fork notice:** This repository is independently maintained by the `@pkg-nec` organization as `@pkg-nec/jest`. It is not the [upstream Jest project](https://github.com/jestjs/jest). Upstream Jest contributors, sponsors, website content, and ecosystem resources retained below are attribution and reference only; they do not describe this fork's governance, support, releases, or deployment.
+
 <p align="center">
-  <a href="https://www.npmjs.com/package/jest"><img src="https://img.shields.io/npm/v/jest" alt="npm version"></a>
-  <a href="https://github.com/jestjs/jest/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Jest is released under the MIT license."></a>
-  <a href="https://twitter.com/intent/follow?screen_name=jestjs_"><img src="https://img.shields.io/twitter/follow/jestjs_.svg?style=social&label=Follow%20@jestjs_" alt="Follow on Twitter" /></a>
+  <a href="https://www.npmjs.com/package/@pkg-nec/jest"><img src="https://img.shields.io/npm/v/@pkg-nec/jest" alt="npm version"></a>
+  <a href="https://github.com/pkg-nec/jest/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="@pkg-nec/jest is released under the MIT license."></a>
 </p>
 <p align="center">
-  <a href="https://github.com/jestjs/jest/actions/workflows/nodejs.yml"><img alt="GitHub CI Status" src="https://img.shields.io/github/actions/workflow/status/jestjs/jest/nodejs.yml?label=CI&logo=GitHub"></a>
-  <a href="https://codecov.io/github/jestjs/jest"><img alt="Coverage Status" src="https://img.shields.io/codecov/c/github/jestjs/jest/main.svg?maxAge=43200"></a>
+  <a href="https://github.com/pkg-nec/jest/actions/workflows/nodejs.yml"><img alt="GitHub CI Status" src="https://img.shields.io/github/actions/workflow/status/pkg-nec/jest/nodejs.yml?label=CI&logo=GitHub"></a>
+  <a href="https://codecov.io/github/pkg-nec/jest"><img alt="Coverage Status" src="https://img.shields.io/codecov/c/github/pkg-nec/jest/main.svg?maxAge=43200"></a>
 </p>
 <p align="center">
-  <a href="https://gitpod.io/#https://github.com/jestjs/jest"><img alt="Gitpod ready-to-code" src="https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod"></a>
+  <a href="https://gitpod.io/#https://github.com/pkg-nec/jest"><img alt="Gitpod ready-to-code" src="https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod"></a>
 </p>
 
 <!-- A spacer -->
@@ -24,7 +25,7 @@
 
 **📸 Snapshot Testing**: Capture snapshots of large objects to simplify testing and to analyze how they change over time.
 
-<p align="right"><em>See more on <a href="https://jestjs.io">jestjs.io</a></em></p>
+<p align="right"><em>Upstream Jest reference: <a href="https://jestjs.io">jestjs.io</a></em></p>
 
 ## Table of Contents
 
@@ -37,7 +38,7 @@
   - [Using Vite](#using-vite)
   - [Using Parcel](#using-parcel)
   - [Using Typescript](#using-typescript)
-- [Documentation](#documentation)
+- [Upstream Jest documentation](#upstream-jest-documentation)
 - [Badge](#badge)
 - [Contributing](#contributing)
   - [Code of Conduct](#code-of-conduct)
@@ -56,13 +57,13 @@
 Install Jest using [`yarn`](https://yarnpkg.com/en/package/jest):
 
 ```bash
-yarn add --dev jest
+yarn add --dev @pkg-nec/jest
 ```
 
-Or [`npm`](https://www.npmjs.com/package/jest):
+Or [`npm`](https://www.npmjs.com/package/@pkg-nec/jest):
 
 ```bash
-npm install --save-dev jest
+npm install --save-dev @pkg-nec/jest
 ```
 
 Note: Jest documentation uses `yarn` commands, but `npm` will also work. You can compare `yarn` and `npm` commands in the [yarn docs, here](https://yarnpkg.com/en/docs/migrating-from-npm#toc-cli-commands-comparison).
@@ -105,11 +106,11 @@ PASS  ./sum.test.js
 
 **You just successfully wrote your first test using Jest!**
 
-This test used `expect` and `toBe` to test that two values were exactly identical. To learn about the other things that Jest can test, see [Using Matchers](https://jestjs.io/docs/using-matchers).
+This test used `@pkg-nec/expect` and `toBe` to test that two values were exactly identical. To learn about the other things that Jest can test, see [Using Matchers](https://jestjs.io/docs/using-matchers).
 
 ## Running from command line
 
-You can run Jest directly from the CLI (if it's globally available in your `PATH`, e.g. by `yarn global add jest` or `npm install jest --global`) with a variety of useful options.
+You can run Jest directly from the CLI after installing `@pkg-nec/jest` locally and invoking it through a project script (for example, `yarn test` or `npm test`). Alternatively, make it globally available in your `PATH` with `npm install --global @pkg-nec/jest`.
 
 Here's how to run Jest on files matching `my-test`, using `config.json` as a configuration file and display a native OS notification after the run:
 
@@ -117,7 +118,7 @@ Here's how to run Jest on files matching `my-test`, using `config.json` as a con
 jest my-test --notify --config=config.json
 ```
 
-If you'd like to learn more about running `jest` through the command line, take a look at the [Jest CLI Options](https://jestjs.io/docs/cli) page.
+For upstream Jest CLI background and options, see the [upstream Jest CLI documentation](https://jestjs.io/docs/cli).
 
 ## Additional Configuration
 
@@ -126,7 +127,7 @@ If you'd like to learn more about running `jest` through the command line, take 
 Based on your project, Jest will ask you a few questions and will create a basic configuration file with a short description for each option:
 
 ```bash
-yarn create jest
+yarn dlx @pkg-nec/create-jest
 ```
 
 ### Using Babel
@@ -134,7 +135,7 @@ yarn create jest
 To use [Babel](https://babeljs.io/), install required dependencies via `yarn`:
 
 ```bash
-yarn add --dev babel-jest @babel/core @babel/preset-env
+yarn add --dev @pkg-nec/babel-jest @babel/core @babel/preset-env
 ```
 
 Configure Babel to target your current version of Node by creating a `babel.config.js` file in the root of your project:
@@ -165,7 +166,7 @@ module.exports = api => {
 };
 ```
 
-> Note: `babel-jest` is automatically installed when installing Jest and will automatically transform files if a babel configuration exists in your project. To avoid this behavior, you can explicitly reset the `transform` configuration option:
+> Note: `@pkg-nec/babel-jest` is automatically installed when installing Jest and will automatically transform files if a babel configuration exists in your project. To avoid this behavior, you can explicitly reset the `transform` configuration option:
 
 ```javascript
 // jest.config.js
@@ -214,9 +215,9 @@ However, there are some [caveats](https://babeljs.io/docs/en/babel-plugin-transf
 
 <!-- end copied -->
 
-## Documentation
+## Upstream Jest documentation
 
-Learn more about using [Jest on the official site!](https://jestjs.io)
+The following upstream Jest documentation is retained as ecosystem reference; it is not documentation operated by this fork.
 
 - [Getting Started](https://jestjs.io/docs/getting-started)
 - [Guides](https://jestjs.io/docs/snapshot-testing)
@@ -225,46 +226,50 @@ Learn more about using [Jest on the official site!](https://jestjs.io)
 
 ## Badge
 
-Show the world you're using _Jest_ `→` [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/jestjs/jest) [![jest tested](https://img.shields.io/badge/Jest-tested-eee.svg?logo=jest&labelColor=99424f)](https://github.com/jestjs/jest) [![jest](https://jestjs.io/img/jest-badge.svg)](https://github.com/jestjs/jest)
+Show the world you're using `@pkg-nec/jest` `→` [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/pkg-nec/jest) [![jest tested](https://img.shields.io/badge/Jest-tested-eee.svg?logo=jest&labelColor=99424f)](https://github.com/pkg-nec/jest) [![jest](https://jestjs.io/img/jest-badge.svg)](https://github.com/pkg-nec/jest)
 
 <!-- prettier-ignore -->
 ```md
-[![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg?logo=jest)](https://github.com/jestjs/jest)
-[![jest tested](https://img.shields.io/badge/Jest-tested-eee.svg?logo=jest&labelColor=99424f)](https://github.com/jestjs/jest)
-[![jest](https://jestjs.io/img/jest-badge.svg)](https://github.com/jestjs/jest)
+[![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg?logo=jest)](https://github.com/pkg-nec/jest)
+[![jest tested](https://img.shields.io/badge/Jest-tested-eee.svg?logo=jest&labelColor=99424f)](https://github.com/pkg-nec/jest)
+[![jest](https://jestjs.io/img/jest-badge.svg)](https://github.com/pkg-nec/jest)
 ```
 
 ## Contributing
 
-Development of Jest happens in the open on GitHub, and we are grateful to the community for contributing bugfixes and improvements. Read below to learn how you can take part in improving Jest.
+Development of this fork happens in the open on [GitHub](https://github.com/pkg-nec/jest), and we are grateful to the community for contributing bug fixes and improvements. Read below to learn how you can take part in improving `@pkg-nec/jest`.
 
-### [Code of Conduct](https://code.facebook.com/codeofconduct)
+### [Code of Conduct](CODE_OF_CONDUCT.md)
 
-Facebook has adopted a Code of Conduct that we expect project participants to adhere to. Please read [the full text](https://code.facebook.com/codeofconduct) so that you can understand what actions will and will not be tolerated.
+All participants are expected to follow this fork's [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### [Contributing Guide](CONTRIBUTING.md)
 
 Read our [contributing guide](CONTRIBUTING.md) to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes to Jest.
 
-### [Good First Issues](https://github.com/jestjs/jest/labels/good%20first%20issue)
+### [Good First Issues](https://github.com/pkg-nec/jest/labels/good%20first%20issue)
 
-To help you get your feet wet and get you familiar with our contribution process, we have a list of [good first issues](https://github.com/jestjs/jest/labels/good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started.
+To help you get your feet wet and get you familiar with our contribution process, we have a list of [good first issues](https://github.com/pkg-nec/jest/labels/good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started.
 
 ## Credits
 
-This project exists thanks to all the people who [contribute](CONTRIBUTING.md).
+This fork exists thanks to its [contributors](CONTRIBUTING.md).
+
+### Upstream Jest attribution
+
+The following contributor, funding, and sponsor resources belong to the upstream Jest project and are retained as attribution; they are not managed by this fork.
 
 <a href="https://github.com/jestjs/jest/graphs/contributors"><img src="https://opencollective.com/jest/contributors.svg?width=890&button=false" /></a>
 
 ### [Backers](https://opencollective.com/jest#backer)
 
-Thank you to all our backers! 🙏
+Thank you to the upstream Jest project's backers! 🙏
 
 <a href="https://opencollective.com/jest#backers" target="_blank"><img src="https://opencollective.com/jest/backers.svg?width=890"></a>
 
 ### [Sponsors](https://opencollective.com/jest#sponsor)
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website.
+Support the upstream Jest project by becoming a sponsor. This fork does not administer that sponsorship program.
 
 <a href="https://opencollective.com/jest/sponsor/0/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/0/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/1/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/1/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/2/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/2/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/3/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/3/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/4/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/4/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/5/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/5/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/6/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/6/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/7/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/7/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/8/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/8/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/9/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/9/avatar.svg"></a>
 

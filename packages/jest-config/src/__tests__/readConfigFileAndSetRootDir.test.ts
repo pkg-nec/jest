@@ -7,11 +7,11 @@
 
 import path from 'path';
 import * as fs from 'graceful-fs';
-import {requireOrImportModule} from 'jest-util';
+import {requireOrImportModule} from '@pkg-nec/jest-util';
 import readConfigFileAndSetRootDir from '../readConfigFileAndSetRootDir';
-import {onNodeVersions} from '@jest/test-utils';
+import {onNodeVersions} from '@pkg-nec/jest-test-utils';
 
-jest.mock('graceful-fs').mock('jest-util');
+jest.mock('graceful-fs').mock('@pkg-nec/jest-util');
 
 describe('readConfigFileAndSetRootDir', () => {
   describe('TypeScript ESM file', () => {

@@ -11,11 +11,11 @@ import type {
   EnvironmentContext,
   JestEnvironment,
   JestEnvironmentConfig,
-} from '@jest/environment';
-import {LegacyFakeTimers, ModernFakeTimers} from '@jest/fake-timers';
-import type {Global} from '@jest/types';
-import {ModuleMocker} from 'jest-mock';
-import {installCommonGlobals} from 'jest-util';
+} from '@pkg-nec/jest-environment';
+import {LegacyFakeTimers, ModernFakeTimers} from '@pkg-nec/jest-fake-timers';
+import {ModuleMocker} from '@pkg-nec/jest-mock';
+import type {Global} from '@pkg-nec/jest-types';
+import {installCommonGlobals} from '@pkg-nec/jest-util';
 
 // The `Window` interface does not have an `Error.stackTraceLimit` property, but
 // `JSDOMEnvironment` assumes it is there.

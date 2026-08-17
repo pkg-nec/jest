@@ -7,8 +7,8 @@
  */
 
 import chalk from 'chalk';
-import {alignedAnsiStyleSerializer} from '@jest/test-utils';
-import {format as prettyFormat} from 'pretty-format';
+import {alignedAnsiStyleSerializer} from '@pkg-nec/jest-test-utils';
+import {format as prettyFormat} from '@pkg-nec/pretty-format';
 import {
   type MatcherHintOptions,
   diff,
@@ -231,7 +231,7 @@ describe('ensureNoExpected()', () => {
   });
 });
 
-jest.mock('jest-diff', () => ({
+jest.mock('@pkg-nec/jest-diff', () => ({
   diff: () => 'diff output',
 }));
 describe('diff', () => {
@@ -366,7 +366,7 @@ describe('matcherHint', () => {
 
 describe('printDiffOrStringify', () => {
   test('expected asymmetric matchers should be diffable', () => {
-    jest.dontMock('jest-diff');
+    jest.dontMock('@pkg-nec/jest-diff');
     jest.resetModules();
     const {printDiffOrStringify} = require('../');
 

@@ -9,7 +9,7 @@
 
 /* eslint-disable local/prefer-rest-params-eventually */
 
-import {isPromise} from 'jest-util';
+import {isPromise} from '@pkg-nec/jest-util';
 
 export type MockMetadataType =
   | 'object'

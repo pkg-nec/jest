@@ -1,11 +1,11 @@
-# jest-mock
+# @pkg-nec/jest-mock
 
 **Note:** More details on user side API can be found in [Jest documentation](https://jestjs.io/docs/mock-function-api).
 
 ## API
 
 ```js
-import {ModuleMocker} from 'jest-mock';
+import {ModuleMocker} from '@pkg-nec/jest-mock';
 ```
 
 ### `constructor(global)`

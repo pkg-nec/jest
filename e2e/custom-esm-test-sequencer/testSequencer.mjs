@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import Sequencer from '@jest/test-sequencer';
+import Sequencer from '@pkg-nec/jest-test-sequencer';
 
 export default class CustomSequencer extends Sequencer {
   sort(tests) {

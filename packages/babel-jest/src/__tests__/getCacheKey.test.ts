@@ -6,7 +6,7 @@
  */
 
 import type {TransformOptions as BabelTransformOptions} from '@babel/core';
-import type {SyncTransformer, TransformOptions} from '@jest/transform';
+import type {SyncTransformer, TransformOptions} from '@pkg-nec/jest-transform';
 import babelJest from '../index';
 
 // We need to use the Node.js implementation of `require` to load Babel 8
@@ -14,7 +14,7 @@ import babelJest from '../index';
 // written in ESM and we don't support require(esm) yet.
 import Module from 'node:module';
 import {pathToFileURL} from 'node:url';
-import {onNodeVersions} from '@jest/test-utils';
+import {onNodeVersions} from '@pkg-nec/jest-test-utils';
 const createOriginalNodeRequire = Object.getPrototypeOf(Module).createRequire;
 const originalNodeRequire = createOriginalNodeRequire(
   pathToFileURL(__filename),

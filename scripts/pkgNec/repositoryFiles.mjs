@@ -38,6 +38,7 @@ function normalizedPath(filePath) {
 function isExcludedDirectory(relativePath, name) {
   return (
     excludedDirectories.has(name) ||
+    normalizedPath(relativePath) === '.pkg-nec-release' ||
     normalizedPath(relativePath) === '.yarn/cache'
   );
 }

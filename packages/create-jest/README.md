@@ -1,11 +1,11 @@
-# create-jest
+# @pkg-nec/create-jest
 
 > Getting started with Jest with a single command
 
 ```bash
-npm init jest@latest
+npm init @pkg-nec/jest@latest
 # Or for Yarn
-yarn create jest
+yarn create @pkg-nec/jest
 # Or for pnpm
-pnpm create jest
+pnpm create @pkg-nec/jest
 ```

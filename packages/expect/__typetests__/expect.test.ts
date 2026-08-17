@@ -6,7 +6,6 @@
  */
 
 import {describe, expect, test} from 'tstyche';
-import type {EqualsFunction} from '@jest/expect-utils';
 import {
   type MatcherContext,
   type MatcherFunction,
@@ -15,10 +14,11 @@ import {
   type Tester,
   type TesterContext,
   expect as jestExpect,
-} from 'expect';
-import type * as jestMatcherUtils from 'jest-matcher-utils';
+} from '@pkg-nec/expect';
+import type {EqualsFunction} from '@pkg-nec/jest-expect-utils';
+import type * as jestMatcherUtils from '@pkg-nec/jest-matcher-utils';
 
-declare module 'expect' {
+declare module '@pkg-nec/expect' {
   interface AsymmetricMatchers {
     toBeWithinRange(floor: number, ceiling: number): void;
   }

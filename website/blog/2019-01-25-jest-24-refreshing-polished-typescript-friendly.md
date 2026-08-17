@@ -27,7 +27,7 @@ See [the docs](/docs/getting-started#using-typescript) for more details.
 
 :::tip
 
-If you for whatever reason cannot upgrade to Babel 7, you can still use Jest 24 with `babel@6` as long as you keep `babel-jest` at version 23.
+If you for whatever reason cannot upgrade to Babel 7, you can still use Jest 24 with `babel@6` as long as you keep `@pkg-nec/babel-jest` at version 23.
 
 :::
 
@@ -80,7 +80,7 @@ The second one is an issue where Jest runs out of memory if the difference in se
 - A quirk of Jest's CLI has been that while some flags and options have been camel cased (such as `runInBand`), others have not been (such as `no-cache`). In Jest 24, both are recognized, meaning you can write your CLI arguments however you want.
 - We've renamed `setupTestFrameworkScriptFile` to `setupFilesAfterEnv`, and made it into an array. We hope this will make it more obvious what the options is for. We have plans to further overhaul the configuration in the next major, see the paragraph in the section below.
 - To reduce the amount of magic Jest performs to “just work™”, in this release we decided to drop automatic injection of `regenerator-runtime`, which is sometimes used in compiled async code. Including `regenerator-runtime` is not always necessary and we believe it's the user's responsibility to include it if it's needed. If you use `@babel/preset-env` with `targets` set to a modern Node version (e.g. Node 6+) you will not need to include it. Please see our [Using Babel docs](/docs/getting-started#using-babel) for more information.
-- Node.js 10 came with an experimental module [called `worker_threads`](https://nodejs.org/api/worker_threads.html), which is similar to Worker threads in the browser. `jest-worker`, part of the [Jest platform](/docs/jest-platform), will be able to use `worker_threads` if available instead of `child_process`, which makes it even faster! [Benchmarks](https://github.com/jestjs/jest/pull/6676) show a 50% improvement. Due to its experimental nature, it's not enabled when using Jest as a test runner, but you can use it in your own projects today! We plan to enable it by default when it's promoted from experimental status in Node.js.
+- Node.js 10 came with an experimental module [called `worker_threads`](https://nodejs.org/api/worker_threads.html), which is similar to Worker threads in the browser. `@pkg-nec/jest-worker`, part of the [Jest platform](/docs/jest-platform), will be able to use `worker_threads` if available instead of `child_process`, which makes it even faster! [Benchmarks](https://github.com/jestjs/jest/pull/6676) show a 50% improvement. Due to its experimental nature, it's not enabled when using Jest as a test runner, but you can use it in your own projects today! We plan to enable it by default when it's promoted from experimental status in Node.js.
 
 ## Breaking Changes
 

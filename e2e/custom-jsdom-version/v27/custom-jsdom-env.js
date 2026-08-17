@@ -6,7 +6,7 @@
  */
 
 import JSDOM from 'jsdom';
-import BaseEnv from '@jest/environment-jsdom-abstract';
+import BaseEnv from '@pkg-nec/jest-environment-jsdom-abstract';
 
 export default class JestJSDOMEnvironment extends BaseEnv {
   constructor(config, context) {

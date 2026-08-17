@@ -1,4 +1,4 @@
-# jest-diff
+# @pkg-nec/jest-diff
 
 Display differences clearly so people can review changes confidently.
 
@@ -18,21 +18,21 @@ Three named exports compare **arrays of strings** line-by-line:
 
 To add this package as a dependency of a project, run either of the following commands:
 
-- `npm install jest-diff`
-- `yarn add jest-diff`
+- `npm install @pkg-nec/jest-diff`
+- `yarn add @pkg-nec/jest-diff`
 
 ## Usage of `diff()`
 
 Given JavaScript **values**, `diff(a, b, options?)` does the following:
 
-1. **serialize** the values as strings using the `pretty-format` package
-2. **compare** the strings line-by-line using the `diff-sequences` package
+1. **serialize** the values as strings using the `@pkg-nec/pretty-format` package
+2. **compare** the strings line-by-line using the `@pkg-nec/jest-diff-sequences` package
 3. **format** the changed or common lines using the `chalk` package
 
 To use this function, write either of the following:
 
-- `const {diff} = require('jest-diff');` in CommonJS modules
-- `import {diff} from 'jest-diff';` in ECMAScript modules
+- `const {diff} = require('@pkg-nec/jest-diff');` in CommonJS modules
+- `import {diff} from '@pkg-nec/jest-diff';` in ECMAScript modules
 
 ### Example of `diff()`
 
@@ -66,14 +66,14 @@ The returned **string** consists of:
 Here are edge cases for the return value:
 
 - `' Comparing two different types of values. …'` if the arguments have **different types** according to the `jest-get-type` package (instances of different classes have the same `'object'` type)
-- `'Compared values have no visual difference.'` if the arguments have either **referential identity** according to `Object.is` method or **same serialization** according to the `pretty-format` package
+- `'Compared values have no visual difference.'` if the arguments have either **referential identity** according to `Object.is` method or **same serialization** according to the `@pkg-nec/pretty-format` package
 - `null` if either argument is a so-called **asymmetric matcher** in Jasmine or Jest
 
 ## Usage of diffStringsUnified
 
 Given **strings**, `diffStringsUnified(a, b, options?)` does the following:
 
-1. **compare** the strings character-by-character using the `diff-sequences` package
+1. **compare** the strings character-by-character using the `@pkg-nec/jest-diff-sequences` package
 2. **clean up** small (often coincidental) common substrings, also known as chaff
 3. **format** the changed or common lines using the `chalk` package
 
@@ -81,8 +81,8 @@ Although the function is mainly for **multiline** strings, it compares any strin
 
 Write either of the following:
 
-- `const {diffStringsUnified} = require('jest-diff');` in CommonJS modules
-- `import {diffStringsUnified} from 'jest-diff';` in ECMAScript modules
+- `const {diffStringsUnified} = require('@pkg-nec/jest-diff');` in CommonJS modules
+- `import {diffStringsUnified} from '@pkg-nec/jest-diff';` in ECMAScript modules
 
 ### Example of diffStringsUnified
 
@@ -117,7 +117,7 @@ If the input strings can have **arbitrary length**, we recommend that the callin
 
 Given **arrays of strings**, `diffLinesUnified(aLines, bLines, options?)` does the following:
 
-1. **compare** the arrays line-by-line using the `diff-sequences` package
+1. **compare** the arrays line-by-line using the `@pkg-nec/jest-diff-sequences` package
 2. **format** the changed or common lines using the `chalk` package
 
 You might call this function when strings have been split into lines and you do not need to see changed substrings within lines.
@@ -155,7 +155,7 @@ Here are edge cases for arguments and return values:
 
 Given two **pairs** of arrays of strings, `diffLinesUnified2(aLinesDisplay, bLinesDisplay, aLinesCompare, bLinesCompare, options?)` does the following:
 
-1. **compare** the pair of `Compare` arrays line-by-line using the `diff-sequences` package
+1. **compare** the pair of `Compare` arrays line-by-line using the `@pkg-nec/jest-diff-sequences` package
 2. **format** the corresponding lines in the pair of `Display` arrays using the `chalk` package
 
 Jest calls this function to consider lines as common instead of changed if the only difference is indentation.
@@ -165,7 +165,7 @@ You might call this function for case insensitive or Unicode equivalence compari
 ### Example of diffLinesUnified2
 
 ```js
-import {format} from 'pretty-format';
+import {format} from '@pkg-nec/pretty-format';
 
 const a = {
   text: 'Ignore indentation in serialized object',
@@ -211,7 +211,7 @@ The preceding example illustrates why (at least for indentation) it seems more i
 
 Given **strings** and a boolean option, `diffStringsRaw(a, b, cleanup)` does the following:
 
-1. **compare** the strings character-by-character using the `diff-sequences` package
+1. **compare** the strings character-by-character using the `@pkg-nec/jest-diff-sequences` package
 2. optionally **clean up** small (often coincidental) common substrings, also known as chaff
 
 Because `diffStringsRaw` returns the difference as **data** instead of a string, you can format it as your application requires (for example, enclosed in HTML markup for browser instead of escape sequences for console).
@@ -258,8 +258,8 @@ const diffs = diffStringsRaw('changed from', 'changed to', false);
 
 Here are all the named imports that you might need for the `diffStringsRaw` function:
 
-- `const {DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, Diff, diffStringsRaw} = require('jest-diff');` in CommonJS modules
-- `import {DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, Diff, diffStringsRaw} from 'jest-diff';` in ECMAScript modules
+- `const {DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, Diff, diffStringsRaw} = require('@pkg-nec/jest-diff');` in CommonJS modules
+- `import {DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, Diff, diffStringsRaw} from '@pkg-nec/jest-diff';` in ECMAScript modules
 
 To write a **formatting** function, you might need the named constants (and `Diff` in TypeScript annotations).
 
@@ -275,7 +275,7 @@ const diffInsert = new Diff(DIFF_INSERT, 'to');
 
 Given **arrays of strings**, `diffLinesRaw(aLines, bLines)` does the following:
 
-- **compare** the arrays line-by-line using the `diff-sequences` package
+- **compare** the arrays line-by-line using the `@pkg-nec/jest-diff-sequences` package
 
 Because `diffLinesRaw` returns the difference as **data** instead of a string, you can format it as your application requires.
 
@@ -308,7 +308,7 @@ Depending of your application, you might call `diffLinesRaw` with either array.
 ### Example of split method
 
 ```js
-import {diffLinesRaw} from 'jest-diff';
+import {diffLinesRaw} from '@pkg-nec/jest-diff';
 
 const a = 'non-empty string';
 const b = '';
@@ -341,7 +341,7 @@ export const splitLines0 = string =>
 ```
 
 ```js
-import {diffLinesRaw} from 'jest-diff';
+import {diffLinesRaw} from '@pkg-nec/jest-diff';
 
 const a = '';
 const b = 'line 1\nline 2\nline 3';
@@ -370,7 +370,7 @@ In contrast to the `diffLinesRaw` function, the `diffLinesUnified` and `diffLine
 
 ## Options
 
-The default options are for the report when an assertion fails from the `expect` package used by Jest.
+The default options are for the report when an assertion fails from the `@pkg-nec/expect` package used by Jest.
 
 For other applications, you can provide an options object as a third argument:
 
@@ -424,7 +424,7 @@ const options = {
 + changed to
 ```
 
-The `jest-diff` package does not assume that the 2 labels have equal length.
+The `@pkg-nec/jest-diff` package does not assume that the 2 labels have equal length.
 
 ### Example of options for colors of changed lines
 
@@ -482,7 +482,7 @@ const options = {
 If you need the TypeScript type of a Color option:
 
 ```ts
-import {DiffOptionsColor} from 'jest-diff';
+import {DiffOptionsColor} from '@pkg-nec/jest-diff';
 ```
 
 ### Example of options for no colors
@@ -512,7 +512,7 @@ const options = {
 };
 ```
 
-The `jest-diff` package assumes (but does not enforce) that the 3 indicators have equal length.
+The `@pkg-nec/jest-diff` package assumes (but does not enforce) that the 3 indicators have equal length.
 
 ### Example of options to limit common lines
 

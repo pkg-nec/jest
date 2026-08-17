@@ -12,7 +12,7 @@ Try using the [debugging support](https://nodejs.org/api/debugger.html) built in
 ```bash
 node --inspect-brk node_modules/.bin/jest --runInBand [any other arguments here]
 or on Windows
-node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand [any other arguments here]
+node --inspect-brk ./node_modules/@pkg-nec/jest/bin/jest.js --runInBand [any other arguments here]
 ```
 
 This will run Jest in a Node process that an external debugger can connect to. Note that the process will pause until the debugger has connected to it.
@@ -36,7 +36,7 @@ To attach the built-in debugger, run your tests as aforementioned:
 ```bash
 node --inspect-brk node_modules/.bin/jest --runInBand [any other arguments here]
 or on Windows
-node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand [any other arguments here]
+node --inspect-brk ./node_modules/@pkg-nec/jest/bin/jest.js --runInBand [any other arguments here]
 ```
 
 Then attach VS Code's debugger using the following `launch.json` config:
@@ -89,7 +89,7 @@ or the following for Windows:
       "request": "launch",
       "runtimeArgs": [
         "--inspect-brk",
-        "${workspaceRoot}/node_modules/jest/bin/jest.js",
+        "${workspaceRoot}/node_modules/@pkg-nec/jest/bin/jest.js",
         "--runInBand"
       ],
       "console": "integratedTerminal",

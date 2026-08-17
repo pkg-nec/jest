@@ -1,5 +1,5 @@
 {
-  "name": "@jest/diff-sequences",
+  "name": "@pkg-nec/jest-diff-sequences",
   "version": "30.4.0",
   "repository": {
     "type": "git",

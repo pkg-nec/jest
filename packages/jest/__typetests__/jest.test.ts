@@ -10,11 +10,11 @@ import type {
   Config,
   GlobalConfig as ExportedGlobalConfig,
   ProjectConfig as ExportedProjectConfig,
-} from 'jest';
+} from '@pkg-nec/jest';
 
 describe('Config', () => {
   test('is a reexport of the `InitialOptions`', () => {
-    type InitialOptions = import('@jest/types').Config.InitialOptions;
+    type InitialOptions = import('@pkg-nec/jest-types').Config.InitialOptions;
 
     expect<Config>().type.toBe<InitialOptions>();
   });
@@ -22,7 +22,7 @@ describe('Config', () => {
 
 describe('ExportedGlobalConfig', () => {
   test('is a reexport of the `GlobalConfig`', () => {
-    type GlobalConfig = import('@jest/types').Config.GlobalConfig;
+    type GlobalConfig = import('@pkg-nec/jest-types').Config.GlobalConfig;
 
     expect<ExportedGlobalConfig>().type.toBe<GlobalConfig>();
   });
@@ -30,7 +30,7 @@ describe('ExportedGlobalConfig', () => {
 
 describe('ExportedProjectConfig', () => {
   test('is a reexport of the `ProjectConfig`', () => {
-    type ProjectConfig = import('@jest/types').Config.ProjectConfig;
+    type ProjectConfig = import('@pkg-nec/jest-types').Config.ProjectConfig;
 
     expect<ExportedProjectConfig>().type.toBe<ProjectConfig>();
   });

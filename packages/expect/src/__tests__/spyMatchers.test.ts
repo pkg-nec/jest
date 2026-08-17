@@ -6,8 +6,8 @@
  */
 
 import * as Immutable from 'immutable';
-import {alignedAnsiStyleSerializer} from '@jest/test-utils';
-import type {FunctionLike} from 'jest-mock';
+import {alignedAnsiStyleSerializer} from '@pkg-nec/jest-test-utils';
+import type {FunctionLike} from '@pkg-nec/jest-mock';
 import jestExpect from '../';
 
 expect.addSnapshotSerializer(alignedAnsiStyleSerializer);

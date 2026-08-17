@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Global} from '@jest/types';
-import {ErrorWithStack} from 'jest-util';
+import type {Global} from '@pkg-nec/jest-types';
+import {ErrorWithStack} from '@pkg-nec/jest-util';
 
 type DisabledGlobalKeys = 'fail' | 'pending' | 'spyOn' | 'spyOnProperty';
 

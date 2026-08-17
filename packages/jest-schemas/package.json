@@ -1,5 +1,5 @@
 {
-  "name": "@jest/schemas",
+  "name": "@pkg-nec/jest-schemas",
   "version": "30.4.1",
   "repository": {
     "type": "git",

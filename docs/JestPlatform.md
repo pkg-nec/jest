@@ -5,7 +5,7 @@ title: Jest Platform
 
 You can cherry pick specific features of Jest and use them as standalone packages. Here's a list of the available packages:
 
-## jest-changed-files
+## @pkg-nec/jest-changed-files
 
 Tool for identifying modified files in a git/hg repository. Exports two functions:
 
@@ -15,7 +15,7 @@ Tool for identifying modified files in a git/hg repository. Exports two function
 ### Example
 
 ```javascript
-const {getChangedFilesForRoots} = require('jest-changed-files');
+const {getChangedFilesForRoots} = require('@pkg-nec/jest-changed-files');
 
 // print the set of modified files since last commit in the current repo
 getChangedFilesForRoots(['./'], {
@@ -23,16 +23,16 @@ getChangedFilesForRoots(['./'], {
 }).then(result => console.log(result.changedFiles));
 ```
 
-You can read more about `jest-changed-files` in the [readme file](https://github.com/jestjs/jest/blob/main/packages/jest-changed-files/README.md).
+You can read more about `@pkg-nec/jest-changed-files` in the [readme file](https://github.com/pkg-nec/jest/blob/main/packages/jest-changed-files/README.md).
 
-## jest-diff
+## @pkg-nec/jest-diff
 
 Tool for visualizing changes in data. Exports a function that compares two values of any type and returns a "pretty-printed" string illustrating the difference between the two arguments.
 
 ### Example
 
 ```javascript
-const {diff} = require('jest-diff');
+const {diff} = require('@pkg-nec/jest-diff');
 
 const a = {a: {b: {c: 5}}};
 const b = {a: {b: {c: 6}}};
@@ -43,14 +43,14 @@ const result = diff(a, b);
 console.log(result);
 ```
 
-## jest-docblock
+## @pkg-nec/jest-docblock
 
 Tool for extracting and parsing the comments at the top of a JavaScript file. Exports various functions to manipulate the data inside the comment block.
 
 ### Example
 
 ```javascript
-const {parseWithComments} = require('jest-docblock');
+const {parseWithComments} = require('@pkg-nec/jest-docblock');
 
 const code = `
 /**
@@ -68,7 +68,7 @@ const parsed = parseWithComments(code);
 console.log(parsed);
 ```
 
-You can read more about `jest-docblock` in the [readme file](https://github.com/jestjs/jest/blob/main/packages/jest-docblock/README.md).
+You can read more about `@pkg-nec/jest-docblock` in the [readme file](https://github.com/pkg-nec/jest/blob/main/packages/jest-docblock/README.md).
 
 ## jest-get-type
 
@@ -77,7 +77,7 @@ Module that identifies the primitive type of any JavaScript value. Exports a fun
 ### Example
 
 ```javascript
-const {getType} = require('@jest/get-type');
+const {getType} = require('@pkg-nec/jest-get-type');
 
 const array = [1, 2, 3];
 const nullValue = null;
@@ -91,7 +91,7 @@ console.log(getType(nullValue));
 console.log(getType(undefinedValue));
 ```
 
-## jest-validate
+## @pkg-nec/jest-validate
 
 Tool for validating configurations submitted by users. Exports a function that takes two arguments: the user's configuration and an object containing an example configuration and other options. The return value is an object with two attributes:
 
@@ -101,7 +101,7 @@ Tool for validating configurations submitted by users. Exports a function that t
 ### Example
 
 ```javascript
-const {validate} = require('jest-validate');
+const {validate} = require('@pkg-nec/jest-validate');
 
 const configByUser = {
   transform: '<rootDir>/node_modules/my-custom-transform',
@@ -115,9 +115,9 @@ const result = validate(configByUser, {
 console.log(result);
 ```
 
-You can read more about `jest-validate` in the [readme file](https://github.com/jestjs/jest/blob/main/packages/jest-validate/README.md).
+You can read more about `@pkg-nec/jest-validate` in the [readme file](https://github.com/pkg-nec/jest/blob/main/packages/jest-validate/README.md).
 
-## jest-worker
+## @pkg-nec/jest-worker
 
 Module used for parallelization of tasks. Exports a class `JestWorker` that takes the path of Node.js module and lets you call the module's exported methods as if they were class methods, returning a promise that resolves when the specified method finishes its execution in a forked process.
 
@@ -147,16 +147,16 @@ async function main() {
 main();
 ```
 
-You can read more about `jest-worker` in the [readme file](https://github.com/jestjs/jest/blob/main/packages/jest-worker/README.md).
+You can read more about `@pkg-nec/jest-worker` in the [readme file](https://github.com/pkg-nec/jest/blob/main/packages/jest-worker/README.md).
 
-## pretty-format
+## @pkg-nec/pretty-format
 
 Exports a function that converts any JavaScript value into a human-readable string. Supports all built-in JavaScript types out of the box and allows extension for application-specific types via user-defined plugins.
 
 ### Example
 
 ```javascript
-const {format: prettyFormat} = require('pretty-format');
+const {format: prettyFormat} = require('@pkg-nec/pretty-format');
 
 const val = {object: {}};
 val.circularReference = val;
@@ -167,4 +167,4 @@ val.array = [-0, Infinity, NaN];
 console.log(prettyFormat(val));
 ```
 
-You can read more about `pretty-format` in the [readme file](https://github.com/jestjs/jest/blob/main/packages/pretty-format/README.md).
+You can read more about `@pkg-nec/pretty-format` in the [readme file](https://github.com/pkg-nec/jest/blob/main/packages/pretty-format/README.md).

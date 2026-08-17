@@ -6,9 +6,9 @@
  */
 
 import chalk from 'chalk';
-import type {SnapshotSummary} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import {pluralize} from 'jest-util';
+import type {SnapshotSummary} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {pluralize} from '@pkg-nec/jest-util';
 import formatTestPath from './formatTestPath';
 
 const ARROW = ' \u203A ';

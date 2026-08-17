@@ -6,9 +6,9 @@
  *
  */
 
-import type {EqualsFunction, Tester} from '@jest/expect-utils';
-import type * as jestMatcherUtils from 'jest-matcher-utils';
-import type {MockInstance} from 'jest-mock';
+import type {EqualsFunction, Tester} from '@pkg-nec/jest-expect-utils';
+import type * as jestMatcherUtils from '@pkg-nec/jest-matcher-utils';
+import type {MockInstance} from '@pkg-nec/jest-mock';
 import type {INTERNAL_MATCHER_FLAG} from './jestMatchersObject';
 
 export type SyncExpectationResult = {

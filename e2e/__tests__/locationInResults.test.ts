@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {isJestJasmineRun} from '@jest/test-utils';
+import {isJestJasmineRun} from '@pkg-nec/jest-test-utils';
 import {json as runWithJson} from '../runJest';
 
 it('defaults to null for location', () => {

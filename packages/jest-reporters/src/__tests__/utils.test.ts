@@ -8,7 +8,7 @@
 import * as path from 'path';
 import {stripVTControlCharacters as stripAnsi} from 'util';
 import chalk from 'chalk';
-import {makeProjectConfig} from '@jest/test-utils';
+import {makeProjectConfig} from '@pkg-nec/jest-test-utils';
 import printDisplayName from '../printDisplayName';
 import trimAndFormatPath from '../trimAndFormatPath';
 import wrapAnsiString from '../wrapAnsiString';

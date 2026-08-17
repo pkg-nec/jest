@@ -6,8 +6,12 @@
  */
 
 import chalk from 'chalk';
-import type {AggregatedResult, Test, TestCaseResult} from '@jest/test-result';
-import {formatTime, pluralize} from 'jest-util';
+import type {
+  AggregatedResult,
+  Test,
+  TestCaseResult,
+} from '@pkg-nec/jest-test-result';
+import {formatTime, pluralize} from '@pkg-nec/jest-util';
 import type {SummaryOptions} from './types';
 
 export const PROGRESS_BAR_WIDTH = 40;

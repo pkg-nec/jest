@@ -181,7 +181,7 @@ exports[`indentation is correct in the presences of existing snapshots: existing
 `;
 
 exports[`multiple custom matchers and native matchers: multiple matchers 1`] = `
-"const {toMatchInlineSnapshot} = require('jest-snapshot');
+"const {toMatchInlineSnapshot} = require('@pkg-nec/jest-snapshot');
 expect.extend({
   toMatchCustomInlineSnapshot(received, ...args) {
     return toMatchInlineSnapshot.call(this, received, ...args);
@@ -254,7 +254,7 @@ exports[`supports async tests 1`] = `
 `;
 
 exports[`supports custom matchers with property matcher: custom matchers with property matcher 1`] = `
-"const {toMatchInlineSnapshot} = require('jest-snapshot');
+"const {toMatchInlineSnapshot} = require('@pkg-nec/jest-snapshot');
 expect.extend({
   toMatchCustomInlineSnapshot(received, ...args) {
     return toMatchInlineSnapshot.call(this, received, ...args);
@@ -302,7 +302,7 @@ test('inline snapshots', () => {
 `;
 
 exports[`supports custom matchers: custom matchers 1`] = `
-"const {toMatchInlineSnapshot} = require('jest-snapshot');
+"const {toMatchInlineSnapshot} = require('@pkg-nec/jest-snapshot');
 expect.extend({
   toMatchCustomInlineSnapshot(received, ...args) {
     return toMatchInlineSnapshot.call(this, received, ...args);

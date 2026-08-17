@@ -11,7 +11,7 @@
 
 /* global document */
 
-import {expect} from '@jest/globals';
+import {expect} from '@pkg-nec/jest-globals';
 
 describe('toEqual', () => {
   describe('duck type', () => {

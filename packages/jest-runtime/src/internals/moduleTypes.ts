@@ -6,7 +6,7 @@
  */
 
 import type {SyntheticModule, Module as VMModule} from 'node:vm';
-import type {Module} from '@jest/environment';
+import type {Module} from '@pkg-nec/jest-environment';
 
 export type ImportAttributes = Record<string, string | undefined>;
 

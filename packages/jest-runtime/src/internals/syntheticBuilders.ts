@@ -6,7 +6,7 @@
  */
 
 import {SyntheticModule, type Context as VMContext} from 'node:vm';
-import {invariant} from 'jest-util';
+import {invariant} from '@pkg-nec/jest-util';
 import {noop} from '../helpers';
 import type {CjsExportsCache} from './CjsExportsCache';
 

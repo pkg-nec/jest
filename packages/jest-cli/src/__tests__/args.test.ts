@@ -6,8 +6,8 @@
  *
  */
 
-import type {Config} from '@jest/types';
-import {constants} from 'jest-config';
+import type {Config} from '@pkg-nec/jest-types';
+import {constants} from '@pkg-nec/jest-config';
 import {check} from '../args';
 import {buildArgv} from '../run';
 

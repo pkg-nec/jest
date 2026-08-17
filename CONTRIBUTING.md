@@ -2,11 +2,11 @@
 
 ## Code of Conduct
 
-Jest has adopted the OpenJS Code of Conduct that we expect project participants to adhere to. See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
+This independently maintained `@pkg-nec/jest` fork expects project participants to follow [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 
 ## Open Development
 
-All work on Jest happens directly on [GitHub](/). Both core team members and external contributors send pull requests which go through the same review process.
+All work on this fork happens directly on [GitHub](https://github.com/pkg-nec/jest). Both maintainers and external contributors send pull requests through the same review process.
 
 ### `main` is unsafe
 
@@ -44,10 +44,10 @@ _Before_ submitting a pull request, please make sure the following is done…
     node -v
     ```
 
-1.  Run `yarn install`.
+1.  Run `yarn install --immutable`.
 
     ```sh
-    yarn install
+    yarn install --immutable
     ```
 
 1.  Run `yarn build` to transpile TypeScript to JavaScript and type check the code
@@ -71,16 +71,6 @@ _Before_ submitting a pull request, please make sure the following is done…
     $ brew install hg # maybe
     $ yarn test
     ```
-
-#### Changelog entries
-
-All changes that add a feature to or fix a bug in any of Jest's packages require a changelog entry containing the names of the packages affected, a description of the change, and the number of and link to the pull request. Try to match the structure of the existing entries.
-
-For significant changes to the documentation or website and things like cleanup, refactoring, and dependency updates, the "Chore & Maintenance" section of the changelog can be used.
-
-You can add or edit the changelog entry in the GitHub web interface once you have opened the pull request and know the number and link to it.
-
-Make sure to alphabetically order your entry based on the package name. If you have changed multiple packages, separate them with a comma.
 
 #### Testing
 
@@ -111,7 +101,7 @@ Ran all test suites.
 
 ## Checking Constraints
 
-We use [Yarn Constraints](https://yarnpkg.com/features/constraints) to enforce various rules across the repository. They are declared inside the [`yarn.config.cjs` file](https://github.com/jestjs/jest/blob/main/yarn.config.cjs) and their purposes are documented with comments.
+We use [Yarn Constraints](https://yarnpkg.com/features/constraints) to enforce various rules across the repository. They are declared inside the [`yarn.config.cjs` file](https://github.com/pkg-nec/jest/blob/main/yarn.config.cjs) and their purposes are documented with comments.
 
 Constraints can be checked with `yarn constraints`, and fixed with `yarn constraints --fix`. Generally speaking:
 
@@ -123,7 +113,7 @@ Constraints can be checked with `yarn constraints`, and fixed with `yarn constra
 
 ##### Using jest-jasmine2
 
-There may be cases where you want to run jest using `jest-jasmine2` instead of `jest-circus` (which is the default runner) for integration testing. In situations like this, set the environment variable `JEST_JASMINE` to 1. That will configure jest to use `jest-jasmine2`. So something like this.
+There may be cases where you want to run jest using `@pkg-nec/jest-jasmine2` instead of `@pkg-nec/jest-circus` (which is the default runner) for integration testing. In situations like this, set the environment variable `JEST_JASMINE` to 1. That will configure jest to use `@pkg-nec/jest-jasmine2`. So something like this.
 
 ```bash
 JEST_JASMINE=1 yarn jest
@@ -143,10 +133,6 @@ If you are making changes to the website or documentation, test the website fold
 1.  You can run a development server to check if the changes you made are being displayed accurately by running `yarn start` in the website directory.
 
 The Jest website also offers documentation for older versions of Jest, which you can edit in `website/versioned_docs`. After making changes to the current documentation in `docs`, please check if any older versions of the documentation have a copy of the file where the change is also relevant and apply the changes to the `versioned_docs` as well.
-
-### Contributor License Agreement (CLA)
-
-In order to accept your pull request, we need you to submit a CLA. You only need to do this once, so if you've done this for another OpenJS open source project, you're good to go. If you are submitting a pull request for the first time, a bot will verify and guide you on how to sign it.
 
 ## How to try a development build of Jest in another project
 
@@ -184,17 +170,17 @@ We will be using GitHub Issues for our public bugs. We will keep a close eye on 
 
 The best way to get your bug fixed is to provide a reduced test case. Please provide a public repository with a runnable example.
 
-### Docs translation
+### Upstream docs translation
 
-We get translations from Crowdin, see https://crowdin.com/project/jest-v2. Any and all help is very much appreciated!
+The upstream Jest project uses Crowdin for translations; see https://crowdin.com/project/jest-v2. This service is an upstream resource and is not operated by this fork.
 
 ### Security Bugs
 
 See [SECURITY.md](./SECURITY.md) for the safe disclosure of security bugs. With that in mind, please do not file public issues; go through the process outlined there.
 
-## How to Get in Touch
+## Upstream community contact
 
-[`#testing` on Reactiflux](https://discord.gg/j6FKKQQrW9)
+[`#testing` on Reactiflux](https://discord.gg/j6FKKQQrW9) is an upstream Jest community resource and is not operated by this fork.
 
 ## Code Conventions
 
@@ -209,19 +195,23 @@ See [SECURITY.md](./SECURITY.md) for the safe disclosure of security bugs. With 
 
 ## Credits
 
-This project exists thanks to all the people who [contribute](CONTRIBUTING.md).
+This fork exists thanks to all the people who [contribute](CONTRIBUTING.md).
+
+### Upstream Jest attribution
+
+The following contributor, funding, and sponsor resources belong to the upstream Jest project and are retained as attribution; they are not managed by this fork.
 
 <a href="https://github.com/jestjs/jest/graphs/contributors"><img src="https://opencollective.com/jest/contributors.svg?width=890&button=false" /></a>
 
 ### [Backers](https://opencollective.com/jest#backer)
 
-Thank you to all our backers! 🙏
+Thank you to the upstream Jest project's backers! 🙏
 
 <a href="https://opencollective.com/jest#backers" target="_blank"><img src="https://opencollective.com/jest/backers.svg?width=890"></a>
 
 ### [Sponsors](https://opencollective.com/jest#sponsor)
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website.
+Support the upstream Jest project by becoming a sponsor. This fork does not administer that sponsorship program.
 
 <a href="https://opencollective.com/jest/sponsor/0/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/0/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/1/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/1/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/2/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/2/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/3/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/3/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/4/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/4/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/5/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/5/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/6/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/6/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/7/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/7/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/8/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/8/avatar.svg"></a> <a href="https://opencollective.com/jest/sponsor/9/website" target="_blank"><img src="https://opencollective.com/jest/sponsor/9/avatar.svg"></a>
 
@@ -239,7 +229,7 @@ $ yarn lerna publish
 
 This will prompt you for which versions to release.
 
-After the release is published, you can create a new release on GitHub with the release notes (copied from [CHANGELOG.md](./CHANGELOG.md)).
+After the release is published, create the corresponding release on the fork's [GitHub repository](https://github.com/pkg-nec/jest).
 
 In order to publish a pre-release, the same steps apply, but you need to specify some extra flags:
 

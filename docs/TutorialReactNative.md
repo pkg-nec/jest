@@ -84,7 +84,7 @@ test('renders correctly', () => {
 });
 ```
 
-When you run `yarn test` or `jest`, this will produce an output file like this:
+When you run `yarn test` or `@pkg-nec/jest`, this will produce an output file like this:
 
 ```javascript title="__tests__/__snapshots__/Intro-test.js.snap"
 exports[`Intro renders correctly 1`] = `
@@ -123,7 +123,7 @@ exports[`Intro renders correctly 1`] = `
 
 The next time you run the tests, the rendered output will be compared to the previously created snapshot. The snapshot should be committed along with code changes. When a snapshot test fails, you need to inspect whether it is an intended or unintended change. If the change is expected you can invoke Jest with `jest -u` to overwrite the existing snapshot.
 
-The code for this example is available at [examples/react-native](https://github.com/jestjs/jest/tree/main/examples/react-native).
+The code for this example is available at [examples/react-native](https://github.com/pkg-nec/jest/tree/main/examples/react-native).
 
 ## Preset configuration
 

@@ -6,7 +6,7 @@
  */
 
 import {fileURLToPath} from 'url';
-import {createTransformer} from 'babel-jest';
+import {createTransformer} from '@pkg-nec/babel-jest';
 
 export default {
   ...createTransformer({

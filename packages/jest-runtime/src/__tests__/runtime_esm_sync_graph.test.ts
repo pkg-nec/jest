@@ -11,7 +11,7 @@ import {
   testWithLinkedSyntheticModule,
   testWithSyncEsm,
   testWithVmEsm,
-} from '@jest/test-utils';
+} from '@pkg-nec/jest-test-utils';
 
 const ROOT_DIR = path.join(__dirname, 'test_esm_sync_graph_root');
 const FROM = path.join(ROOT_DIR, 'test.js');
@@ -83,14 +83,17 @@ describe('Runtime sync ESM graph', () => {
     expect(m.namespace.dataValue).toBe(99);
   });
 
-  testWithVmEsm('resolves @jest/globals in the sync graph', async () => {
-    const runtime = await createRuntime(__filename, {rootDir: ROOT_DIR});
-    const m = (await runtime.unstable_importModule(
-      FROM,
-      './import-jest-globals.mjs',
-    )) as any;
-    expect(m.namespace.hasJest).toBe(true);
-  });
+  testWithVmEsm(
+    'resolves @pkg-nec/jest-globals in the sync graph',
+    async () => {
+      const runtime = await createRuntime(__filename, {rootDir: ROOT_DIR});
+      const m = (await runtime.unstable_importModule(
+        FROM,
+        './import-jest-globals.mjs',
+      )) as any;
+      expect(m.namespace.hasJest).toBe(true);
+    },
+  );
 
   testWithVmEsm('decodes base64-encoded data: URI specifiers', async () => {
     const runtime = await createRuntime(__filename, {rootDir: ROOT_DIR});
@@ -406,7 +409,7 @@ describe('Runtime sync ESM graph - require(esm)', () => {
   );
 
   testWithSyncEsm(
-    'require()s an ESM file importing @jest/globals',
+    'require()s an ESM file importing @pkg-nec/jest-globals',
     async () => {
       const runtime = await createRuntime(__filename, {rootDir: ROOT_DIR});
       const ns = runtime.requireModule(FROM, './import-jest-globals.mjs');

@@ -13,9 +13,9 @@ import * as fs from 'graceful-fs';
 import picomatch from 'picomatch';
 import slash from 'slash';
 import StackUtils from 'stack-utils';
-import type {Config, TestResult} from '@jest/types';
-import {isError} from 'jest-util';
-import {format as prettyFormat} from 'pretty-format';
+import type {Config, TestResult} from '@pkg-nec/jest-types';
+import {isError} from '@pkg-nec/jest-util';
+import {format as prettyFormat} from '@pkg-nec/pretty-format';
 import type {Frame} from './types';
 
 export type {Frame} from './types';

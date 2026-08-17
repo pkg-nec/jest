@@ -1,5 +1,5 @@
 {
-  "name": "babel-jest",
+  "name": "@pkg-nec/babel-jest",
   "description": "Jest plugin to use babel for transformation.",
   "version": "30.4.1",
   "repository": {
@@ -20,10 +20,10 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/transform": "workspace:*",
+    "@pkg-nec/babel-preset-jest": "workspace:*",
+    "@pkg-nec/jest-transform": "workspace:*",
     "@types/babel__core": "^7.20.5",
     "babel-plugin-istanbul": "^7.0.1",
-    "babel-preset-jest": "workspace:*",
     "chalk": "^4.1.2",
     "graceful-fs": "^4.2.11",
     "slash": "^3.0.0"
@@ -31,7 +31,7 @@
   "devDependencies": {
     "@babel-8/core": "npm:@babel/core@8.0.0-rc.4",
     "@babel/core": "^7.27.4",
-    "@jest/test-utils": "workspace:*",
+    "@pkg-nec/jest-test-utils": "workspace:*",
     "@types/graceful-fs": "^4.1.9"
   },
   "peerDependencies": {

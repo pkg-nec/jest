@@ -7,11 +7,11 @@
  */
 
 import * as path from 'path';
-import {TestPathPatterns} from '@jest/pattern';
-import type {Test} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import {normalize} from 'jest-config';
-import Runtime from 'jest-runtime';
+import {TestPathPatterns} from '@pkg-nec/jest-pattern';
+import type {Test} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import {normalize} from '@pkg-nec/jest-config';
+import Runtime from '@pkg-nec/jest-runtime';
 import SearchSource from '../SearchSource';
 import type {Filter} from '../types';
 

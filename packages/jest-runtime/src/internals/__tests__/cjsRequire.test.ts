@@ -8,8 +8,8 @@
 import type nativeModule from 'node:module';
 import * as path from 'node:path';
 import {pathToFileURL} from 'node:url';
-import type {JestEnvironment, Module} from '@jest/environment';
-import Resolver from 'jest-resolve';
+import type {JestEnvironment, Module} from '@pkg-nec/jest-environment';
+import Resolver from '@pkg-nec/jest-resolve';
 import type {ModuleRegistries} from '../ModuleRegistries';
 import type {Resolution} from '../Resolution';
 import {TestMainModule} from '../TestMainModule';

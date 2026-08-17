@@ -7,7 +7,7 @@
 
 import {tmpdir} from 'os';
 import * as path from 'path';
-import {onNodeVersions} from '@jest/test-utils';
+import {onNodeVersions} from '@pkg-nec/jest-test-utils';
 import {
   cleanup,
   createEmptyPackage,

@@ -4,10 +4,10 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import type {JestEnvironment} from '@jest/environment';
-import {type TestResult, createEmptyTestResult} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import type Runtime from 'jest-runtime';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
+import {type TestResult, createEmptyTestResult} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import type Runtime from '@pkg-nec/jest-runtime';
 
 export default async function testRunner(
   globalConfig: Config.GlobalConfig,

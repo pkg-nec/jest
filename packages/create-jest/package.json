@@ -1,5 +1,5 @@
 {
-  "name": "create-jest",
+  "name": "@pkg-nec/create-jest",
   "description": "Create a new Jest project",
   "version": "30.4.2",
   "repository": {
@@ -22,12 +22,12 @@
     "./bin/create-jest": "./bin/create-jest.js"
   },
   "dependencies": {
-    "@jest/types": "workspace:*",
+    "@pkg-nec/jest-config": "workspace:*",
+    "@pkg-nec/jest-types": "workspace:*",
+    "@pkg-nec/jest-util": "workspace:*",
     "chalk": "^4.1.2",
     "exit-x": "^0.2.2",
     "graceful-fs": "^4.2.11",
-    "jest-config": "workspace:*",
-    "jest-util": "workspace:*",
     "prompts": "^2.4.2"
   },
   "engines": {

@@ -13,7 +13,7 @@ import {
   type SummaryOptions,
   type TestResult,
   utils,
-} from '@jest/reporters';
+} from '@pkg-nec/jest-reporters';
 
 declare const aggregatedResults: AggregatedResult;
 declare const globalConfig: Config.GlobalConfig;

@@ -16,8 +16,8 @@ import {
   sparseArrayEquality,
   subsetEquality,
   typeEquality,
-} from '@jest/expect-utils';
-import {getType, isPrimitive} from '@jest/get-type';
+} from '@pkg-nec/jest-expect-utils';
+import {getType, isPrimitive} from '@pkg-nec/jest-get-type';
 import {
   DIM_COLOR,
   EXPECTED_COLOR,
@@ -35,7 +35,7 @@ import {
   printReceived,
   printWithType,
   stringify,
-} from 'jest-matcher-utils';
+} from '@pkg-nec/jest-matcher-utils';
 import {
   printCloseTo,
   printExpectedConstructorName,

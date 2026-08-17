@@ -9,9 +9,13 @@ import * as path from 'node:path';
 import * as fs from 'graceful-fs';
 import parseJson from 'parse-json';
 import stripJsonComments from 'strip-json-comments';
-import type {Config} from '@jest/types';
-import {type Pragmas, extract, parse} from 'jest-docblock';
-import {interopRequireDefault, isError, requireOrImportModule} from 'jest-util';
+import {type Pragmas, extract, parse} from '@pkg-nec/jest-docblock';
+import type {Config} from '@pkg-nec/jest-types';
+import {
+  interopRequireDefault,
+  isError,
+  requireOrImportModule,
+} from '@pkg-nec/jest-util';
 import {
   JEST_CONFIG_EXT_CTS,
   JEST_CONFIG_EXT_JSON,

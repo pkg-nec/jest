@@ -6,7 +6,6 @@
  */
 
 import chalk, {type Chalk} from 'chalk';
-import {getType, isPrimitive} from '@jest/get-type';
 import {
   DIFF_DELETE,
   DIFF_EQUAL,
@@ -16,11 +15,12 @@ import {
   diff as diffDefault,
   diffStringsRaw,
   diffStringsUnified,
-} from 'jest-diff';
+} from '@pkg-nec/jest-diff';
+import {getType, isPrimitive} from '@pkg-nec/jest-get-type';
 import {
   format as prettyFormat,
   plugins as prettyFormatPlugins,
-} from 'pretty-format';
+} from '@pkg-nec/pretty-format';
 import Replaceable from './Replaceable';
 import deepCyclicCopyReplaceable, {
   SERIALIZABLE_PROPERTIES,

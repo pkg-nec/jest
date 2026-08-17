@@ -9,7 +9,7 @@ import type {
   ScriptTransformer,
   TransformResult,
   TransformationOptions,
-} from '@jest/transform';
+} from '@pkg-nec/jest-transform';
 import type {FileCache} from '../FileCache';
 import {TransformCache, type TransformOptions} from '../TransformCache';
 

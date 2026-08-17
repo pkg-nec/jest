@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {onNodeVersions} from '@jest/test-utils';
+import {onNodeVersions} from '@pkg-nec/jest-test-utils';
 import runJest from '../runJest';
 
 onNodeVersions('>=26', () => {

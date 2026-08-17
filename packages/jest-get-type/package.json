@@ -1,5 +1,5 @@
 {
-  "name": "@jest/get-type",
+  "name": "@pkg-nec/jest-get-type",
   "description": "A utility function to get the type of a value",
   "version": "30.1.0",
   "repository": {

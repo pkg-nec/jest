@@ -6,7 +6,7 @@
  */
 'use strict';
 
-import {TestPathPatterns} from '@jest/pattern';
+import {TestPathPatterns} from '@pkg-nec/jest-pattern';
 
 let SummaryReporter;
 

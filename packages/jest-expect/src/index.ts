@@ -5,14 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {expect} from 'expect';
+import {expect} from '@pkg-nec/expect';
 import {
   addSerializer,
   toMatchInlineSnapshot,
   toMatchSnapshot,
   toThrowErrorMatchingInlineSnapshot,
   toThrowErrorMatchingSnapshot,
-} from 'jest-snapshot';
+} from '@pkg-nec/jest-snapshot';
 import type {JestExpect} from './types';
 
 export type {
@@ -23,7 +23,7 @@ export type {
   MatcherFunctionWithContext,
   MatcherState,
   MatcherUtils,
-} from 'expect';
+} from '@pkg-nec/expect';
 export type {JestExpect} from './types';
 
 function createJestExpect(): JestExpect {

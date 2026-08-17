@@ -21,7 +21,7 @@ Upgrading from an older version? You can see the upgrade guide from v28 to v29 [
 
 - Jest 30 drops support for Node 14, 16, 19, and 21. The minimum supported Node versions are now 18.x. Ensure your environment is using a compatible Node release before upgrading.
 - The minimum TypeScript version is now 5.4. Update TypeScript, if you are using type definitions of Jest (or any of its packages).
-- The `jest-environment-jsdom` package now uses JSDOM v26. This update may introduce behavior changes in the DOM environment. If you encounter differences in DOM behavior or new warnings, refer to the JSDOM release notes for [v21–26](https://github.com/jsdom/jsdom/compare/v21.0.0...v26.0.0).
+- The `@pkg-nec/jest-environment-jsdom` package now uses JSDOM v26. This update may introduce behavior changes in the DOM environment. If you encounter differences in DOM behavior or new warnings, refer to the JSDOM release notes for [v21–26](https://github.com/jsdom/jsdom/compare/v21.0.0...v26.0.0).
 
 ## Jest Expect & Matchers
 
@@ -96,11 +96,11 @@ Internally, Jest consolidates these patterns into a `TestPathPatterns` object. I
 The interactive config initialization command `jest --init` has been **removed**. This deprecated command was used to scaffold a Jest configuration file. If you need to create a config, you can run:
 
 ```bash
-npm init jest@latest
+npm init @pkg-nec/jest@latest
 # Or for Yarn
-yarn create jest
+yarn create @pkg-nec/jest
 # Or for pnpm
-pnpm create jest
+pnpm create @pkg-nec/jest
 ```
 
 ### Other CLI Changes
@@ -126,7 +126,7 @@ If you have a **custom test sequencer** (a class inheriting from Jest’s `TestS
 
 ### Required `globalConfig` in Runtime
 
-For those using Jest’s programmatic APIs: constructing a `Runtime` now requires a `globalConfig` parameter. If you use `jest.runCLI` or similar helpers, make sure you pass all required options as per the updated API. (The typical `jest` CLI or `npm test` usage is unaffected by this change.)
+For those using Jest’s programmatic APIs: constructing a `Runtime` now requires a `globalConfig` parameter. If you use `jest.runCLI` or similar helpers, make sure you pass all required options as per the updated API. (The typical `@pkg-nec/jest` CLI or `npm test` usage is unaffected by this change.)
 
 ## Snapshots and Output Changes
 
@@ -142,7 +142,7 @@ Error serialization in snapshots has changed. Jest 30’s snapshot serializer wi
 
 The React-specific snapshot serializer no longer renders empty string children (`""`) in the output. In Jest 29, an empty string child in a React element might appear as `""` in the snapshot output; in Jest 30 it will be omitted (treated as no content).
 
-### Improved Object Printing in `pretty-format`
+### Improved Object Printing in `@pkg-nec/pretty-format`
 
 `ArrayBuffer` and `DataView` are now printed in a human-readable way instead of as objects with internal fields.
 
@@ -171,7 +171,7 @@ const mockFs = jest.createMockFromModule('fs');
 The type changes are only applicable if you explicitly import Jest APIs:
 
 ```ts
-import {expect, jest, test} from '@jest/globals';
+import {expect, jest, test} from '@pkg-nec/jest-globals';
 ```
 
 :::
@@ -206,7 +206,7 @@ jest.mock('./path/to/filename.js'); // This strictly works when you ONLY have `f
 
 Jest has introduced significant under-the-hood changes to how its packages are bundled and exported:
 
-- All of Jest’s internal modules are now bundled into single files for faster startup. This means when you install Jest, the number of files it loads is greatly reduced (improving performance). However, a side effect is that any unofficial deep imports into Jest’s packages will likely break. For example, if you previously did something like `require('jest-runner/build/testWorker')` (which is not a public API), this path will no longer exist. **Solution:** Use Jest’s public APIs or documented interfaces only. If you are relying on an internal module that you think should be part of the public API, please open a Pull Request to expose it.
+- All of Jest’s internal modules are now bundled into single files for faster startup. This means when you install Jest, the number of files it loads is greatly reduced (improving performance). However, a side effect is that any unofficial deep imports into Jest’s packages will likely break. For example, if you previously did something like `require('@pkg-nec/jest-runner/build/testWorker')` (which is not a public API), this path will no longer exist. **Solution:** Use Jest’s public APIs or documented interfaces only. If you are relying on an internal module that you think should be part of the public API, please open a Pull Request to expose it.
 - Jest’s packages now provide ESM wrappers. This is part of ongoing work to allow running Jest in an ESM context. All official Jest packages export themselves properly via the `package.json` `"exports"` field. For most users, this has no direct impact – you continue to use Jest the same way. But if you maintain a tool or plugin that imports Jest’s modules, ensure you use the package names as imports (which will resolve via Node’s module resolution).
 
 These changes are considered breaking for anyone poking at Jest’s internals, but **not** for typical usage of the Jest CLI and config. After upgrading, run your tests normally – if you get module resolution errors related to Jest’s own modules, it’s likely due to an unsupported import that needs to be removed or updated.

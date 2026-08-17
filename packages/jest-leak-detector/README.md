@@ -1,4 +1,4 @@
-# jest-leak-detector
+# @pkg-nec/jest-leak-detector
 
 Module for verifying whether an object has been garbage collected or not.
 

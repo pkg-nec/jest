@@ -5,17 +5,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {JestEnvironment} from '@jest/environment';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
+import type RuntimeType from '@pkg-nec/jest-runtime';
 import type {
   SerializableError,
   Test,
   TestEvents,
   TestFileEvent,
   TestResult,
-} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import type RuntimeType from 'jest-runtime';
-import type {TestWatcher} from 'jest-watcher';
+} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
+import type {TestWatcher} from '@pkg-nec/jest-watcher';
 
 export type ErrorWithCode = Error & {code?: string};
 

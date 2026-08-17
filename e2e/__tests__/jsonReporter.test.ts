@@ -7,7 +7,7 @@
 
 import * as path from 'path';
 import * as fs from 'graceful-fs';
-import type {FormattedTestResults} from '@jest/test-result';
+import type {FormattedTestResults} from '@pkg-nec/jest-test-result';
 import runJest from '../runJest';
 
 describe('JSON Reporter', () => {

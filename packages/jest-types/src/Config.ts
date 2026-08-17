@@ -8,10 +8,10 @@
 import type {ForegroundColor} from 'chalk';
 import type {ReportOptions} from 'istanbul-reports';
 import type {Arguments} from 'yargs';
-import type {TestPathPatterns} from '@jest/pattern';
-import type {InitialOptions, SnapshotFormat} from '@jest/schemas';
+import type {TestPathPatterns} from '@pkg-nec/jest-pattern';
+import type {InitialOptions, SnapshotFormat} from '@pkg-nec/jest-schemas';
 
-export type {InitialOptions} from '@jest/schemas';
+export type {InitialOptions} from '@pkg-nec/jest-schemas';
 
 type CoverageProvider = 'babel' | 'v8';
 

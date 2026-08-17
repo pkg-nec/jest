@@ -9,7 +9,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const {createDirectory} = require('jest-util');
+const {createDirectory} = require('@pkg-nec/jest-util');
 
 const DIR = path.join(os.tmpdir(), 'jest-global-setup-node-modules');
 

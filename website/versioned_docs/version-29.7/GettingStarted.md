@@ -6,7 +6,7 @@ title: Getting Started
 Install Jest using your favorite package manager:
 
 ```bash npm2yarn
-npm install --save-dev jest
+npm install --save-dev @pkg-nec/jest
 ```
 
 Let's get started by writing a test for a hypothetical function that adds two numbers. First, create a `sum.js` file:
@@ -47,11 +47,11 @@ PASS  ./sum.test.js
 
 **You just successfully wrote your first test using Jest!**
 
-This test used `expect` and `toBe` to test that two values were exactly identical. To learn about the other things that Jest can test, see [Using Matchers](UsingMatchers.md).
+This test used `@pkg-nec/expect` and `toBe` to test that two values were exactly identical. To learn about the other things that Jest can test, see [Using Matchers](UsingMatchers.md).
 
 ## Running from command line
 
-You can run Jest directly from the CLI (if it's globally available in your `PATH`, e.g. by `yarn global add jest` or `npm install jest --global`) with a variety of useful options.
+You can run Jest directly from the CLI (if it's globally available in your `PATH`, e.g. by `yarn global add jest` or `npm install @pkg-nec/jest --global`) with a variety of useful options.
 
 Here's how to run Jest on files matching `my-test`, using `config.json` as a configuration file and display a native OS notification after the run:
 
@@ -59,7 +59,7 @@ Here's how to run Jest on files matching `my-test`, using `config.json` as a con
 jest my-test --notify --config=config.json
 ```
 
-If you'd like to learn more about running `jest` through the command line, take a look at the [Jest CLI Options](CLI.md) page.
+If you'd like to learn more about running `@pkg-nec/jest` through the command line, take a look at the [Jest CLI Options](CLI.md) page.
 
 ## Additional Configuration
 
@@ -76,7 +76,7 @@ npm init jest@latest
 To use [Babel](https://babeljs.io/), install required dependencies:
 
 ```bash npm2yarn
-npm install --save-dev babel-jest @babel/core @babel/preset-env
+npm install --save-dev @pkg-nec/babel-jest @babel/core @babel/preset-env
 ```
 
 Configure Babel to target your current version of Node by creating a `babel.config.js` file in the root of your project:
@@ -107,7 +107,7 @@ module.exports = api => {
 
 :::note
 
-`babel-jest` is automatically installed when installing Jest and will automatically transform files if a babel configuration exists in your project. To avoid this behavior, you can explicitly reset the `transform` configuration option:
+`@pkg-nec/babel-jest` is automatically installed when installing Jest and will automatically transform files if a babel configuration exists in your project. To avoid this behavior, you can explicitly reset the `transform` configuration option:
 
 ```javascript title="jest.config.js"
 module.exports = {
@@ -169,16 +169,16 @@ In order for Jest to transpile TypeScript with `ts-jest`, you may also need to c
 
 There are two ways to have [Jest global APIs](GlobalAPI.md) typed for test files written in TypeScript.
 
-You can use type definitions which ships with Jest and will update each time you update Jest. Install the `@jest/globals` package:
+You can use type definitions which ships with Jest and will update each time you update Jest. Install the `@pkg-nec/jest-globals` package:
 
 ```bash npm2yarn
-npm install --save-dev @jest/globals
+npm install --save-dev @pkg-nec/jest-globals
 ```
 
 And import the APIs from it:
 
 ```ts title="sum.test.ts"
-import {describe, expect, test} from '@jest/globals';
+import {describe, expect, test} from '@pkg-nec/jest-globals';
 import {sum} from './sum';
 
 describe('sum module', () => {
@@ -208,9 +208,9 @@ npm install --save-dev @types/jest
 
 ### Using ESLint
 
-Jest can be used with ESLint without any further configuration as long as you import the [Jest global helpers](GlobalAPI.md) (`describe`, `it`, etc.) from `@jest/globals` before using them in your test file. This is necessary to avoid `no-undef` errors from ESLint, which doesn't know about the Jest globals.
+Jest can be used with ESLint without any further configuration as long as you import the [Jest global helpers](GlobalAPI.md) (`describe`, `it`, etc.) from `@pkg-nec/jest-globals` before using them in your test file. This is necessary to avoid `no-undef` errors from ESLint, which doesn't know about the Jest globals.
 
-If you'd like to avoid these imports, you can configure your [ESLint environment](https://eslint.org/docs/latest/use/configure/language-options#specifying-environments) to support these globals by adding the `jest` environment:
+If you'd like to avoid these imports, you can configure your [ESLint environment](https://eslint.org/docs/latest/use/configure/language-options#specifying-environments) to support these globals by adding the `@pkg-nec/jest` environment:
 
 ```json
 {

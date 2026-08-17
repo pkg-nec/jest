@@ -1,5 +1,5 @@
 {
-  "name": "jest-jasmine2",
+  "name": "@pkg-nec/jest-jasmine2",
   "version": "30.4.2",
   "repository": {
     "type": "git",
@@ -19,23 +19,23 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/environment": "workspace:*",
-    "@jest/expect": "workspace:*",
-    "@jest/source-map": "workspace:*",
-    "@jest/test-result": "workspace:*",
-    "@jest/types": "workspace:*",
+    "@pkg-nec/jest-each": "workspace:*",
+    "@pkg-nec/jest-environment": "workspace:*",
+    "@pkg-nec/jest-expect": "workspace:*",
+    "@pkg-nec/jest-matcher-utils": "workspace:*",
+    "@pkg-nec/jest-message-util": "workspace:*",
+    "@pkg-nec/jest-runtime": "workspace:*",
+    "@pkg-nec/jest-snapshot": "workspace:*",
+    "@pkg-nec/jest-source-map": "workspace:*",
+    "@pkg-nec/jest-test-result": "workspace:*",
+    "@pkg-nec/jest-types": "workspace:*",
+    "@pkg-nec/jest-util": "workspace:*",
+    "@pkg-nec/pretty-format": "workspace:*",
     "@types/node": "*",
     "chalk": "^4.1.2",
     "co": "^4.6.0",
     "is-generator-fn": "^2.1.0",
-    "jest-each": "workspace:*",
-    "jest-matcher-utils": "workspace:*",
-    "jest-message-util": "workspace:*",
-    "jest-runtime": "workspace:*",
-    "jest-snapshot": "workspace:*",
-    "jest-util": "workspace:*",
-    "p-limit": "^3.1.0",
-    "pretty-format": "workspace:*"
+    "p-limit": "^3.1.0"
   },
   "devDependencies": {
     "@types/co": "^4.6.6"

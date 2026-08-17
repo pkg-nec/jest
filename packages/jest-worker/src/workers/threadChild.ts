@@ -6,7 +6,7 @@
  */
 
 import {isMainThread, parentPort} from 'node:worker_threads';
-import {isPromise} from 'jest-util';
+import {isPromise} from '@pkg-nec/jest-util';
 import {
   CHILD_MESSAGE_CALL,
   CHILD_MESSAGE_CALL_SETUP,

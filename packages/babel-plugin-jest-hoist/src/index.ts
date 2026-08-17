@@ -23,7 +23,7 @@ import type {
 } from '@babel/types';
 
 const JEST_GLOBAL_NAME = 'jest';
-const JEST_GLOBALS_MODULE_NAME = '@jest/globals';
+const JEST_GLOBALS_MODULE_NAME = '@pkg-nec/jest-globals';
 const JEST_GLOBALS_MODULE_JEST_EXPORT_NAME = 'jest';
 
 const hoistedVariables = new WeakSet<VariableDeclarator>();
@@ -218,7 +218,7 @@ const isJestObject = (
   ) {
     return true;
   }
-  // import { jest } from '@jest/globals'
+  // import { jest } from '@pkg-nec/jest-globals'
   if (
     expression.referencesImport(
       JEST_GLOBALS_MODULE_NAME,
@@ -227,7 +227,7 @@ const isJestObject = (
   ) {
     return true;
   }
-  // import * as JestGlobals from '@jest/globals'
+  // import * as JestGlobals from '@pkg-nec/jest-globals'
   if (
     expression.isMemberExpression() &&
     !expression.node.computed &&

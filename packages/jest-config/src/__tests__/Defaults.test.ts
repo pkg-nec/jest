@@ -7,6 +7,14 @@
 
 import {defaults} from '../';
 
-test('get configuration defaults', () => {
-  expect(defaults).toBeDefined();
+test('uses scoped packages for built-in runtime defaults', () => {
+  expect({
+    runner: defaults.runner,
+    testEnvironment: defaults.testEnvironment,
+    testRunner: defaults.testRunner,
+  }).toEqual({
+    runner: '@pkg-nec/jest-runner',
+    testEnvironment: '@pkg-nec/jest-environment-node',
+    testRunner: '@pkg-nec/jest-circus/runner',
+  });
 });

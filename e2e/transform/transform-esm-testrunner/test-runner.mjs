@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {createEmptyTestResult} from '@jest/test-result';
+import {createEmptyTestResult} from '@pkg-nec/jest-test-result';
 
 export default async function testRunner(
   globalConfig,

@@ -31,9 +31,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* eslint-disable sort-keys, @typescript-eslint/no-empty-function */
 
 import {AssertionError} from 'node:assert';
-import type {FailedAssertion, Status} from '@jest/test-result';
-import type {Circus} from '@jest/types';
-import {convertDescriptorToString} from 'jest-util';
+import type {FailedAssertion, Status} from '@pkg-nec/jest-test-result';
+import type {Circus} from '@pkg-nec/jest-types';
+import {convertDescriptorToString} from '@pkg-nec/jest-util';
 import ExpectationFailed from '../ExpectationFailed';
 import assertionErrorMessage from '../assertionErrorMessage';
 import expectationResultFactory, {

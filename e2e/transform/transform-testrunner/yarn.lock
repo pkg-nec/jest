@@ -1100,12 +1100,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jest/test-result@link:../../../packages/jest-test-result::locator=root-workspace-0b6124%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@jest/test-result@link:../../../packages/jest-test-result::locator=root-workspace-0b6124%40workspace%3A."
-  languageName: node
-  linkType: soft
-
 "@jridgewell/gen-mapping@npm:^0.3.5":
   version: 0.3.8
   resolution: "@jridgewell/gen-mapping@npm:0.3.8"
@@ -1147,6 +1141,12 @@ __metadata:
   checksum: 10/dced32160a44b49d531b80a4a2159dceab6b3ddf0c8e95a0deae4b0e894b172defa63d5ac52a19c2068e1fe7d31ea4ba931fbeec103233ecb4208953967120fc
   languageName: node
   linkType: hard
+
+"@pkg-nec/jest-test-result@link:../../../packages/jest-test-result::locator=root-workspace-0b6124%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@pkg-nec/jest-test-result@link:../../../packages/jest-test-result::locator=root-workspace-0b6124%40workspace%3A."
+  languageName: node
+  linkType: soft
 
 "babel-plugin-polyfill-corejs2@npm:^0.4.10":
   version: 0.4.13
@@ -1428,7 +1428,7 @@ __metadata:
   dependencies:
     "@babel/preset-env": "npm:^7.0.0"
     "@babel/preset-typescript": "npm:^7.0.0"
-    "@jest/test-result": "link:../../../packages/jest-test-result"
+    "@pkg-nec/jest-test-result": "link:../../../packages/jest-test-result"
   languageName: unknown
   linkType: soft
 

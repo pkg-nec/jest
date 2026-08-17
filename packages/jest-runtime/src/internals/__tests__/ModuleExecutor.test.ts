@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Jest, JestEnvironment} from '@jest/environment';
-import {makeProjectConfig} from '@jest/test-utils';
+import type {Jest, JestEnvironment} from '@pkg-nec/jest-environment';
+import {makeProjectConfig} from '@pkg-nec/jest-test-utils';
 import type {RequireBuilder} from '../cjsRequire';
 import type {JestGlobals} from '../JestGlobals';
 import {

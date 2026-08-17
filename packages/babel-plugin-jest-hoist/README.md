@@ -1,11 +1,11 @@
-# babel-plugin-jest-hoist
+# @pkg-nec/babel-plugin-jest-hoist
 
-Babel plugin to hoist `jest.disableAutomock`, `jest.enableAutomock`, `jest.unmock`, `jest.mock`, calls above `import` statements. This plugin is automatically included when using [babel-jest](https://github.com/jestjs/jest/tree/main/packages/babel-jest).
+Babel plugin to hoist `jest.disableAutomock`, `jest.enableAutomock`, `jest.unmock`, `jest.mock`, calls above `import` statements. This plugin is automatically included when using [@pkg-nec/babel-jest](https://github.com/pkg-nec/jest/tree/main/packages/babel-jest).
 
 ## Installation
 
 ```sh
-$ yarn add --dev babel-plugin-jest-hoist
+$ yarn add --dev @pkg-nec/babel-plugin-jest-hoist
 ```
 
 ## Usage

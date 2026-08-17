@@ -10,10 +10,13 @@ import {
   makeGlobalConfig,
   makeProjectConfig,
   testWithVmEsm,
-} from '@jest/test-utils';
-import type {JestEnvironment} from '@jest/environment';
-import type {LegacyFakeTimers, ModernFakeTimers} from '@jest/fake-timers';
-import type {ModuleMocker} from 'jest-mock';
+} from '@pkg-nec/jest-test-utils';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
+import type {
+  LegacyFakeTimers,
+  ModernFakeTimers,
+} from '@pkg-nec/jest-fake-timers';
+import type {ModuleMocker} from '@pkg-nec/jest-mock';
 import {JestGlobals, type JestGlobalsOptions} from '../JestGlobals';
 import type {MockState} from '../MockState';
 import {evaluateSyntheticModule} from '../syntheticBuilders';

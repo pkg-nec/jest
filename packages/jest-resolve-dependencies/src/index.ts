@@ -6,9 +6,12 @@
  */
 
 import * as path from 'node:path';
-import type {IHasteFS} from 'jest-haste-map';
-import type {ResolveModuleConfig, default as Resolver} from 'jest-resolve';
-import {type SnapshotResolver, isSnapshotPath} from 'jest-snapshot';
+import type {IHasteFS} from '@pkg-nec/jest-haste-map';
+import type {
+  ResolveModuleConfig,
+  default as Resolver,
+} from '@pkg-nec/jest-resolve';
+import {type SnapshotResolver, isSnapshotPath} from '@pkg-nec/jest-snapshot';
 
 export type ResolvedModule = {
   file: string;

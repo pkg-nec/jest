@@ -6,7 +6,7 @@
  */
 
 import * as path from 'node:path';
-import type {Config} from '@jest/types';
+import type {Config} from '@pkg-nec/jest-types';
 
 export default function relativePath(
   config: Config.GlobalConfig | Config.ProjectConfig,

@@ -12,7 +12,7 @@ import type {
   FunctionLike,
   MethodLikeKeys,
   PropertyLikeKeys,
-} from 'jest-mock';
+} from '@pkg-nec/jest-mock';
 
 class SomeClass {
   propertyB = 123;

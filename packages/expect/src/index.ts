@@ -8,9 +8,13 @@
 
 /* eslint-disable local/prefer-spread-eventually */
 
-import {equals, iterableEquality, subsetEquality} from '@jest/expect-utils';
-import * as matcherUtils from 'jest-matcher-utils';
-import {ErrorWithStack, isPromise} from 'jest-util';
+import {
+  equals,
+  iterableEquality,
+  subsetEquality,
+} from '@pkg-nec/jest-expect-utils';
+import * as matcherUtils from '@pkg-nec/jest-matcher-utils';
+import {ErrorWithStack, isPromise} from '@pkg-nec/jest-util';
 import {
   any,
   anything,
@@ -55,7 +59,7 @@ import type {
   ThrowingMatcherFn,
 } from './types';
 
-export type {Tester, TesterContext} from '@jest/expect-utils';
+export type {Tester, TesterContext} from '@pkg-nec/jest-expect-utils';
 export {AsymmetricMatcher} from './asymmetricMatchers';
 export type {
   AsyncExpectationResult,

@@ -1,5 +1,5 @@
 {
-  "name": "@jest/test-result",
+  "name": "@pkg-nec/jest-test-result",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -19,14 +19,14 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@jest/console": "workspace:*",
-    "@jest/types": "workspace:*",
+    "@pkg-nec/jest-console": "workspace:*",
+    "@pkg-nec/jest-types": "workspace:*",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "collect-v8-coverage": "^1.0.2"
   },
   "devDependencies": {
-    "jest-haste-map": "workspace:*",
-    "jest-resolve": "workspace:*"
+    "@pkg-nec/jest-haste-map": "workspace:*",
+    "@pkg-nec/jest-resolve": "workspace:*"
   },
   "engines": {
     "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"

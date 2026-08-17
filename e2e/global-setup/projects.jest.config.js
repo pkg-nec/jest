@@ -16,7 +16,10 @@ module.exports = {
       rootDir: path.resolve(__dirname, './project-1'),
       testMatch: ['<rootDir>/**/*.test.js'],
       transform: {
-        '\\.[jt]sx?$': [require.resolve('babel-jest'), {root: __dirname}],
+        '\\.[jt]sx?$': [
+          require.resolve('@pkg-nec/babel-jest'),
+          {root: __dirname},
+        ],
       },
       transformIgnorePatterns: ['/node_modules/', '/packages/'],
     },
@@ -26,7 +29,10 @@ module.exports = {
       rootDir: path.resolve(__dirname, './project-2'),
       testMatch: ['<rootDir>/**/*.test.js'],
       transform: {
-        '\\.[jt]sx?$': [require.resolve('babel-jest'), {root: __dirname}],
+        '\\.[jt]sx?$': [
+          require.resolve('@pkg-nec/babel-jest'),
+          {root: __dirname},
+        ],
       },
       transformIgnorePatterns: ['/node_modules/', '/packages/'],
     },

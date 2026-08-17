@@ -10,7 +10,7 @@ import type {
   Test,
   TestCaseResult,
   TestResult,
-} from '@jest/test-result';
+} from '@pkg-nec/jest-test-result';
 import BaseReporter from './BaseReporter';
 import DefaultReporter from './DefaultReporter';
 import type {ReporterOnStartOptions} from './types';

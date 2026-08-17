@@ -7,7 +7,7 @@
 
 import * as path from 'node:path';
 import * as fs from 'graceful-fs';
-import Resolver from 'jest-resolve';
+import Resolver from '@pkg-nec/jest-resolve';
 
 export const isWasm = (modulePath: string): boolean =>
   modulePath.endsWith('.wasm');

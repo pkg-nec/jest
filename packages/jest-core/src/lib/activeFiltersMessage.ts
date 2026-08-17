@@ -6,8 +6,8 @@
  */
 
 import chalk from 'chalk';
-import type {Config} from '@jest/types';
-import {isNonNullable} from 'jest-util';
+import type {Config} from '@pkg-nec/jest-types';
+import {isNonNullable} from '@pkg-nec/jest-util';
 
 const activeFilters = (globalConfig: Config.GlobalConfig): string => {
   const {testNamePattern} = globalConfig;

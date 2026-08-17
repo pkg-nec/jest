@@ -14,16 +14,16 @@ import {
   NotifyReporter,
   SummaryReporter,
   VerboseReporter,
-} from '@jest/reporters';
-import {makeGlobalConfig, makeProjectConfig} from '@jest/test-utils';
-import * as transform from '@jest/transform';
+} from '@pkg-nec/jest-reporters';
+import {makeGlobalConfig, makeProjectConfig} from '@pkg-nec/jest-test-utils';
+import * as transform from '@pkg-nec/jest-transform';
 import {createTestScheduler} from '../TestScheduler';
 import * as testSchedulerHelper from '../testSchedulerHelper';
 import * as runGlobalHook from '../runGlobalHook';
 
 jest
   .mock('ci-info', () => ({GITHUB_ACTIONS: true}))
-  .mock('@jest/reporters')
+  .mock('@pkg-nec/jest-reporters')
   .mock(
     '/custom-reporter.js',
     () =>
@@ -32,10 +32,10 @@ jest
       })),
     {virtual: true},
   )
-  .mock('@jest/transform', () => {
+  .mock('@pkg-nec/jest-transform', () => {
     return {
       __esModule: true,
-      ...jest.requireActual('@jest/transform'),
+      ...jest.requireActual('@pkg-nec/jest-transform'),
     };
   })
   .mock('exit-x', () => ({__esModule: true, default: jest.fn()}));

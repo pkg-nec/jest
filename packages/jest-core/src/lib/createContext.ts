@@ -5,10 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {TestContext} from '@jest/test-result';
-import type {Config} from '@jest/types';
-import type {IHasteFS, IModuleMap} from 'jest-haste-map';
-import Runtime from 'jest-runtime';
+import type {IHasteFS, IModuleMap} from '@pkg-nec/jest-haste-map';
+import Runtime from '@pkg-nec/jest-runtime';
+import type {TestContext} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
 
 type HasteContext = {hasteFS: IHasteFS; moduleMap: IModuleMap};
 

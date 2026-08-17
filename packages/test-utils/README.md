@@ -1,4 +1,4 @@
-# test-utils
+# @pkg-nec/jest-test-utils
 
 Private package exports utilities for multiple end-to-end tests or packages.
 
@@ -24,7 +24,7 @@ Tag names have consistent length to align columns like `Expected` and `Received`
 | `Y` | `bgYellow` |
 
 ```js
-import {alignedAnsiStyleSerializer} from '@jest/test-utils';
+import {alignedAnsiStyleSerializer} from '@pkg-nec/jest-test-utils';
 
 expect.addSnapshotSerializer(alignedAnsiStyleSerializer);
 ```

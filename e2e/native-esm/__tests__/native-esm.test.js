@@ -13,7 +13,7 @@ import {createRequire} from 'module';
 import prefixDns from 'node:dns';
 import {dirname, resolve} from 'path';
 import {fileURLToPath} from 'url';
-import {jest as jestObject} from '@jest/globals';
+import {jest as jestObject} from '@pkg-nec/jest-globals';
 import staticImportedStatefulFromCjs from '../fromCjs.mjs';
 import {double} from '../index';
 import defaultFromCjs, {half, namedFunction} from '../namedExport.cjs';

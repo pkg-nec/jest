@@ -6,8 +6,8 @@
  */
 
 import type {ReadStream, WriteStream} from 'node:tty';
-import type {AggregatedResult} from '@jest/test-result';
-import type {Config} from '@jest/types';
+import type {AggregatedResult} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
 
 type TestSuiteInfo = {
   config: Config.ProjectConfig;

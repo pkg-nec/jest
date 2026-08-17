@@ -5,14 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {jestExpect} from '@jest/expect';
-import type {Config} from '@jest/types';
+import {jestExpect} from '@pkg-nec/jest-expect';
 import {
   SnapshotState,
   addSerializer,
   buildSnapshotResolver,
-} from 'jest-snapshot';
-import type {Plugin} from 'pretty-format';
+} from '@pkg-nec/jest-snapshot';
+import type {Config} from '@pkg-nec/jest-types';
+import type {Plugin} from '@pkg-nec/pretty-format';
 import type {
   Attributes,
   default as JasmineSpec,

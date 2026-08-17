@@ -7,13 +7,13 @@
 
 import {fileURLToPath} from 'node:url';
 import {CoverageInstrumenter, type V8Coverage} from 'collect-v8-coverage';
-import type {V8CoverageResult} from '@jest/test-result';
+import type {V8CoverageResult} from '@pkg-nec/jest-test-result';
 import {
   type ShouldInstrumentOptions,
   type TransformResult,
   shouldInstrument,
-} from '@jest/transform';
-import type {Config} from '@jest/types';
+} from '@pkg-nec/jest-transform';
+import type {Config} from '@pkg-nec/jest-types';
 import type {TransformCache} from './TransformCache';
 
 export class V8CoverageCollector {

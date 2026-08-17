@@ -6,7 +6,7 @@
  */
 
 import {expect, test} from 'tstyche';
-import {isA} from '@jest/expect-utils';
+import {isA} from '@pkg-nec/jest-expect-utils';
 
 test('isA', () => {
   expect(isA('String', 'default')).type.toBe<boolean>();

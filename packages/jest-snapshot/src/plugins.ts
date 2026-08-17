@@ -9,7 +9,7 @@ import {
   type Plugin as PrettyFormatPlugin,
   type Plugins as PrettyFormatPlugins,
   plugins as prettyFormatPlugins,
-} from 'pretty-format';
+} from '@pkg-nec/pretty-format';
 import jestMockSerializer from './mockSerializer';
 
 const {

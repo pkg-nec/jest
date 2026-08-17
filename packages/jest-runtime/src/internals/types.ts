@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {expect, jest} from '@jest/globals';
-import type {Global} from '@jest/types';
+import type {expect, jest} from '@pkg-nec/jest-globals';
+import type {Global} from '@pkg-nec/jest-types';
 
 export interface EnvironmentGlobals extends Global.TestFrameworkGlobals {
   expect: typeof expect;

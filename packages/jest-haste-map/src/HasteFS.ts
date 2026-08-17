@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {globsToMatcher, replacePathSepForGlob} from 'jest-util';
+import {globsToMatcher, replacePathSepForGlob} from '@pkg-nec/jest-util';
 import H from './constants';
 import * as fastPath from './lib/fast_path';
 import type {FileData, IHasteFS} from './types';

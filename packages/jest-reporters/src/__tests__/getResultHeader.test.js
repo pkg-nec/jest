@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {makeGlobalConfig} from '@jest/test-utils';
+import {makeGlobalConfig} from '@pkg-nec/jest-test-utils';
 import getResultHeader from '../getResultHeader';
 
 const endTime = 1_577_717_671_160;

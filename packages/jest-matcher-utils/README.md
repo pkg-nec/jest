@@ -1,4 +1,4 @@
-# jest-matcher-utils
+# @pkg-nec/jest-matcher-utils
 
 This package's exports are most notably used by `expect`'s [`this.utils`](https://jestjs.io/docs/expect#thisutils).
 
@@ -6,10 +6,10 @@ This package's exports are most notably used by `expect`'s [`this.utils`](https:
 
 To add this package as a dependency of a project, run either of the following commands:
 
-- `npm install jest-matcher-utils`
-- `yarn add jest-matcher-utils`
+- `npm install @pkg-nec/jest-matcher-utils`
+- `yarn add @pkg-nec/jest-matcher-utils`
 
-## Exports ([src/index.ts](https://github.com/jestjs/jest/blob/HEAD/packages/jest-matcher-utils/src/index.ts))
+## Exports ([src/index.ts](https://github.com/pkg-nec/jest/blob/HEAD/packages/jest-matcher-utils/src/index.ts))
 
 ### Functions
 

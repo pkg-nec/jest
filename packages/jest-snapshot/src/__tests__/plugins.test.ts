@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Plugin} from 'pretty-format';
+import type {Plugin} from '@pkg-nec/pretty-format';
 
 beforeEach(() => {
   jest.resetModules();

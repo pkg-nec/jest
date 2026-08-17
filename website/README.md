@@ -1,5 +1,7 @@
 # Jest website
 
+> **Upstream infrastructure notice:** These retained website sources describe upstream Jest infrastructure. This independently maintained `@pkg-nec/jest` fork does not control the upstream Netlify sites or `jestjs.io` deployments.
+
 The Jest website is based on [Docusaurus 2](http://docusaurus.io/).
 
 ## Run the dev server
@@ -26,11 +28,11 @@ Then, run the server via
 yarn start
 ```
 
-Note, you can also use `yarn workspace jest-website start` from the root of the Jest monorepo.
+Note, you can also use `yarn workspace jest-website start` from the root of the Jest monorepo. The private `jest-website` workspace name is retained for these sources.
 
-## Publish the website
+## Upstream website publishing
 
-The site is deployed on each PR merged to main by Netlify:
+The following describes the upstream Jest website deployment; it is not operated by this fork:
 
 - Netlify site: https://app.netlify.com/sites/jestjs
 - Netlify url: https://jestjs.netlify.app
@@ -38,9 +40,9 @@ The site is deployed on each PR merged to main by Netlify:
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/4570042d-b147-40fd-84fc-3bfd63639af7/deploy-status)](https://app.netlify.com/sites/jestjs/deploys)
 
-## Archive
+## Upstream archive
 
-An older Docusaurus v1 site exist for versions <= 25.x:
+An older upstream Docusaurus v1 site exists for versions <= 25.x:
 
 - Netlify site: https://app.netlify.com/sites/jest-archive
 - Url: https://archive.jestjs.io

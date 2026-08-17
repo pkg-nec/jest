@@ -6,7 +6,7 @@
  *
  */
 
-import {makeProjectConfig} from '@jest/test-utils';
+import {makeProjectConfig} from '@pkg-nec/jest-test-utils';
 import FakeTimers from '../modernFakeTimers';
 
 jest.spyOn(Date, 'now').mockImplementation(() => 123_456);

@@ -10,12 +10,12 @@ import {tmpdir} from 'os';
 import * as path from 'path';
 import type {WriteStream} from 'tty';
 import * as fs from 'graceful-fs';
-import type {AggregatedResult} from '@jest/test-result';
-import {normalize} from 'jest-config';
-import type {IHasteMap} from 'jest-haste-map';
-import Runtime from 'jest-runtime';
-import {interopRequireDefault} from 'jest-util';
-import {JestHook} from 'jest-watcher';
+import type {AggregatedResult} from '@pkg-nec/jest-test-result';
+import {normalize} from '@pkg-nec/jest-config';
+import type {IHasteMap} from '@pkg-nec/jest-haste-map';
+import Runtime from '@pkg-nec/jest-runtime';
+import {interopRequireDefault} from '@pkg-nec/jest-util';
+import {JestHook} from '@pkg-nec/jest-watcher';
 
 describe('Watch mode flows with changed files', () => {
   jest.resetModules();

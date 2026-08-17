@@ -1,5 +1,5 @@
 {
-  "name": "jest-message-util",
+  "name": "@pkg-nec/jest-message-util",
   "version": "30.4.1",
   "repository": {
     "type": "git",
@@ -23,13 +23,13 @@
   },
   "dependencies": {
     "@babel/code-frame": "^7.27.1",
-    "@jest/types": "workspace:*",
+    "@pkg-nec/jest-types": "workspace:*",
+    "@pkg-nec/jest-util": "workspace:*",
+    "@pkg-nec/pretty-format": "workspace:*",
     "@types/stack-utils": "^2.0.3",
     "chalk": "^4.1.2",
     "graceful-fs": "^4.2.11",
-    "jest-util": "workspace:*",
     "picomatch": "^4.0.3",
-    "pretty-format": "workspace:*",
     "slash": "^3.0.0",
     "stack-utils": "^2.0.6"
   },

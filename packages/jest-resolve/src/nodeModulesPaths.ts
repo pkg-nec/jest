@@ -8,7 +8,7 @@
  */
 
 import * as path from 'node:path';
-import {tryRealpath} from 'jest-util';
+import {tryRealpath} from '@pkg-nec/jest-util';
 
 type NodeModulesPathsOptions = {
   moduleDirectory?: Array<string>;

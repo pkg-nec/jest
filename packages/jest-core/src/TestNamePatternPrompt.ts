@@ -11,7 +11,7 @@ import {
   type ScrollOptions,
   printPatternCaret,
   printRestoredPatternCaret,
-} from 'jest-watcher';
+} from '@pkg-nec/jest-watcher';
 
 export default class TestNamePatternPrompt extends PatternPrompt {
   constructor(pipe: NodeJS.WritableStream, prompt: Prompt) {

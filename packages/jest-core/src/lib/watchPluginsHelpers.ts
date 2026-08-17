@@ -5,9 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Config} from '@jest/types';
-import {isNonNullable} from 'jest-util';
-import type {UsageData, WatchPlugin} from 'jest-watcher';
+import type {Config} from '@pkg-nec/jest-types';
+import {isNonNullable} from '@pkg-nec/jest-util';
+import type {UsageData, WatchPlugin} from '@pkg-nec/jest-watcher';
 
 export const filterInteractivePlugins = (
   watchPlugins: Array<WatchPlugin>,

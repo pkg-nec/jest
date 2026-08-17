@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {plugins} from 'pretty-format';
+import {plugins} from '@pkg-nec/pretty-format';
 
 const builtInObject: Array<unknown> = [
   Array,

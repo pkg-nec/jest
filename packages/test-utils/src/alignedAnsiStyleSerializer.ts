@@ -7,7 +7,7 @@
 
 import ansiRegex from 'ansi-regex';
 import style from 'ansi-styles';
-import type {NewPlugin} from 'pretty-format';
+import type {NewPlugin} from '@pkg-nec/pretty-format';
 
 export const alignedAnsiStyleSerializer: NewPlugin = {
   serialize(val: string): string {

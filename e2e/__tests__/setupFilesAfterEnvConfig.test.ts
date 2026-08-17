@@ -91,7 +91,7 @@ describe('setupFilesAfterEnv', () => {
     const pkgJson = {
       jest: {
         setupFilesAfterEnv: ['./setupAsyncFunction.js'],
-        testRunner: 'jest-jasmine2',
+        testRunner: '@pkg-nec/jest-jasmine2',
       },
     };
 

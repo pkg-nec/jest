@@ -7,7 +7,7 @@
 
 import {tmpdir} from 'node:os';
 import * as path from 'node:path';
-import {tryRealpath} from 'jest-util';
+import {tryRealpath} from '@pkg-nec/jest-util';
 
 const getCacheDirectory: () => string = () => {
   const {getuid} = process;

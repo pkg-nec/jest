@@ -8,8 +8,8 @@
 import type {
   EnvironmentContext,
   JestEnvironmentConfig,
-} from '@jest/environment';
-import NodeEnvironment from 'jest-environment-node';
+} from '@pkg-nec/jest-environment';
+import NodeEnvironment from '@pkg-nec/jest-environment-node';
 
 export default class CustomEnvironment extends NodeEnvironment {
   constructor(config: JestEnvironmentConfig, context: EnvironmentContext) {

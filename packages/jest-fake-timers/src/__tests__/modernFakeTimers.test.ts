@@ -6,7 +6,7 @@
  *
  */
 
-import {makeProjectConfig} from '@jest/test-utils';
+import {makeProjectConfig} from '@pkg-nec/jest-test-utils';
 import type {TemporalDuration} from '@sinonjs/fake-timers';
 import FakeTimers from '../modernFakeTimers';
 

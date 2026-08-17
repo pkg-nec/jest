@@ -7,7 +7,7 @@
  * @jest-config-loader esbuild-register
  */
 
-import {defineConfig} from 'jest';
+import {defineConfig} from '@pkg-nec/jest';
 
 export default defineConfig({
   displayName: 'simple-config',

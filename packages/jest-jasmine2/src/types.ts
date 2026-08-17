@@ -7,7 +7,7 @@
 
 import type {AssertionError} from 'node:assert';
 import type * as Process from 'node:process';
-import type {AsymmetricMatchers, JestExpect} from '@jest/expect';
+import type {AsymmetricMatchers, JestExpect} from '@pkg-nec/jest-expect';
 import type CallTracker from './jasmine/CallTracker';
 import type Env from './jasmine/Env';
 import type JsApiReporter from './jasmine/JsApiReporter';
@@ -82,7 +82,7 @@ declare global {
   }
 }
 
-declare module '@jest/types' {
+declare module '@pkg-nec/jest-types' {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Global {
     interface GlobalAdditions {

@@ -8,7 +8,7 @@
 import nativeModule from 'node:module';
 import * as path from 'node:path';
 import type {Module as VMModule} from 'node:vm';
-import type {Module} from '@jest/environment';
+import type {Module} from '@pkg-nec/jest-environment';
 import type {InitialModule, JestModule, ModuleRegistry} from './moduleTypes';
 
 // Only expose ESM entries whose `namespace` is readable without throwing or

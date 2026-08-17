@@ -1,4 +1,4 @@
-# jest-worker
+# @pkg-nec/jest-worker
 
 Module for executing heavy tasks under forked processes in parallel, by providing a `Promise` based interface, minimum overhead, and bound workers.
 
@@ -11,7 +11,7 @@ The list of exposed methods can be explicitly provided via the `exposedMethods` 
 ## Install
 
 ```sh
-yarn add jest-worker
+yarn add @pkg-nec/jest-worker
 ```
 
 ## Example
@@ -21,7 +21,7 @@ This example covers the minimal usage:
 ### File `parent.js`
 
 ```js
-import {Worker as JestWorker} from 'jest-worker';
+import {Worker as JestWorker} from '@pkg-nec/jest-worker';
 
 async function main() {
   const worker = new JestWorker(require.resolve('./worker'));
@@ -41,7 +41,7 @@ export function hello(param) {
 
 ## Experimental worker
 
-Node shipped with [`worker_threads`](https://nodejs.org/api/worker_threads.html), a "threading API" that uses `SharedArrayBuffers` to communicate between the main process and its child threads. This feature can significantly improve the communication time between parent and child processes in `jest-worker`.
+Node shipped with [`worker_threads`](https://nodejs.org/api/worker_threads.html), a "threading API" that uses `SharedArrayBuffers` to communicate between the main process and its child threads. This feature can significantly improve the communication time between parent and child processes in `@pkg-nec/jest-worker`.
 
 To use `worker_threads` instead of default `child_process` you have to pass `enableWorkerThreads: true` when instantiating the worker.
 
@@ -65,7 +65,7 @@ By default, no process is bound to any worker.
 
 #### `enableWorkerThreads: boolean` (optional)
 
-By default, `jest-worker` will use `child_process` threads to spawn new Node.js processes. If you prefer [`worker_threads`](https://nodejs.org/api/worker_threads.html) instead, pass `enableWorkerThreads: true`.
+By default, `@pkg-nec/jest-worker` will use `child_process` threads to spawn new Node.js processes. If you prefer [`worker_threads`](https://nodejs.org/api/worker_threads.html) instead, pass `enableWorkerThreads: true`.
 
 #### `exposedMethods: ReadonlyArray<string>` (optional)
 
@@ -108,10 +108,10 @@ The arguments that will be passed to the `setup` method during initialization.
 
 #### `taskQueue: TaskQueue` (optional)
 
-The task queue defines in which order tasks (method calls) are processed by the workers. `jest-worker` ships with a `FifoQueue` and `PriorityQueue`:
+The task queue defines in which order tasks (method calls) are processed by the workers. `@pkg-nec/jest-worker` ships with a `FifoQueue` and `PriorityQueue`:
 
 - `FifoQueue` (default): Processes the method calls (tasks) in the call order.
-- `PriorityQueue`: Processes the method calls by a computed priority in natural ordering (lower priorities first). Tasks with the same priority are processed in any order (FIFO not guaranteed). The constructor accepts a single argument, the function that is passed the name of the called function and the arguments and returns a numerical value for the priority: `new require('jest-worker').PriorityQueue((method, filename) => filename.length)`.
+- `PriorityQueue`: Processes the method calls by a computed priority in natural ordering (lower priorities first). Tasks with the same priority are processed in any order (FIFO not guaranteed). The constructor accepts a single argument, the function that is passed the name of the called function and the arguments and returns a numerical value for the priority: `new require('@pkg-nec/jest-worker').PriorityQueue((method, filename) => filename.length)`.
 
 #### `WorkerPool: new (workerPath: string, options?: WorkerPoolOptions) => WorkerPoolInterface` (optional)
 
@@ -134,11 +134,11 @@ The returned `JestWorker` instance has all the exposed methods, plus some additi
 
 #### `getStdout(): Readable`
 
-Returns a `ReadableStream` where the standard output of all workers is piped. Note that the `silent` option of the child workers must be set to `true` to make it work. This is the default set by `jest-worker`, but keep it in mind when overriding options through `forkOptions`.
+Returns a `ReadableStream` where the standard output of all workers is piped. Note that the `silent` option of the child workers must be set to `true` to make it work. This is the default set by `@pkg-nec/jest-worker`, but keep it in mind when overriding options through `forkOptions`.
 
 #### `getStderr(): Readable`
 
-Returns a `ReadableStream` where the standard error of all workers is piped. Note that the `silent` option of the child workers must be set to `true` to make it work. This is the default set by `jest-worker`, but keep it in mind when overriding options through `forkOptions`.
+Returns a `ReadableStream` where the standard error of all workers is piped. Note that the `silent` option of the child workers must be set to `true` to make it work. This is the default set by `@pkg-nec/jest-worker`, but keep it in mind when overriding options through `forkOptions`.
 
 #### `start()`
 
@@ -154,7 +154,7 @@ Returns a `Promise` that resolves with `{ forceExited: boolean }` once all worke
 
 **Note:**
 
-`await`ing the `end()` Promise immediately after the workers are no longer needed before proceeding to do other useful things in your program may not be a good idea. If workers have to be force exited, `jest-worker` may go through multiple stages of force exiting (e.g. SIGTERM, later SIGKILL) and give the worker overall around 1 second time to exit on its own. During this time, your program will wait, even though it may not be necessary that all workers are dead before continuing execution.
+`await`ing the `end()` Promise immediately after the workers are no longer needed before proceeding to do other useful things in your program may not be a good idea. If workers have to be force exited, `@pkg-nec/jest-worker` may go through multiple stages of force exiting (e.g. SIGTERM, later SIGKILL) and give the worker overall around 1 second time to exit on its own. During this time, your program will wait, even though it may not be necessary that all workers are dead before continuing execution.
 
 Consider deliberately leaving this Promise floating (unhandled resolution). After your program has done the rest of its work and is about to exit, the Node process will wait for the Promise to resolve after all workers are dead as the last event loop task. That way you parallelized computation time of your program and waiting time and you didn't delay the outputs of your program unnecessarily.
 
@@ -178,7 +178,7 @@ This example covers the standard usage:
 ### File `parent.js`
 
 ```js
-import {Worker as JestWorker} from 'jest-worker';
+import {Worker as JestWorker} from '@pkg-nec/jest-worker';
 
 async function main() {
   const myWorker = new JestWorker(require.resolve('./worker'), {
@@ -222,7 +222,7 @@ This example covers the usage with a `computeWorkerKey` method:
 ### File `parent.js`
 
 ```js
-import {Worker as JestWorker} from 'jest-worker';
+import {Worker as JestWorker} from '@pkg-nec/jest-worker';
 
 async function main() {
   const myWorker = new JestWorker(require.resolve('./worker'), {
@@ -261,7 +261,7 @@ export function transform(filename) {
     return cache[filename];
   }
 
-  // jest-worker can handle both immediate results and thenables. If a
+  // @pkg-nec/jest-worker can handle both immediate results and thenables. If a
   // thenable is returned, it will be await'ed until it resolves.
   return babel.transformFileAsync(filename).then(result => {
     cache[filename] = result;

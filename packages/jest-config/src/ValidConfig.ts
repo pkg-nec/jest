@@ -5,10 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {Config} from '@jest/types';
-import {replacePathSepForRegex} from 'jest-regex-util';
-import {multipleValidOptions} from 'jest-validate';
-import {DEFAULT_OPTIONS as PRETTY_FORMAT_DEFAULTS} from 'pretty-format';
+import {replacePathSepForRegex} from '@pkg-nec/jest-regex-util';
+import type {Config} from '@pkg-nec/jest-types';
+import {multipleValidOptions} from '@pkg-nec/jest-validate';
+import {DEFAULT_OPTIONS as PRETTY_FORMAT_DEFAULTS} from '@pkg-nec/pretty-format';
 import {NODE_MODULES} from './constants';
 
 const NODE_MODULES_REGEXP = replacePathSepForRegex(NODE_MODULES);
@@ -153,7 +153,7 @@ export const initialOptions: Config.InitialOptions = {
   snapshotFormat: PRETTY_FORMAT_DEFAULTS,
   snapshotResolver: '<rootDir>/snapshotResolver.js',
   snapshotSerializers: ['my-serializer-module'],
-  testEnvironment: 'jest-environment-node',
+  testEnvironment: '@pkg-nec/jest-environment-node',
   testEnvironmentOptions: {
     url: 'http://localhost',
     userAgent: 'Agent/007',
@@ -178,7 +178,7 @@ export const initialOptions: Config.InitialOptions = {
   ),
   testResultsProcessor: 'processor-node-module',
   testRunner: 'circus',
-  testSequencer: '@jest/test-sequencer',
+  testSequencer: '@pkg-nec/jest-test-sequencer',
   testTimeout: 5000,
   transform: {
     '\\.js$': '<rootDir>/preprocessor.js',
@@ -317,7 +317,7 @@ export const initialProjectOptions: Config.InitialProjectOptions = {
   snapshotFormat: PRETTY_FORMAT_DEFAULTS,
   snapshotResolver: '<rootDir>/snapshotResolver.js',
   snapshotSerializers: ['my-serializer-module'],
-  testEnvironment: 'jest-environment-node',
+  testEnvironment: '@pkg-nec/jest-environment-node',
   testEnvironmentOptions: {
     url: 'http://localhost',
     userAgent: 'Agent/007',

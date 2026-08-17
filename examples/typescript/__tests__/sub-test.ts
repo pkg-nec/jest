@@ -1,6 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-import {expect, it} from '@jest/globals';
+import {expect, it} from '@pkg-nec/jest-globals';
 import sub from '../sub';
 
 it('subtracts 5 - 1 to equal 4 in TypeScript', () => {

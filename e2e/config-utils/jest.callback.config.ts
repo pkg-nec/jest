@@ -7,7 +7,7 @@
  * @jest-config-loader esbuild-register
  */
 
-import {type Config, defineConfig} from 'jest';
+import {type Config, defineConfig} from '@pkg-nec/jest';
 
 export default defineConfig(async () => {
   const baseConfig = await new Promise<Config>(resolve => {

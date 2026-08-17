@@ -26,11 +26,11 @@ export const OK = chalk.reset.inverse.bold.green(' DONE ');
 export const ERROR = chalk.reset.inverse.bold.red(' BOOM ');
 
 export const typeOnlyPackages = new Set([
-  'babel-preset-jest',
-  '@jest/environment',
-  '@jest/globals',
-  '@jest/types',
-  '@jest/test-globals',
+  '@pkg-nec/babel-preset-jest',
+  '@pkg-nec/jest-environment',
+  '@pkg-nec/jest-globals',
+  '@pkg-nec/jest-types',
+  '@pkg-nec/jest-test-globals',
 ]);
 
 // Get absolute paths of all directories under packages/*
@@ -85,10 +85,10 @@ function getPackages() {
             curr,
           ]),
         ),
-        ...(pkg.name === 'jest-circus'
+        ...(pkg.name === '@pkg-nec/jest-circus'
           ? {'./runner': './build/runner.js'}
           : {}),
-        ...(pkg.name === 'expect'
+        ...(pkg.name === '@pkg-nec/expect'
           ? {
               './build/matchers': './build/matchers.js',
               './build/toThrowMatchers': './build/toThrowMatchers.js',
@@ -184,7 +184,7 @@ export function createBuildConfigs() {
     }
 
     const separateChunks =
-      pkg.name === 'jest-worker'
+      pkg.name === '@pkg-nec/jest-worker'
         ? {
             processChild: path.resolve(
               packageDir,
@@ -195,25 +195,25 @@ export function createBuildConfigs() {
               './src/workers/threadChild.ts',
             ),
           }
-        : pkg.name === 'jest-haste-map'
+        : pkg.name === '@pkg-nec/jest-haste-map'
           ? {worker: path.resolve(packageDir, './src/worker.ts')}
-          : pkg.name === '@jest/reporters'
+          : pkg.name === '@pkg-nec/jest-reporters'
             ? {
                 CoverageWorker: path.resolve(
                   packageDir,
                   './src/CoverageWorker.ts',
                 ),
               }
-            : pkg.name === 'jest-runner'
+            : pkg.name === '@pkg-nec/jest-runner'
               ? {testWorker: path.resolve(packageDir, './src/testWorker.ts')}
-              : pkg.name === 'jest-circus'
+              : pkg.name === '@pkg-nec/jest-circus'
                 ? {
                     jestAdapterInit: path.resolve(
                       packageDir,
                       './src/legacy-code-todo-rewrite/jestAdapterInit.ts',
                     ),
                   }
-                : pkg.name === 'jest-jasmine2'
+                : pkg.name === '@pkg-nec/jest-jasmine2'
                   ? {
                       'jasmine/jasmineLight': path.resolve(
                         packageDir,
@@ -228,13 +228,13 @@ export function createBuildConfigs() {
                         './src/setup_jest_globals.ts',
                       ),
                     }
-                  : pkg.name === 'jest-snapshot'
+                  : pkg.name === '@pkg-nec/jest-snapshot'
                     ? {worker: path.resolve(packageDir, './src/worker.ts')}
                     : {};
 
     const extraEntryPoints =
       // skip expect for now
-      pkg.name === 'expect'
+      pkg.name === '@pkg-nec/expect'
         ? {}
         : Object.keys(pkg.exports).reduce((previousValue, currentValue) => {
             if (

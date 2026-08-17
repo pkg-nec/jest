@@ -8,7 +8,7 @@
 import * as path from 'node:path';
 import chalk from 'chalk';
 import slash from 'slash';
-import type {Config} from '@jest/types';
+import type {Config} from '@pkg-nec/jest-types';
 import relativePath from './relativePath';
 
 export default function formatTestPath(

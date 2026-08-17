@@ -6,8 +6,8 @@
  *
  */
 
-import {isPrimitive} from '@jest/get-type';
-import {format as pretty} from 'pretty-format';
+import {isPrimitive} from '@pkg-nec/jest-get-type';
+import {format as pretty} from '@pkg-nec/pretty-format';
 
 export type Template = Record<string, unknown>;
 export type Templates = Array<Template>;

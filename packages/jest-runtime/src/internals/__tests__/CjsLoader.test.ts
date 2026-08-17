@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {testWithSyncEsm} from '@jest/test-utils';
-import type {JestEnvironment} from '@jest/environment';
+import {testWithSyncEsm} from '@pkg-nec/jest-test-utils';
+import type {JestEnvironment} from '@pkg-nec/jest-environment';
 import {CjsLoader} from '../CjsLoader';
 import type {CoreModuleProvider} from '../cjsRequire';
 import type {ModuleExecutor} from '../ModuleExecutor';

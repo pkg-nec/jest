@@ -11,8 +11,8 @@ import type {
   TestCaseResult,
   TestContext,
   TestResult,
-} from '@jest/test-result';
-import type {Circus, Config} from '@jest/types';
+} from '@pkg-nec/jest-test-result';
+import type {Circus, Config} from '@pkg-nec/jest-types';
 
 export type ReporterOnStartOptions = {
   estimatedTime: number;

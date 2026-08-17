@@ -12,8 +12,8 @@ import type {
   Test,
   TestCaseResult,
   TestResult,
-} from '@jest/test-result';
-import type {Config} from '@jest/types';
+} from '@pkg-nec/jest-test-result';
+import type {Config} from '@pkg-nec/jest-types';
 import getSummary from './getSummary';
 import printDisplayName from './printDisplayName';
 import trimAndFormatPath from './trimAndFormatPath';

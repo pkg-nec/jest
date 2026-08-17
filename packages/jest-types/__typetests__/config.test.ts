@@ -6,7 +6,7 @@
  */
 
 import {describe, expect, test} from 'tstyche';
-import type {Config} from 'jest';
+import type {Config} from '@pkg-nec/jest';
 
 const config: Config = {};
 

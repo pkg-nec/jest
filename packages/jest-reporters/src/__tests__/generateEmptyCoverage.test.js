@@ -9,12 +9,12 @@ import * as os from 'os';
 import * as path from 'path';
 import istanbulCoverage from 'istanbul-lib-coverage';
 import libSourceMaps from 'istanbul-lib-source-maps';
-import {makeGlobalConfig, makeProjectConfig} from '@jest/test-utils';
-import {shouldInstrument} from '@jest/transform';
+import {makeGlobalConfig, makeProjectConfig} from '@pkg-nec/jest-test-utils';
+import {shouldInstrument} from '@pkg-nec/jest-transform';
 import generateEmptyCoverage from '../generateEmptyCoverage';
 
-jest.mock('@jest/transform', () => ({
-  ...jest.requireActual('@jest/transform'),
+jest.mock('@pkg-nec/jest-transform', () => ({
+  ...jest.requireActual('@pkg-nec/jest-transform'),
   shouldInstrument: jest.fn(),
 }));
 
@@ -50,7 +50,7 @@ describe('generateEmptyCoverage', () => {
         cacheDirectory: os.tmpdir(),
         cwd: rootDir,
         rootDir,
-        transform: [['\\.js$', require.resolve('babel-jest')]],
+        transform: [['\\.js$', require.resolve('@pkg-nec/babel-jest')]],
       }),
     );
 
@@ -94,7 +94,7 @@ describe('generateEmptyCoverage', () => {
         cacheDirectory: os.tmpdir(),
         cwd: rootDir,
         rootDir,
-        transform: [['\\.js$', require.resolve('babel-jest')]],
+        transform: [['\\.js$', require.resolve('@pkg-nec/babel-jest')]],
       }),
     );
 
@@ -123,7 +123,7 @@ describe('generateEmptyCoverage', () => {
         cacheDirectory: os.tmpdir(),
         cwd: rootDir,
         rootDir,
-        transform: [['\\.js$', require.resolve('babel-jest')]],
+        transform: [['\\.js$', require.resolve('@pkg-nec/babel-jest')]],
       }),
     );
 
