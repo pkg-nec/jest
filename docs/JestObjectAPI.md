@@ -1236,7 +1236,7 @@ Returns the `@pkg-nec/jest` object for chaining.
 
 :::info
 
-This function is only available with the default [jest-circus](https://github.com/jestjs/jest/tree/main/packages/jest-circus) runner.
+This function is only available with the default [@pkg-nec/jest-circus](https://github.com/pkg-nec/jest/tree/main/packages/jest-circus) runner.
 
 :::
 

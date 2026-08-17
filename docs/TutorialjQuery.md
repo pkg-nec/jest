@@ -69,4 +69,4 @@ To get started with the JSDOM [test environment](Configuration.md#testenvironmen
 npm install --save-dev @pkg-nec/jest-environment-jsdom
 ```
 
-The code for this example is available at [examples/jquery](https://github.com/jestjs/jest/tree/main/examples/jquery).
+The code for this example is available at [examples/jquery](https://github.com/pkg-nec/jest/tree/main/examples/jquery).

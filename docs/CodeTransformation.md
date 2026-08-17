@@ -13,7 +13,7 @@ Jest will cache the result of a transformation and attempt to invalidate that re
 
 ## Defaults
 
-Jest ships with one transformer out of the box &ndash; [`@pkg-nec/babel-jest`](https://github.com/jestjs/jest/tree/main/packages/babel-jest#setup). It will load your project's Babel configuration and transform any file matching the `/\.[jt]sx?$/` RegExp (in other words, any `.js`, `.jsx`, `.ts` or `.tsx` file). In addition, `@pkg-nec/babel-jest` will inject the Babel plugin necessary for mock hoisting talked about in [ES Module mocking](ManualMocks.md#using-with-es-module-imports).
+Jest ships with one transformer out of the box &ndash; [`@pkg-nec/babel-jest`](https://github.com/pkg-nec/jest/tree/main/packages/babel-jest#setup). It will load your project's Babel configuration and transform any file matching the `/\.[jt]sx?$/` RegExp (in other words, any `.js`, `.jsx`, `.ts` or `.tsx` file). In addition, `@pkg-nec/babel-jest` will inject the Babel plugin necessary for mock hoisting talked about in [ES Module mocking](ManualMocks.md#using-with-es-module-imports).
 
 :::note
 
@@ -21,7 +21,7 @@ By default, `@pkg-nec/babel-jest` includes `@pkg-nec/babel-preset-jest`. You can
 
 ```json
 "transform": {
-  "\\.[jt]sx?$": ["babel-jest", { "excludeJestPreset": true }],
+  "\\.[jt]sx?$": ["@pkg-nec/babel-jest", { "excludeJestPreset": true }],
 }
 ```
 
@@ -33,7 +33,7 @@ Remember to include the default `@pkg-nec/babel-jest` transformer explicitly, if
 
 ```json
 "transform": {
-  "\\.[jt]sx?$": "babel-jest",
+  "\\.[jt]sx?$": "@pkg-nec/babel-jest",
   "\\.css$": "some-css-transformer",
 }
 ```
@@ -146,7 +146,7 @@ type TransformerFactory<X extends Transformer> = {
 
 :::note
 
-The definitions above were trimmed down for brevity. Full code can be found in [Jest repo on GitHub](https://github.com/jestjs/jest/blob/main/packages/jest-transform/src/types.ts) (remember to choose the right tag/commit for your version of Jest).
+The definitions above were trimmed down for brevity. Full code can be found in the [@pkg-nec/jest repository on GitHub](https://github.com/pkg-nec/jest/blob/main/packages/jest-transform/src/types.ts) (remember to choose the right tag/commit for your version of Jest).
 
 :::
 

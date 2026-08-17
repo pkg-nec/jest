@@ -15,10 +15,10 @@ By now you should have a good idea of how Jest can help you test your applicatio
 
 ## Learn by example
 
-You will find a number of example test cases in the [`examples`](https://github.com/jestjs/jest/tree/main/examples) folder on GitHub. You can also learn from the excellent tests used by the [React](https://github.com/facebook/react/tree/main/packages/react/src/__tests__), [Relay](https://github.com/facebook/relay/tree/main/packages/react-relay/__tests__), and [React Native](https://github.com/facebook/react-native/tree/main/packages/react-native/Libraries/Animated/__tests__) projects.
+You will find a number of example test cases in the [`examples`](https://github.com/pkg-nec/jest/tree/main/examples) folder on GitHub. You can also learn from the excellent tests used by the [React](https://github.com/facebook/react/tree/main/packages/react/src/__tests__), [Relay](https://github.com/facebook/relay/tree/main/packages/react-relay/__tests__), and [React Native](https://github.com/facebook/react-native/tree/main/packages/react-native/Libraries/Animated/__tests__) projects.
 
 ## Join the community
 
-Ask questions and find answers from other Jest users like you. [Reactiflux](https://discord.gg/j6FKKQQrW9) is a Discord chat where a lot of Jest discussion happens. Check out the `#testing` channel.
+Ask questions and find answers from other Jest users like you. [Reactiflux](https://discord.gg/j6FKKQQrW9) is a general Jest ecosystem Discord chat where a lot of upstream Jest discussion happens. Check out the `#testing` channel; it is not operated by the independently maintained `@pkg-nec/jest` fork.
 
-Follow the [Jest Twitter account](https://twitter.com/jestjs_) and [blog](/blog/) to find out what's happening in the world of Jest.
+Follow the upstream [Jest Twitter account](https://twitter.com/jestjs_) and [blog](/blog/) to find out what's happening in the world of Jest. These are upstream Jest ecosystem resources, not channels operated by the independently maintained `@pkg-nec/jest` fork.

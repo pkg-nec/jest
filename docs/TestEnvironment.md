@@ -187,7 +187,7 @@ export default defineConfig({
 
 Any docblock pragmas in a test file (e.g. `@my-custom-pragma my-value`) are passed to the environment constructor as `context.docblockPragmas`.
 
-`handleTestEvent` is optional. When it returns a Promise, jest-circus waits for it to settle before continuing — **except** for these sync events: `start_describe_definition`, `finish_describe_definition`, `add_hook`, `add_test`, and `error`.
+`handleTestEvent` is optional. When it returns a Promise, `@pkg-nec/jest-circus` waits for it to settle before continuing — **except** for these sync events: `start_describe_definition`, `finish_describe_definition`, `add_hook`, `add_test`, and `error`.
 
 :::
 

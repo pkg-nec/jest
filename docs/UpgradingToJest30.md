@@ -96,11 +96,11 @@ Internally, Jest consolidates these patterns into a `TestPathPatterns` object. I
 The interactive config initialization command `jest --init` has been **removed**. This deprecated command was used to scaffold a Jest configuration file. If you need to create a config, you can run:
 
 ```bash
-npm init jest@latest
+npm init @pkg-nec/jest@latest
 # Or for Yarn
-yarn create jest
+yarn create @pkg-nec/jest
 # Or for pnpm
-pnpm create jest
+pnpm create @pkg-nec/jest
 ```
 
 ### Other CLI Changes
@@ -206,7 +206,7 @@ jest.mock('./path/to/filename.js'); // This strictly works when you ONLY have `f
 
 Jest has introduced significant under-the-hood changes to how its packages are bundled and exported:
 
-- All of Jest’s internal modules are now bundled into single files for faster startup. This means when you install Jest, the number of files it loads is greatly reduced (improving performance). However, a side effect is that any unofficial deep imports into Jest’s packages will likely break. For example, if you previously did something like `require('jest-runner/build/testWorker')` (which is not a public API), this path will no longer exist. **Solution:** Use Jest’s public APIs or documented interfaces only. If you are relying on an internal module that you think should be part of the public API, please open a Pull Request to expose it.
+- All of Jest’s internal modules are now bundled into single files for faster startup. This means when you install Jest, the number of files it loads is greatly reduced (improving performance). However, a side effect is that any unofficial deep imports into Jest’s packages will likely break. For example, if you previously did something like `require('@pkg-nec/jest-runner/build/testWorker')` (which is not a public API), this path will no longer exist. **Solution:** Use Jest’s public APIs or documented interfaces only. If you are relying on an internal module that you think should be part of the public API, please open a Pull Request to expose it.
 - Jest’s packages now provide ESM wrappers. This is part of ongoing work to allow running Jest in an ESM context. All official Jest packages export themselves properly via the `package.json` `"exports"` field. For most users, this has no direct impact – you continue to use Jest the same way. But if you maintain a tool or plugin that imports Jest’s modules, ensure you use the package names as imports (which will resolve via Node’s module resolution).
 
 These changes are considered breaking for anyone poking at Jest’s internals, but **not** for typical usage of the Jest CLI and config. After upgrading, run your tests normally – if you get module resolution errors related to Jest’s own modules, it’s likely due to an unsupported import that needs to be removed or updated.

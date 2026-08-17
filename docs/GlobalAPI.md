@@ -754,7 +754,7 @@ Also under the alias: `it.failing(name, fn, timeout)`
 
 :::note
 
-This is only available with the default [jest-circus](https://github.com/jestjs/jest/tree/main/packages/jest-circus) runner.
+This is only available with the default [@pkg-nec/jest-circus](https://github.com/pkg-nec/jest/tree/main/packages/jest-circus) runner.
 
 :::
 
@@ -786,7 +786,7 @@ Also under the alias: `it.failing.each(table)(name, fn)` and ``it.failing.each`t
 
 :::note
 
-This is only available with the default [jest-circus](https://github.com/jestjs/jest/tree/main/packages/jest-circus) runner.
+This is only available with the default [@pkg-nec/jest-circus](https://github.com/pkg-nec/jest/tree/main/packages/jest-circus) runner.
 
 :::
 
@@ -810,7 +810,7 @@ Also under the aliases: `it.only.failing(name, fn, timeout)`, `fit.failing(name,
 
 :::note
 
-This is only available with the default [jest-circus](https://github.com/jestjs/jest/tree/main/packages/jest-circus) runner.
+This is only available with the default [@pkg-nec/jest-circus](https://github.com/pkg-nec/jest/tree/main/packages/jest-circus) runner.
 
 :::
 
@@ -822,7 +822,7 @@ Also under the aliases: `it.skip.failing(name, fn, timeout)`, `xit.failing(name,
 
 :::note
 
-This is only available with the default [jest-circus](https://github.com/jestjs/jest/tree/main/packages/jest-circus) runner.
+This is only available with the default [@pkg-nec/jest-circus](https://github.com/pkg-nec/jest/tree/main/packages/jest-circus) runner.
 
 :::
 

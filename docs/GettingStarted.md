@@ -51,7 +51,7 @@ This test used `@pkg-nec/expect` and `toBe` to test that two values were exactly
 
 ## Running from command line
 
-You can run Jest directly from the CLI (if it's globally available in your `PATH`, e.g. by `yarn global add jest` or `npm install @pkg-nec/jest --global`) with a variety of useful options.
+You can run Jest directly from the CLI if it's globally available in your `PATH`, e.g. by `npm install @pkg-nec/jest --global`, with a variety of useful options.
 
 Here's how to run Jest on files matching `my-test`, using `config.json` as a configuration file and display a native OS notification after the run:
 
@@ -68,7 +68,7 @@ If you'd like to learn more about running `@pkg-nec/jest` through the command li
 Based on your project, Jest will ask you a few questions and will create a basic configuration file with a short description for each option:
 
 ```bash npm2yarn
-npm init jest@latest
+npm init @pkg-nec/jest@latest
 ```
 
 ### Using Babel

@@ -128,7 +128,7 @@ Remember to include the default `@pkg-nec/babel-jest` transformer explicitly, if
 
 ```json
 "transform": {
-  "\\.[jt]sx?$": "babel-jest",
+  "\\.[jt]sx?$": "@pkg-nec/babel-jest",
   "\\.css$": "some-css-transformer",
 }
 ```

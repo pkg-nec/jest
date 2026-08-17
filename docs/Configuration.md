@@ -386,7 +386,7 @@ export default defineConfig({
 });
 ```
 
-For more information about the options object shape refer to `CoverageReporterWithOptions` type in the [type definitions](https://github.com/jestjs/jest/tree/main/packages/jest-types/src/Config.ts).
+For more information about the options object shape refer to `CoverageReporterWithOptions` type in the [type definitions](https://github.com/pkg-nec/jest/tree/main/packages/jest-types/src/Config.ts).
 
 ### `coverageThreshold` \[object]
 
@@ -1456,7 +1456,7 @@ module.exports = CustomReporter;
 
 :::note
 
-For the full list of hooks and argument types see the `Reporter` interface in [packages/jest-reporters/src/types.ts](https://github.com/jestjs/jest/blob/main/packages/jest-reporters/src/types.ts).
+For the full list of hooks and argument types see the `Reporter` interface in [packages/jest-reporters/src/types.ts](https://github.com/pkg-nec/jest/blob/main/packages/jest-reporters/src/types.ts).
 
 :::
 
@@ -1604,7 +1604,7 @@ By default, `roots` has a single entry `<rootDir>` but there are cases where you
 
 ### `runtime` \[string]
 
-Default: `"jest-runtime"`
+Default: `"@pkg-nec/jest-runtime"`
 
 This option allows the use of a custom runtime to execute test files. A custom runtime can be provided by specifying a path to a runtime implementation.
 
@@ -1656,7 +1656,7 @@ export default defineConfig({
 
 ### `runner` \[string | \[string, object\]]
 
-Default: `"jest-runner"`
+Default: `"@pkg-nec/jest-runner"`
 
 This option allows you to use a custom runner instead of Jest's default test runner. Examples of runners include:
 
@@ -1719,7 +1719,7 @@ import type {
   TestRunnerContext,
   TestRunnerOptions,
   TestWatcher,
-} from 'jest-runner';
+} from '@pkg-nec/jest-runner';
 
 export default class MyRunner extends CallbackTestRunner {
   constructor(
@@ -1994,7 +1994,7 @@ Pretty foo: Object {
 
 To make a dependency explicit instead of implicit, you can call [`expect.addSnapshotSerializer`](ExpectAPI.md#expectaddsnapshotserializerserializer) to add a module for an individual test file instead of adding its path to `snapshotSerializers` in Jest configuration.
 
-More about serializers API can be found [here](https://github.com/jestjs/jest/tree/main/packages/pretty-format/README.md#serialize).
+More about serializers API can be found [here](https://github.com/pkg-nec/jest/tree/main/packages/pretty-format/README.md#serialize).
 
 :::
 
@@ -2351,7 +2351,7 @@ function testRunner(
 ): Promise<TestResult>;
 ```
 
-An example of such function can be found in our default [jasmine2 test runner package](https://github.com/jestjs/jest/blob/main/packages/jest-jasmine2/src/index.ts).
+An example of such function can be found in our default [jasmine2 test runner package](https://github.com/pkg-nec/jest/blob/main/packages/jest-jasmine2/src/index.ts).
 
 ### `testSequencer` \[string]
 
@@ -2426,11 +2426,11 @@ Default timeout of a test in milliseconds.
 
 ### `transform` \[object&lt;string, pathToTransformer | \[pathToTransformer, object]&gt;]
 
-Default: `{"\\.[jt]sx?$": "babel-jest"}`
+Default: `{"\\.[jt]sx?$": "@pkg-nec/babel-jest"}`
 
-A map from regular expressions to paths to transformers. Optionally, a tuple with configuration options can be passed as second argument: `{filePattern: ['path-to-transformer', {options}]}`. For example, here is how you can configure `@pkg-nec/babel-jest` for non-default behavior: `{'\\.js$': ['babel-jest', {rootMode: 'upward'}]}`.
+A map from regular expressions to paths to transformers. Optionally, a tuple with configuration options can be passed as second argument: `{filePattern: ['path-to-transformer', {options}]}`. For example, here is how you can configure `@pkg-nec/babel-jest` for non-default behavior: `{'\\.js$': ['@pkg-nec/babel-jest', {rootMode: 'upward'}]}`.
 
-Jest runs the code of your project as JavaScript, hence a transformer is needed if you use some syntax not supported by Node out of the box (such as JSX, TypeScript, Vue templates). By default, Jest will use [`@pkg-nec/babel-jest`](https://github.com/jestjs/jest/tree/main/packages/babel-jest#setup) transformer, which will load your project's Babel configuration and transform any file matching the `/\.[jt]sx?$/` RegExp (in other words, any `.js`, `.jsx`, `.ts` or `.tsx` file). In addition, `@pkg-nec/babel-jest` will inject the Babel plugin necessary for mock hoisting talked about in [ES Module mocking](ManualMocks.md#using-with-es-module-imports).
+Jest runs the code of your project as JavaScript, hence a transformer is needed if you use some syntax not supported by Node out of the box (such as JSX, TypeScript, Vue templates). By default, Jest will use [`@pkg-nec/babel-jest`](https://github.com/pkg-nec/jest/tree/main/packages/babel-jest#setup) transformer, which will load your project's Babel configuration and transform any file matching the `/\.[jt]sx?$/` RegExp (in other words, any `.js`, `.jsx`, `.ts` or `.tsx` file). In addition, `@pkg-nec/babel-jest` will inject the Babel plugin necessary for mock hoisting talked about in [ES Module mocking](ManualMocks.md#using-with-es-module-imports).
 
 See the [Code Transformation](CodeTransformation.md) section for more details and instructions on building your own transformer.
 
@@ -2445,7 +2445,7 @@ const {defineConfig} = require('@pkg-nec/jest');
 
 module.exports = defineConfig({
   transform: {
-    '\\.[jt]sx?$': 'babel-jest',
+    '\\.[jt]sx?$': '@pkg-nec/babel-jest',
     '\\.css$': 'some-css-transformer',
   },
 });
@@ -2456,7 +2456,7 @@ import {defineConfig} from '@pkg-nec/jest';
 
 export default defineConfig({
   transform: {
-    '\\.[jt]sx?$': 'babel-jest',
+    '\\.[jt]sx?$': '@pkg-nec/babel-jest',
     '\\.css$': 'some-css-transformer',
   },
 });
