@@ -1,4 +1,4 @@
-# jest-create-cache-key-function
+# @pkg-nec/jest-create-cache-key-function
 
 This module creates a function which is used for generating cache keys used by code transformers in Jest.
 

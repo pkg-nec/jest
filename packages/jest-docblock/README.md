@@ -1,4 +1,4 @@
-# jest-docblock
+# @pkg-nec/jest-docblock
 
 `@pkg-nec/jest-docblock` is a package that can extract and parse a specially-formatted comment called a "docblock" at the top of a file.
 

@@ -1,6 +1,6 @@
-# babel-preset-jest
+# @pkg-nec/babel-preset-jest
 
-> Babel preset for all Jest plugins. This preset is automatically included when using [babel-jest](https://github.com/jestjs/jest/tree/main/packages/babel-jest).
+> Babel preset for all Jest plugins. This preset is automatically included when using [@pkg-nec/babel-jest](https://github.com/pkg-nec/jest/tree/main/packages/babel-jest).
 
 ## Install
 

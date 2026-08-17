@@ -1,4 +1,4 @@
-# pretty-format
+# @pkg-nec/pretty-format
 
 Stringify any JavaScript value.
 

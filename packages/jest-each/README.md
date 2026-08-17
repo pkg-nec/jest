@@ -1,15 +1,15 @@
 <div align="center">
-  <h1>jest-each</h1>
+  <h1>@pkg-nec/jest-each</h1>
   Jest Parameterised Testing
 </div>
 
 <hr />
 
-[![version](https://img.shields.io/npm/v/@pkg-nec/jest-each.svg?style=flat-square)](https://www.npmjs.com/package/@pkg-nec/jest-each) [![downloads](https://img.shields.io/npm/dm/@pkg-nec/jest-each.svg?style=flat-square)](http://npm-stat.com/charts.html?package=jest-each&from=2017-03-21) [![MIT License](https://img.shields.io/npm/l/jest-each.svg?style=flat-square)](https://github.com/jestjs/jest/blob/main/LICENSE)
+[![version](https://img.shields.io/npm/v/@pkg-nec/jest-each.svg?style=flat-square)](https://www.npmjs.com/package/@pkg-nec/jest-each) [![downloads](https://img.shields.io/npm/dm/@pkg-nec/jest-each.svg?style=flat-square)](http://npm-stat.com/charts.html?package=@pkg-nec/jest-each&from=2017-03-21) [![MIT License](https://img.shields.io/npm/l/@pkg-nec/jest-each.svg?style=flat-square)](https://github.com/pkg-nec/jest/blob/main/LICENSE)
 
 A parameterised testing library for [Jest](https://jestjs.io/) inspired by [mocha-each](https://github.com/ryym/mocha-each).
 
-jest-each allows you to provide multiple arguments to your `test`/`describe` which results in the test/suite being run once per row of parameters.
+@pkg-nec/jest-each allows you to provide multiple arguments to your `test`/`describe` which results in the test/suite being run once per row of parameters.
 
 ## Features
 
@@ -32,7 +32,7 @@ jest-each allows you to provide multiple arguments to your `test`/`describe` whi
   - Also under the aliases: `.xdescribe`
 - Asynchronous tests with `done`
 - Unique test titles with [`printf` formatting](https://nodejs.org/api/util.html#util_util_format_format_args):
-  - `%p` - [pretty-format](https://www.npmjs.com/package/@pkg-nec/pretty-format).
+  - `%p` - [@pkg-nec/pretty-format](https://www.npmjs.com/package/@pkg-nec/pretty-format).
   - `%s`- String.
   - `%d`- Number.
   - `%i` - Integer.
@@ -58,11 +58,11 @@ jest-each allows you to provide multiple arguments to your `test`/`describe` whi
 
 ## Demo
 
-#### Tests without jest-each
+#### Tests without @pkg-nec/jest-each
 
 ![Current jest tests](assets/default-demo.gif)
 
-#### Tests can be re-written with jest-each to:
+#### Tests can be re-written with @pkg-nec/jest-each to:
 
 **`.test`**
 
@@ -84,7 +84,7 @@ jest-each allows you to provide multiple arguments to your `test`/`describe` whi
 
 ## Importing
 
-jest-each is a default export so it can be imported with whatever name you like.
+@pkg-nec/jest-each is a default export so it can be imported with whatever name you like.
 
 ```js
 // es6
@@ -111,7 +111,7 @@ const each = require('@pkg-nec/jest-each').default;
 
 - name: `String` the title of the `test`.
   - Generate unique test titles by positionally injecting parameters with [`printf` formatting](https://nodejs.org/api/util.html#util_util_format_format_args):
-    - `%p` - [pretty-format](https://www.npmjs.com/package/@pkg-nec/pretty-format).
+    - `%p` - [@pkg-nec/pretty-format](https://www.npmjs.com/package/@pkg-nec/pretty-format).
     - `%s`- String.
     - `%d`- Number.
     - `%i` - Integer.
@@ -138,7 +138,7 @@ const each = require('@pkg-nec/jest-each').default;
 
 - name: `String` the title of the `describe`
   - Generate unique test titles by positionally injecting parameters with [`printf` formatting](https://nodejs.org/api/util.html#util_util_format_format_args):
-    - `%p` - [pretty-format](https://www.npmjs.com/package/@pkg-nec/pretty-format).
+    - `%p` - [@pkg-nec/pretty-format](https://www.npmjs.com/package/@pkg-nec/pretty-format).
     - `%s`- String.
     - `%d`- Number.
     - `%i` - Integer.

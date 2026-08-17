@@ -1,4 +1,4 @@
-# jest-changed-files
+# @pkg-nec/jest-changed-files
 
 A module used internally by Jest to check which files have changed since you last committed in git or hg.
 

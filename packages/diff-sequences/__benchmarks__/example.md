@@ -1,6 +1,6 @@
-## Benchmark time for `diff-sequences` versus `diff`
+## Benchmark time for `@pkg-nec/jest-diff-sequences` versus `diff`
 
-A ratio less than 1.0 means `diff-sequences` is faster.
+A ratio less than 1.0 means `@pkg-nec/jest-diff-sequences` is faster.
 
 ### n = 20
 

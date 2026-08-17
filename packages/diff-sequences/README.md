@@ -1,4 +1,4 @@
-# diff-sequences
+# @pkg-nec/jest-diff-sequences
 
 Compare items in two sequences to find a **longest common subsequence**.
 
@@ -23,8 +23,8 @@ This package implements the **linear space** variation with optimizations so it 
 
 To add this package as a dependency of a project, do either of the following:
 
-- `npm install diff-sequences`
-- `yarn add diff-sequences`
+- `npm install @pkg-nec/jest-diff-sequences`
+- `yarn add @pkg-nec/jest-diff-sequences`
 
 To use `diff` as the name of the default export from this package, do either of the following:
 
@@ -243,7 +243,7 @@ Here is simplified code to format **changed and unchanged lines** in expected an
 ```js
 // Format diff with minus or plus for change lines and space for common lines.
 const formatDiffLines = (a, b) => {
-  // Jest depends on pretty-format package to serialize objects as strings.
+  // Jest depends on @pkg-nec/pretty-format package to serialize objects as strings.
   // Unindented for comparison to avoid distracting differences:
   const aLinesUn = format(a, {indent: 0 /*, other options*/}).split('\n');
   const bLinesUn = format(b, {indent: 0 /*, other options*/}).split('\n');

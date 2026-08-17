@@ -1,6 +1,6 @@
-# babel-jest
+# @pkg-nec/babel-jest
 
-[Babel](https://github.com/babel/babel) [jest](https://github.com/jestjs/jest) plugin
+[Babel](https://github.com/babel/babel) [Jest](https://github.com/pkg-nec/jest) plugin
 
 ## Usage
 
@@ -10,7 +10,7 @@ If you are already using `@pkg-nec/jest-cli`, add `@pkg-nec/babel-jest` and it w
 yarn add --dev @pkg-nec/babel-jest @babel/core
 ```
 
-If you would like to write your own preprocessor, uninstall and delete babel-jest and set the [config.transform](https://jestjs.io/docs/configuration#transform-object-string-string) option to your preprocessor.
+If you would like to write your own preprocessor, uninstall and delete @pkg-nec/babel-jest and set the [config.transform](https://jestjs.io/docs/configuration#transform-object-string-string) option to your preprocessor.
 
 ## Setup
 
@@ -22,7 +22,7 @@ By default, it loads your existing Babel configuration (if any)
 
 ```json
 "transform": {
-  "\\.[jt]sx?$": "babel-jest"
+  "\\.[jt]sx?$": "@pkg-nec/babel-jest"
 },
 ```
 
@@ -30,7 +30,7 @@ You can also pass further [babel options](https://babeljs.io/docs/options)
 
 ```json
 "transform": {
-  "\\.[jt]sx?$": ["babel-jest", { "extends": "./babel.config.js", "plugins": ["babel-plugin-transform-import-meta"] }]
+  "\\.[jt]sx?$": ["@pkg-nec/babel-jest", { "extends": "./babel.config.js", "plugins": ["babel-plugin-transform-import-meta"] }]
 },
 ```
 
@@ -38,6 +38,6 @@ By default, `@pkg-nec/babel-jest` includes `@pkg-nec/babel-preset-jest`. In addi
 
 ```json
 "transform": {
-  "\\.[jt]sx?$": ["babel-jest", { "excludeJestPreset": true }],
+  "\\.[jt]sx?$": ["@pkg-nec/babel-jest", { "excludeJestPreset": true }],
 }
 ```

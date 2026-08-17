@@ -1,9 +1,9 @@
-[type-definitions]: https://github.com/jestjs/jest/blob/main/packages/jest-types/src/Circus.ts
+[type-definitions]: https://github.com/pkg-nec/jest/blob/main/packages/jest-types/src/Circus.ts
 
 <h1 align="center">
   <img src="https://jestjs.io/img/jest.png" height="150" width="150"/>
   <img src="https://jestjs.io/img/circus.png" height="150" width="150"/>
-  <p align="center">jest-circus</p>
+  <p align="center">@pkg-nec/jest-circus</p>
   <p align="center">The next-gen test runner for Jest</p>
 </h1>
 
@@ -54,12 +54,12 @@ Configure Jest to use `@pkg-nec/jest-circus` via the [`testRunner`](https://jest
 
 ```json
 {
-  "testRunner": "jest-circus/runner"
+  "testRunner": "@pkg-nec/jest-circus/runner"
 }
 ```
 
 Or via CLI:
 
 ```bash
-jest --testRunner='jest-circus/runner'
+jest --testRunner='@pkg-nec/jest-circus/runner'
 ```

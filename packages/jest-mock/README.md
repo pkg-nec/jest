@@ -1,4 +1,4 @@
-# jest-mock
+# @pkg-nec/jest-mock
 
 **Note:** More details on user side API can be found in [Jest documentation](https://jestjs.io/docs/mock-function-api).
 

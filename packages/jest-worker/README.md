@@ -1,4 +1,4 @@
-# jest-worker
+# @pkg-nec/jest-worker
 
 Module for executing heavy tasks under forked processes in parallel, by providing a `Promise` based interface, minimum overhead, and bound workers.
 
@@ -111,7 +111,7 @@ The arguments that will be passed to the `setup` method during initialization.
 The task queue defines in which order tasks (method calls) are processed by the workers. `@pkg-nec/jest-worker` ships with a `FifoQueue` and `PriorityQueue`:
 
 - `FifoQueue` (default): Processes the method calls (tasks) in the call order.
-- `PriorityQueue`: Processes the method calls by a computed priority in natural ordering (lower priorities first). Tasks with the same priority are processed in any order (FIFO not guaranteed). The constructor accepts a single argument, the function that is passed the name of the called function and the arguments and returns a numerical value for the priority: `new require('jest-worker').PriorityQueue((method, filename) => filename.length)`.
+- `PriorityQueue`: Processes the method calls by a computed priority in natural ordering (lower priorities first). Tasks with the same priority are processed in any order (FIFO not guaranteed). The constructor accepts a single argument, the function that is passed the name of the called function and the arguments and returns a numerical value for the priority: `new require('@pkg-nec/jest-worker').PriorityQueue((method, filename) => filename.length)`.
 
 #### `WorkerPool: new (workerPath: string, options?: WorkerPoolOptions) => WorkerPoolInterface` (optional)
 
@@ -261,7 +261,7 @@ export function transform(filename) {
     return cache[filename];
   }
 
-  // jest-worker can handle both immediate results and thenables. If a
+  // @pkg-nec/jest-worker can handle both immediate results and thenables. If a
   // thenable is returned, it will be await'ed until it resolves.
   return babel.transformFileAsync(filename).then(result => {
     cache[filename] = result;

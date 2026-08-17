@@ -1,4 +1,4 @@
-# test-utils
+# @pkg-nec/jest-test-utils
 
 Private package exports utilities for multiple end-to-end tests or packages.
 
