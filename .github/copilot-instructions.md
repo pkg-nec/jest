@@ -1,11 +1,15 @@
 # Jest Repository - Coding Agent Instructions
 
+## Fork and Upstream Boundary
+
+This repository is the independently maintained `@pkg-nec/jest` fork at https://github.com/pkg-nec/jest. Treat `@pkg-nec` as the package and repository owner. Upstream `jestjs/jest`, `jestjs.io`, and their community resources are attribution and reference only; they do not define this fork's governance, support, releases, security handling, or deployment.
+
 ## Repository Overview
 
-**Jest** is a delightful JavaScript testing framework with a focus on simplicity. It's a large monorepo (~924MB) containing 55+ packages managed with Lerna and Yarn Workspaces.
+**`@pkg-nec/jest`** is a delightful JavaScript testing framework with a focus on simplicity. It's a large monorepo containing scoped `@pkg-nec/*` packages managed with Lerna and Yarn Workspaces.
 
 - **Primary Language**: TypeScript (compiled to JavaScript)
-- **Package Manager**: Yarn 4.12.0 (Berry with node-modules linker)
+- **Package Manager**: Yarn 4.18.0 (Berry with node-modules linker)
 - **Node Version**: ^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0 (v20.x recommended)
 - **Build Tools**: Webpack, Babel, TypeScript Compiler
 - **Monorepo Manager**: Lerna-lite
@@ -24,11 +28,10 @@
 2. **Install Dependencies** (ALWAYS run this first):
 
    ```bash
-   yarn install
+   corepack yarn install --immutable
    ```
 
-   - Takes ~45 seconds
-   - Use `yarn install --immutable` in CI or when pulling changes (ensures lockfile isn't modified)
+   - Use `corepack yarn install --immutable` to ensure the lockfile is not modified.
    - Python is required (for node-gyp during install)
    - May show peer dependency warnings - existing ones are expected, but avoid introducing new ones
 
@@ -92,7 +95,7 @@ yarn jest-coverage
 **Run specific workspace tests**:
 
 ```bash
-yarn workspace jest-environment-node test
+yarn workspace @pkg-nec/jest-environment-node test
 ```
 
 **Additional useful scripts**:
@@ -113,7 +116,7 @@ yarn test-ts            # Run TypeScript integration tests
 
 ### Environment Variables
 
-- `JEST_JASMINE=1` - Use jest-jasmine2 runner instead of jest-circus
+- `JEST_JASMINE=1` - Use `@pkg-nec/jest-jasmine2` instead of `@pkg-nec/jest-circus`
 - `GLOBALS_CLEANUP=off` - Disable globals cleanup in test environment
 
 ### E2E Tests
@@ -254,7 +257,7 @@ yarn dedupe
 
 **Main CI**: `nodejs.yml` - Runs on push to main, PRs, and merge groups
 
-- **Static Checks**: Lint, typecheck, prettier, changelog validation, copyright headers, constraints
+- **Static Checks**: Lint, typecheck, prettier, copyright headers, and constraints
 - **TypeScript Compatibility**: Test with TS 5.4+, run type tests
 - **Test Matrix**: Ubuntu/macOS/Windows × Node 18/20/22/24 × 4 shards
 - **Test Leak Detection**: Verify no memory leaks
@@ -280,11 +283,10 @@ Always run these before creating a PR (these match what CI runs):
 2. `yarn lint` - No ESLint errors
 3. `yarn lint:prettier:ci` - Code must be formatted
 4. `yarn jest --config jest.config.ci.mjs` - Tests must pass
-5. `yarn check-changelog` - CHANGELOG.md links must be valid
-6. `yarn check-copyright-headers` - All source files need copyright header
-7. `yarn constraints` - Yarn workspace constraints must pass
-8. `yarn dedupe --check` - No duplicate dependencies
-9. `yarn verify-pnp` - Verify Yarn PnP compatibility
+5. `yarn check-copyright-headers` - All source files need copyright header
+6. `yarn constraints` - Yarn workspace constraints must pass
+7. `yarn dedupe --check` - No duplicate dependencies
+8. `yarn verify-pnp` - Verify Yarn PnP compatibility
 
 ## Code Style & Conventions
 
@@ -366,7 +368,7 @@ Core packages in `packages/`:
 - `@pkg-nec/jest` - Main entry point
 - `@pkg-nec/jest-cli` - Command-line interface
 - `@pkg-nec/jest-config` - Configuration handling
-- `jest-core` - Core test runner
+- `@pkg-nec/jest-core` - Core test runner
 - `@pkg-nec/jest-runtime` - Module runtime
 - `@pkg-nec/jest-circus` - Default test runner
 - `@pkg-nec/jest-jasmine2` - Legacy test runner
@@ -399,27 +401,12 @@ Core packages in `packages/`:
 ### Contributing Requirements
 
 1. **Fork and branch**: Fork the repo, create branch from `main`
-2. **Install dependencies**: `yarn install`
+2. **Install dependencies**: `corepack yarn install --immutable`
 3. **Build**: `yarn build`
 4. **Make changes**: Add/modify code and tests
 5. **Add tests**: Unit tests in `__tests__/` or e2e tests in `e2e/`
 6. **Update docs**: If changing APIs
 7. **Lint and test**: `yarn lint && yarn test` (or subset)
-8. **Add changelog entry**: Update `CHANGELOG.md` under "## main" section
-
-- Format: `` `[package-name]` Description ([#PR_NUMBER](link)) ``
-- Example: `` `[jest-config]` Add `defineConfig` helper ([#15844](...)) ``
-- Sort entries alphabetically by package name
-
-### Changelog Format
-
-All changes require a changelog entry under appropriate section:
-
-- **Features**: New functionality
-- **Fixes**: Bug fixes
-- **Chore & Maintenance**: Docs, dependencies, cleanup, refactoring
-
-Multiple packages: `` `[jest-core, jest-cli]` Description ``
 
 ## Performance Considerations
 
@@ -438,7 +425,7 @@ yarn test-ci-partial:parallel --max-workers <N> --shard=1/4
 
 ## Trust These Instructions
 
-These instructions have been validated by running actual commands in the Jest repository. When following these instructions:
+These instructions are for the `@pkg-nec/jest` repository. When following these instructions:
 
 - Commands have been tested and work correctly
 - Order of operations is critical (install → build → test/lint)
@@ -451,9 +438,11 @@ Only perform additional searches if:
 - You encounter errors not covered in these instructions
 - You need details about a specific package's internals
 
-## Additional Resources
+## Upstream Jest references
 
 - Main docs: https://jestjs.io
 - Contributing guide: `CONTRIBUTING.md`
 - API Reference: https://jestjs.io/docs/api
-- GitHub: https://github.com/jestjs/jest
+- Upstream GitHub: https://github.com/jestjs/jest
+
+These upstream resources are retained for reference and do not replace the fork's repository guidance at https://github.com/pkg-nec/jest.

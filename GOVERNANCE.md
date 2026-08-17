@@ -2,11 +2,11 @@
 
 ## Maintainers
 
-- [@SimenB](https://github.com/SimenB)
+The `@pkg-nec` organization maintains this fork. Repository maintainers appointed by `@pkg-nec` are the governing body for this repository.
 
 Maintainers are responsible for issue/PR triage, feature additions, maintenance, bugfixes, security fixes, releases, promoting existing contributors to maintainers, managing repo and CI configuration, etc.
 
-Promoting contributors to maintainers is done by a maintainer after a significant number of high-quality PRs.
+Promoting contributors to maintainers is done by the existing maintainers after a significant number of high-quality pull requests.
 
 ## Contributors
 
