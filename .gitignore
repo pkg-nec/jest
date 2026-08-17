@@ -1,5 +1,6 @@
 .idea
 .worktrees/
+/.pkg-nec-release/
 .DS_STORE
 .eslintcache
 *.swp
