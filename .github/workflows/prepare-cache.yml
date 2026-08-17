@@ -24,6 +24,7 @@ jobs:
 
       - name: Enable Corepack
         run: corepack enable
+
       - name: Validate cache
         env:
           # Use PnP and disable postinstall scripts as this just needs to
