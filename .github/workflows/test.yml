@@ -25,7 +25,6 @@ jobs:
         node-version: ${{ fromJSON(inputs.node-versions) }}
     name: Node v${{ matrix.node-version }}
     runs-on: ${{ inputs.os }}
-
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -37,16 +36,16 @@ jobs:
           cache: yarn
       - name: Enable Corepack
         run: corepack enable
-      - name: install
+      - name: Yarn install
         run: yarn --immutable
-      - name: build
+      - name: Yarn build
         run: yarn build:js
       - name: Get number of CPU cores
         id: cpu-cores
         uses: SimenB/github-actions-cpu-cores@97330871fe1b7d3529392ea000e3d2c4b357e403 # v3
-      - name: run node-env tests
+      - name: Run node-env tests
         run: yarn workspace jest-environment-node test
-      - name: run tests
+      - name: Run tests
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
         with:
           timeout_minutes: 10
@@ -57,7 +56,6 @@ jobs:
   test-jasmine:
     name: Node LTS using jest-jasmine2
     runs-on: ${{ inputs.os }}
-
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -69,14 +67,14 @@ jobs:
           cache: yarn
       - name: Enable Corepack
         run: corepack enable
-      - name: install
+      - name: Yarn install
         run: yarn --immutable
-      - name: build
+      - name: Yarn build
         run: yarn build:js
       - name: Get number of CPU cores
         id: cpu-cores
         uses: SimenB/github-actions-cpu-cores@97330871fe1b7d3529392ea000e3d2c4b357e403 # v3
-      - name: run tests using jest-jasmine
+      - name: Run tests using jest-jasmine
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
         with:
           timeout_minutes: 10
