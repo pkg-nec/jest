@@ -113,6 +113,7 @@
     "test-ci-partial": "yarn test-ci-partial:parallel -i",
     "test-ci-partial:parallel": "yarn jest --color --config jest.config.ci.mjs",
     "test-leak": "yarn jest -i --detectLeaks --color jest-mock jest-diff pretty-format",
+    "test:pkg-nec-tooling": "yarn jest scripts/__tests__/pkgNecPackageIdentity.test.js scripts/__tests__/checkPkgNecIdentity.test.js scripts/__tests__/pkgNecAuditCandidates.test.js scripts/__tests__/preparePkgNecRelease.test.js scripts/__tests__/registryVisibility.test.js scripts/__tests__/releaseArtifactPolicy.test.js scripts/__tests__/repackReleaseArtifact.test.js scripts/__tests__/jestResolveDependenciesPack.test.js scripts/__tests__/removeBuildDeclarations.test.js scripts/__tests__/writeBundledDeclarations.test.js --runInBand --color",
     "test-ts": "yarn jest --config jest.config.ts.mjs",
     "test-types": "yarn tstyche",
     "test-with-type-info": "yarn jest e2e/__tests__/jest.config.ts.test.ts",

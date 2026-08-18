@@ -79,10 +79,14 @@ jobs:
         run: corepack enable
       - name: Yarn install
         run: yarn --immutable
+      - name: Check pkg-nec package identities
+        run: yarn check:pkg-nec-identity
       - name: Build TypeScript
         run: yarn build:ts
       - name: Build JavaScript
         run: yarn build:js
+      - name: Test pkg-nec tooling
+        run: yarn test:pkg-nec-tooling
       - name: Run typecheck examples
         run: yarn typecheck:examples
       - name: Run typecheck tests
