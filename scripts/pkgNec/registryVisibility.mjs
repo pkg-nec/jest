@@ -168,14 +168,17 @@ export async function waitForExactVersion({
     attempts += 1;
 
     try {
-      const result = await query([
-        'view',
-        exactSpecifier,
-        '--json',
-        '--registry=https://registry.npmjs.org/',
-      ], {
-        signal: AbortSignal.timeout(Math.min(queryTimeoutMs, remainingMs)),
-      });
+      const result = await query(
+        [
+          'view',
+          exactSpecifier,
+          '--json',
+          '--registry=https://registry.npmjs.org/',
+        ],
+        {
+          signal: AbortSignal.timeout(Math.min(queryTimeoutMs, remainingMs)),
+        },
+      );
       const manifest = parseRegistryResult(result);
 
       if (manifest?.name !== name || manifest?.version !== version) {

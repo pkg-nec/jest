@@ -52,7 +52,11 @@ export async function runRegistryVisibilityCommand({
 }) {
   const {ledgerPath, packageName} = parseLedgerArguments(args);
   const ledger = JSON.parse(await readFile(ledgerPath, 'utf8'));
-  const {integrity: expectedIntegrity, name, version} = releaseEntryFromLedger({
+  const {
+    integrity: expectedIntegrity,
+    name,
+    version,
+  } = releaseEntryFromLedger({
     ledger,
     packageName,
   });

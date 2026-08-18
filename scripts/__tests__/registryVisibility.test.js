@@ -38,7 +38,10 @@ describe('pkg-nec registry visibility', () => {
 
       const cases = ${JSON.stringify([
         {code: 'E404', message: 'package not found'},
-        {code: 'ENOTFOUND', message: 'getaddrinfo ENOTFOUND registry.npmjs.org'},
+        {
+          code: 'ENOTFOUND',
+          message: 'getaddrinfo ENOTFOUND registry.npmjs.org',
+        },
         {code: 'ETIMEDOUT', message: 'request timed out'},
         {message: 'too many requests', statusCode: 429},
         {code: 'ECONNRESET', message: 'socket hang up'},
@@ -90,8 +93,14 @@ describe('pkg-nec registry visibility', () => {
     `);
 
     expect(result).toEqual([
-      'retryable', 'retryable', 'retryable', 'retryable',
-      'retryable', 'fatal', 'fatal', 'fatal',
+      'retryable',
+      'retryable',
+      'retryable',
+      'retryable',
+      'retryable',
+      'fatal',
+      'fatal',
+      'fatal',
     ]);
   });
 
@@ -124,13 +133,18 @@ describe('pkg-nec registry visibility', () => {
     `);
 
     expect(result.evidence).toEqual({
-      attempts: 7, elapsedMs: 60, integrity: 'sha512-registry-integrity',
-      name: '@pkg-nec/jest', version: '30.4.2',
+      attempts: 7,
+      elapsedMs: 60,
+      integrity: 'sha512-registry-integrity',
+      name: '@pkg-nec/jest',
+      version: '30.4.2',
     });
     expect(result.calls).toEqual(
       Array.from({length: 7}).fill({
         args: [
-          'view', '@pkg-nec/jest@30.4.2', '--json',
+          'view',
+          '@pkg-nec/jest@30.4.2',
+          '--json',
           '--registry=https://registry.npmjs.org/',
         ],
         hasSignal: true,
@@ -166,8 +180,11 @@ describe('pkg-nec registry visibility', () => {
     expect(result).toEqual({
       attempts: 2,
       evidence: {
-        attempts: 2, elapsedMs: 3, integrity: 'sha512-after-timeout',
-        name: '@pkg-nec/jest-core', version: '30.4.2',
+        attempts: 2,
+        elapsedMs: 3,
+        integrity: 'sha512-after-timeout',
+        name: '@pkg-nec/jest-core',
+        version: '30.4.2',
       },
     });
   });
@@ -212,9 +229,13 @@ describe('pkg-nec registry visibility', () => {
       }
     `);
 
-    expect(result).toEqual(expect.objectContaining({
-      attempts: 2, classification: 'retryable', elapsedMs: 20,
-    }));
+    expect(result).toEqual(
+      expect.objectContaining({
+        attempts: 2,
+        classification: 'retryable',
+        elapsedMs: 20,
+      }),
+    );
     expect(result.message).toContain('@pkg-nec/jest-cli@30.4.2');
     expect(result.message).toContain('last error class: ENOTFOUND');
     expect(result.message).toContain('2 attempts');
@@ -242,12 +263,19 @@ describe('pkg-nec registry visibility command', () => {
 
     expect(result).toEqual({
       evidence: {
-        attempts: 1, elapsedMs: 0, integrity: 'sha512-cli-integrity',
-        name: '@pkg-nec/jest', version: '30.4.2',
+        attempts: 1,
+        elapsedMs: 0,
+        integrity: 'sha512-cli-integrity',
+        name: '@pkg-nec/jest',
+        version: '30.4.2',
       },
       lines: [
-        'package=@pkg-nec/jest', 'version=30.4.2', 'attempts=1',
-        'elapsedMs=0', 'integrity=sha512-cli-integrity', 'classification=visible',
+        'package=@pkg-nec/jest',
+        'version=30.4.2',
+        'attempts=1',
+        'elapsedMs=0',
+        'integrity=sha512-cli-integrity',
+        'classification=visible',
       ],
     });
   });
@@ -267,9 +295,11 @@ describe('pkg-nec registry visibility command', () => {
     `);
 
     expect(result).toHaveLength(4);
-    expect(result).toEqual(Array.from({length: 4}).fill(
-      'Usage: yarn check:pkg-nec-registry <ledger-path> <package-name>',
-    ));
+    expect(result).toEqual(
+      Array.from({length: 4}).fill(
+        'Usage: yarn check:pkg-nec-registry <ledger-path> <package-name>',
+      ),
+    );
   });
 });
 
@@ -396,7 +426,10 @@ describe('pkg-nec registry ledger verification', () => {
     `);
 
     expect(result).toEqual({
-      attempts: 2, classification: 'retryable', elapsedMs: 480000, sleeps: [5000, 1],
+      attempts: 2,
+      classification: 'retryable',
+      elapsedMs: 480_000,
+      sleeps: [5000, 1],
     });
   });
 
@@ -423,9 +456,16 @@ describe('pkg-nec registry ledger verification', () => {
       console.log(JSON.stringify({calls, message}));
     `);
 
-    expect(result.calls).toEqual([{
-      args: ['view', '@pkg-nec/example@31.0.0', '--json', '--registry=https://registry.npmjs.org/'],
-      hasSignal: true,
-    }]);
+    expect(result.calls).toEqual([
+      {
+        args: [
+          'view',
+          '@pkg-nec/example@31.0.0',
+          '--json',
+          '--registry=https://registry.npmjs.org/',
+        ],
+        hasSignal: true,
+      },
+    ]);
   });
 });
