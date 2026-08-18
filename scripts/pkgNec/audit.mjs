@@ -60,6 +60,22 @@ const fixtureLinks = new Map([
       'link:../../../packages/jest-environment-node',
     ],
   ],
+  [
+    'e2e/transform/transform-esm-testrunner/package.json',
+    [
+      'dependencies',
+      '@pkg-nec/jest-test-result',
+      'link:../../../packages/jest-test-result',
+    ],
+  ],
+  [
+    'e2e/transform/transform-testrunner/package.json',
+    [
+      'dependencies',
+      '@pkg-nec/jest-test-result',
+      'link:../../../packages/jest-test-result',
+    ],
+  ],
 ]);
 const fixtureLinkTuples = new Set(
   [...fixtureLinks].map(([filePath, tuple]) => [filePath, ...tuple].join('\0')),
@@ -532,6 +548,15 @@ function manifestPolicyFindings({filePath, inventory, text}) {
         finding({
           category: 'published-link',
           expected: 'registry or workspace protocol',
+          filePath,
+          literal,
+        }),
+      );
+    } else {
+      findings.push(
+        finding({
+          category: 'fixture-link',
+          expected: 'only the approved fixture dependency tuple',
           filePath,
           literal,
         }),

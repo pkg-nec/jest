@@ -381,6 +381,61 @@ describe('pkg-nec identity audit', () => {
     ).toEqual([]);
   });
 
+  test.each([
+    [
+      'e2e/global-setup/package.json',
+      'devDependencies',
+      '@pkg-nec/jest-util',
+      'link:../../packages/jest-util',
+    ],
+    [
+      'e2e/global-teardown/package.json',
+      'devDependencies',
+      '@pkg-nec/jest-util',
+      'link:../../packages/jest-util',
+    ],
+    [
+      'e2e/transform/transform-environment/package.json',
+      'dependencies',
+      '@pkg-nec/jest-environment-node',
+      'link:../../../packages/jest-environment-node',
+    ],
+    [
+      'e2e/transform/transform-runner/package.json',
+      'dependencies',
+      '@pkg-nec/jest-environment-node',
+      'link:../../../packages/jest-environment-node',
+    ],
+    [
+      'e2e/transform/transform-esm-testrunner/package.json',
+      'dependencies',
+      '@pkg-nec/jest-test-result',
+      'link:../../../packages/jest-test-result',
+    ],
+    [
+      'e2e/transform/transform-testrunner/package.json',
+      'dependencies',
+      '@pkg-nec/jest-test-result',
+      'link:../../../packages/jest-test-result',
+    ],
+  ])(
+    'allows reviewed local-protocol fixture tuple in %s',
+    (filePath, field, dependencyName, literal) => {
+      expect(
+        auditText({
+          category: 'manifest',
+          filePath,
+          inventory,
+          text: JSON.stringify({
+            [field]: {[dependencyName]: literal},
+            name: 'fixture',
+            private: true,
+          }),
+        }),
+      ).toEqual([]);
+    },
+  );
+
   test('enforces exact fixture link values and rejects published local links', () => {
     const correctFixture = JSON.stringify({
       devDependencies: {
@@ -488,6 +543,52 @@ describe('pkg-nec identity audit', () => {
         }),
       ]),
     );
+  });
+
+  test('rejects file dependencies in unlisted private fixture manifests', () => {
+    expect(
+      auditText({
+        category: 'manifest',
+        filePath: 'e2e/unlisted-file-fixture/package.json',
+        inventory,
+        text: JSON.stringify({
+          dependencies: {
+            'local-reporter': 'file:../../packages/local-reporter',
+          },
+          name: 'private-fixture',
+          private: true,
+        }),
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        category: 'fixture-link',
+        expected: 'only the approved fixture dependency tuple',
+        literal: 'file:../../packages/local-reporter',
+      }),
+    ]);
+  });
+
+  test('rejects link dependencies in unlisted private fixture manifests', () => {
+    expect(
+      auditText({
+        category: 'manifest',
+        filePath: 'e2e/unlisted-link-fixture/package.json',
+        inventory,
+        text: JSON.stringify({
+          dependencies: {
+            '@pkg-nec/jest': 'link:../../packages/jest',
+          },
+          name: 'private-fixture',
+          private: true,
+        }),
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        category: 'fixture-link',
+        expected: 'only the approved fixture dependency tuple',
+        literal: 'link:../../packages/jest',
+      }),
+    ]);
   });
 
   test('rejects file dependencies in published manifests', () => {
