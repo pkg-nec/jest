@@ -101,13 +101,58 @@ test('reports equal-count filename mismatches', () => {
   });
 });
 
-test('collects unique manifest entry files', () => {
-  expect(manifestEntryFiles(manifest)).toEqual([
+test('collects concrete manifest entry files across supported target shapes', () => {
+  expect(
+    manifestEntryFiles({
+      ...manifest,
+      bin: {
+        example: './bin/example.js',
+      },
+      exports: {
+        ...manifest.exports,
+        './conditional': [
+          {
+            node: {
+              import: './build/node.mjs',
+              require: './build/node.js',
+            },
+          },
+          './build/fallback.js',
+        ],
+        './features/*': './build/features/*.js',
+      },
+    }),
+  ).toEqual([
+    'bin/example.js',
+    'build/fallback.js',
     'build/index.d.ts',
     'build/index.js',
     'build/index.mjs',
+    'build/node.js',
+    'build/node.mjs',
     'package.json',
   ]);
+});
+
+test.each([
+  ['main', {main: './build/index.js'}, 'build/index.js'],
+  ['types', {types: './build/index.d.ts'}, 'build/index.d.ts'],
+  [
+    'conditional export',
+    {exports: {'.': {import: './build/index.mjs'}}},
+    'build/index.mjs',
+  ],
+  ['string bin', {bin: './bin/example.js'}, 'bin/example.js'],
+  ['object bin', {bin: {example: './bin/example.js'}}, 'bin/example.js'],
+])('requires a normal package %s target', (_kind, entryManifest, entry) => {
+  expect(() =>
+    validateReleaseFiles({
+      files: ['package/LICENSE', 'package/package.json'],
+      helper: false,
+      manifest: entryManifest,
+      packageName: '@pkg-nec/example',
+    }),
+  ).toThrow(`@pkg-nec/example release files invalid: missing ${entry}`);
 });
 
 test.each([
@@ -119,80 +164,20 @@ test.each([
 ])('rejects prohibited release file %s', file => {
   expect(() =>
     validateReleaseFiles({
-      files: ['package/LICENSE', 'package/package.json', file],
+      files: [
+        'package/LICENSE',
+        'package/build/index.d.ts',
+        'package/build/index.js',
+        'package/build/index.mjs',
+        'package/package.json',
+        file,
+      ],
       helper: false,
       manifest,
       packageName: '@pkg-nec/example',
     }),
   ).toThrow(new RegExp(`@pkg-nec/example.*${file.split('/').at(-1)}`));
 });
-
-const upstreamBuildInputPolicies = [
-  {
-    files: [
-      'package/LICENSE',
-      'package/README.md',
-      'package/api-extractor.json',
-      'package/build/index.d.ts',
-      'package/build/index.js',
-      'package/build/index.mjs',
-      'package/package.json',
-      'package/src/__tests__/__snapshots__/TestPathPatterns.test.ts.snap',
-      'package/src/__tests__/TestPathPatterns.test.ts',
-      'package/src/index.ts',
-      'package/src/TestPathPatterns.ts',
-      'package/tsconfig.json',
-    ],
-    name: '@pkg-nec/jest-pattern',
-    normalizedFiles: [
-      'LICENSE',
-      'README.md',
-      'api-extractor.json',
-      'build/index.d.ts',
-      'build/index.js',
-      'build/index.mjs',
-      'package.json',
-      'src/TestPathPatterns.ts',
-      'src/__tests__/TestPathPatterns.test.ts',
-      'src/__tests__/__snapshots__/TestPathPatterns.test.ts.snap',
-      'src/index.ts',
-      'tsconfig.json',
-    ],
-    otherVersion: '30.4.1',
-    version: '30.4.0',
-  },
-  {
-    files: [
-      'package/LICENSE',
-      'package/api-extractor.json',
-      'package/build/index.d.ts',
-      'package/build/index.js',
-      'package/build/index.mjs',
-      'package/package.json',
-      'package/src/__tests__/utils.test.ts',
-      'package/src/index.ts',
-      'package/src/types.ts',
-      'package/src/utils.ts',
-      'package/tsconfig.json',
-    ],
-    name: '@pkg-nec/jest-snapshot-utils',
-    normalizedFiles: [
-      'LICENSE',
-      'api-extractor.json',
-      'build/index.d.ts',
-      'build/index.js',
-      'build/index.mjs',
-      'package.json',
-      'src/__tests__/utils.test.ts',
-      'src/index.ts',
-      'src/types.ts',
-      'src/utils.ts',
-      'tsconfig.json',
-    ],
-    otherVersion: '30.4.2',
-    version: '30.4.1',
-  },
-];
 
 const getTypeCompatibilityFiles = [
   'package/LICENSE',
@@ -261,59 +246,28 @@ test('rejects an unlisted declaration for get-type 30.1.0', () => {
   );
 });
 
-test.each(upstreamBuildInputPolicies)(
-  'accepts the audited upstream file inventory for $name@$version',
-  ({files, name, normalizedFiles, version}) => {
-    expect(
-      validateReleaseFiles({
-        files,
-        helper: false,
-        manifest: {...manifest, name, version},
-        packageName: name,
-      }),
-    ).toEqual(normalizedFiles);
-  },
-);
-
-test.each(upstreamBuildInputPolicies)(
-  'rejects the $name build inputs at $otherVersion',
-  ({files, name, otherVersion}) => {
-    expect(() =>
-      validateReleaseFiles({
-        files,
-        helper: false,
-        manifest: {...manifest, name, version: otherVersion},
-        packageName: name,
-      }),
-    ).toThrow(`${name} release files invalid`);
-  },
-);
-
-test.each(
-  upstreamBuildInputPolicies.flatMap(policy =>
-    [
-      'package/src/unlisted.ts',
-      'package/.eslintcache',
-      'package/tsconfig.tsbuildinfo',
-    ].map(file => ({...policy, file})),
-  ),
-)('rejects $file for $name@$version', ({file, files, name, version}) => {
+test.each([
+  ['@pkg-nec/jest-pattern', 'package/src/TestPathPatterns.ts'],
+  ['@pkg-nec/jest-pattern', 'package/tsconfig.json'],
+  ['@pkg-nec/jest-snapshot-utils', 'package/src/utils.ts'],
+  ['@pkg-nec/jest-snapshot-utils', 'package/tsconfig.json'],
+])('rejects removed build input %s %s', (packageName, file) => {
   expect(() =>
     validateReleaseFiles({
-      files: [...files, file],
+      files: [
+        'package/LICENSE',
+        'package/build/index.d.ts',
+        'package/build/index.js',
+        'package/build/index.mjs',
+        'package/package.json',
+        file,
+      ],
       helper: false,
-      manifest: {...manifest, name, version},
-      packageName: name,
+      manifest: {...manifest, name: packageName, version: '30.4.1'},
+      packageName,
     }),
-  ).toThrow(`${name} release files invalid`);
+  ).toThrow(`${packageName} release files invalid: prohibited`);
 });
-
-test.each(upstreamBuildInputPolicies)(
-  'keeps $name in ordinary upstream parity',
-  ({name}) => {
-    expect(isHelperReleasePackageName(name)).toBe(false);
-  },
-);
 
 test('accepts manifest-reachable declarations', () => {
   expect(

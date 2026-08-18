@@ -6,7 +6,6 @@
  */
 
 import path from 'node:path';
-import {isDeepStrictEqual} from 'node:util';
 import fs from 'graceful-fs';
 import ts from 'typescript';
 import {rewritePackageSpecifier} from '../pkgNecPackageIdentity.mjs';
@@ -22,31 +21,10 @@ const dependencyFields = [
   'peerDependenciesMeta',
   'resolutions',
 ];
-const helperManifestPaths = new Set([
-  'packages/test-globals/package.json',
-  'packages/test-utils/package.json',
-]);
-const historicalFiles = new Set([
-  'CHANGELOG.md',
-  'CHANGELOG_PRE_v30.md',
-  'docs/pkg-nec-rebrand-technical-guide.md',
-  'docs/superpowers/plans/2026-08-12-pkg-nec-package-rebrand.md',
-  'docs/superpowers/specs/2026-08-12-pkg-nec-package-rebrand-design.md',
-  'scripts/pkgNec/upstreamManifestBaseline.json',
-]);
+const historicalFiles = new Set(['CHANGELOG.md', 'CHANGELOG_PRE_v30.md']);
 const exactExceptions = new Set([
   ['jest.config.mjs', 'mapper-key', '^@jest/globals$'].join('\0'),
   ['tsconfig.test.json', 'compiler-path', '@jest/globals'].join('\0'),
-  [
-    'packages/jest-runtime/src/__tests__/test_root/MappedGlobals.js',
-    'module-specifier',
-    '@jest/globals',
-  ].join('\0'),
-  [
-    'packages/jest-runtime/src/__tests__/test_root/MappedGlobals.js',
-    'source-identity',
-    '@jest/globals',
-  ].join('\0'),
 ]);
 const externalModulePackages = new Set([
   'jest-pnp-resolver',
@@ -60,15 +38,16 @@ const externalModulePackages = new Set([
 const fixtureLinks = new Map([
   [
     'e2e/global-setup/package.json',
-    ['@pkg-nec/jest-util', 'link:../../packages/jest-util'],
+    ['devDependencies', '@pkg-nec/jest-util', 'link:../../packages/jest-util'],
   ],
   [
     'e2e/global-teardown/package.json',
-    ['@pkg-nec/jest-util', 'link:../../packages/jest-util'],
+    ['devDependencies', '@pkg-nec/jest-util', 'link:../../packages/jest-util'],
   ],
   [
     'e2e/transform/transform-environment/package.json',
     [
+      'dependencies',
       '@pkg-nec/jest-environment-node',
       'link:../../../packages/jest-environment-node',
     ],
@@ -76,11 +55,31 @@ const fixtureLinks = new Map([
   [
     'e2e/transform/transform-runner/package.json',
     [
+      'dependencies',
       '@pkg-nec/jest-environment-node',
       'link:../../../packages/jest-environment-node',
     ],
   ],
+  [
+    'e2e/transform/transform-esm-testrunner/package.json',
+    [
+      'dependencies',
+      '@pkg-nec/jest-test-result',
+      'link:../../../packages/jest-test-result',
+    ],
+  ],
+  [
+    'e2e/transform/transform-testrunner/package.json',
+    [
+      'dependencies',
+      '@pkg-nec/jest-test-result',
+      'link:../../../packages/jest-test-result',
+    ],
+  ],
 ]);
+const fixtureLinkTuples = new Set(
+  [...fixtureLinks].map(([filePath, tuple]) => [filePath, ...tuple].join('\0')),
+);
 const moduleSpecifierPattern =
   /\b(?:from\s*|import\s*\(|import\s+|require(?:\.resolve)?\s*\(|(?:createMockFromModule|doMock|dontMock|mock|requireActual|requireMock|setMock|unmock)\s*\()\s*['"]([^'"]+)['"]/g;
 const internalIdentityPattern =
@@ -404,8 +403,22 @@ function mapperKeyFindings({filePath, inventory, text}) {
 }
 
 function manifestIdentityForPath(filePath, inventory) {
-  return [inventory.root, ...inventory.packages].find(identity =>
-    normalizedPath(identity.manifestPath).endsWith(filePath),
+  const repoRoot = inventory.root.directory;
+  return [inventory.root, ...inventory.packages].find(
+    identity =>
+      normalizedPath(path.relative(repoRoot, identity.manifestPath)) ===
+      filePath,
+  );
+}
+
+function manifestDependencyTuples(manifest) {
+  return dependencyFields.flatMap(field =>
+    Object.entries(manifest[field] ?? {}).map(([dependencyName, value]) => ({
+      dependencyName,
+      field,
+      literal:
+        value !== null && typeof value === 'object' ? value.optional : value,
+    })),
   );
 }
 
@@ -413,6 +426,22 @@ function manifestPolicyFindings({filePath, inventory, text}) {
   const manifest = JSON.parse(text);
   const findings = [];
   const identity = manifestIdentityForPath(filePath, inventory);
+  const dependencyTuples = manifestDependencyTuples(manifest);
+
+  if (
+    !identity &&
+    /^packages\/[^/]+\/package\.json$/u.test(filePath) &&
+    manifest.private !== true
+  ) {
+    findings.push(
+      finding({
+        category: 'unrecognized-publishable-workspace',
+        expected: 'pkg-nec package identity policy entry',
+        filePath,
+        literal: manifest.name ?? null,
+      }),
+    );
+  }
 
   if (identity && manifest.name !== identity.newName) {
     findings.push(
@@ -425,51 +454,113 @@ function manifestPolicyFindings({filePath, inventory, text}) {
     );
   }
 
-  if (identity?.publishable && manifest.private === true) {
+  if (identity && (manifest.private !== true) !== identity.publishable) {
     findings.push(
       finding({
         category: 'publishability',
-        expected: false,
+        expected: !identity.publishable,
         filePath,
-        literal: true,
+        literal: manifest.private === true,
+      }),
+    );
+  }
+
+  if (identity?.publishable && manifest.publishConfig?.access !== 'public') {
+    findings.push(
+      finding({
+        category: 'publish-access',
+        expected: 'public',
+        filePath,
+        literal: manifest.publishConfig?.access ?? null,
       }),
     );
   }
 
   const expectedFixtureLink = fixtureLinks.get(filePath);
   if (expectedFixtureLink) {
-    const [dependencyName, expected] = expectedFixtureLink;
-    const literal = dependencyFields
-      .map(field => manifest[field]?.[dependencyName])
-      .find(value => value !== undefined);
-    if (literal !== expected) {
+    const [expectedField, dependencyName, expected] = expectedFixtureLink;
+    const occurrences = dependencyTuples.filter(
+      tuple => tuple.dependencyName === dependencyName,
+    );
+    const [occurrence] = occurrences;
+    if (
+      occurrences.length !== 1 ||
+      occurrence.field !== expectedField ||
+      occurrence.literal !== expected
+    ) {
       findings.push(
         finding({
           category: 'fixture-link',
           expected,
           filePath,
-          literal: literal ?? null,
+          literal:
+            occurrences.length === 1
+              ? occurrence.literal
+              : Object.fromEntries(
+                  occurrences.map(({field, literal}) => [field, literal]),
+                ),
         }),
       );
     }
   }
 
-  if (identity?.publishable) {
-    for (const field of dependencyFields) {
-      for (const value of Object.values(manifest[field] ?? {})) {
-        const literal =
-          value !== null && typeof value === 'object' ? value.optional : value;
-        if (typeof literal === 'string' && literal.startsWith('link:')) {
-          findings.push(
-            finding({
-              category: 'published-link',
-              expected: 'registry or workspace protocol',
-              filePath,
-              literal,
-            }),
-          );
-        }
-      }
+  for (const {dependencyName, field, literal} of dependencyTuples) {
+    if (
+      typeof literal === 'string' &&
+      literal.startsWith('workspace:') &&
+      dependencyName.startsWith('@pkg-nec/') &&
+      !inventory.byNewName.has(dependencyName)
+    ) {
+      findings.push(
+        finding({
+          category: 'unresolved-internal-dependency',
+          expected: 'known @pkg-nec package',
+          filePath,
+          literal: dependencyName,
+        }),
+      );
+    }
+
+    if (
+      typeof literal !== 'string' ||
+      (!literal.startsWith('file:') && !literal.startsWith('link:'))
+    ) {
+      continue;
+    }
+
+    const tupleKey = [filePath, field, dependencyName, literal].join('\0');
+    if (fixtureLinkTuples.has(tupleKey)) continue;
+
+    const [expectedField, expectedName] = expectedFixtureLink ?? [];
+    if (field === expectedField && dependencyName === expectedName) continue;
+
+    if (expectedFixtureLink) {
+      findings.push(
+        finding({
+          category: 'fixture-link',
+          expected: 'only the approved fixture dependency tuple',
+          filePath,
+          literal,
+        }),
+      );
+    } else if (identity?.publishable) {
+      findings.push(
+        finding({
+          category: 'published-link',
+          expected: 'registry or workspace protocol',
+          filePath,
+          literal,
+        }),
+      );
+    } else {
+      findings.push(
+        finding({
+          category: 'fixture-link',
+          expected: 'only the approved fixture dependency tuple',
+          filePath,
+          literal,
+        }),
+      );
     }
   }
 
@@ -504,6 +595,12 @@ export function auditText({category, filePath, inventory, text}) {
   if (historicalFiles.has(normalizedFilePath)) return [];
 
   const normalizedCategory = normalizeCategory(category);
+  const semantic = semanticFindings({
+    category: normalizedCategory,
+    filePath: normalizedFilePath,
+    inventory,
+    text,
+  });
   const findings = [
     ...doublePrefixFindings({filePath: normalizedFilePath, text}),
     ...scopedPackageFileFindings({
@@ -511,13 +608,14 @@ export function auditText({category, filePath, inventory, text}) {
       filePath: normalizedFilePath,
       inventory,
       text,
-    }),
-    ...semanticFindings({
-      category: normalizedCategory,
-      filePath: normalizedFilePath,
-      inventory,
-      text,
-    }),
+    }).filter(
+      scopedFinding =>
+        normalizedCategory !== 'module' ||
+        !semantic.some(
+          semanticFinding => semanticFinding.literal === scopedFinding.literal,
+        ),
+    ),
+    ...semantic,
   ];
   if (normalizedCategory === 'module') {
     findings.push(
@@ -561,88 +659,18 @@ export function auditText({category, filePath, inventory, text}) {
   return uniqueSortedFindings(findings.filter(item => !isExactException(item)));
 }
 
-function preservationFindings({baseline, inventory, repoRoot}) {
-  const findings = [];
-  for (const [filePath, baselineManifest] of Object.entries(baseline)) {
-    const absolutePath = path.join(repoRoot, filePath);
-    if (!fs.existsSync(absolutePath)) {
-      findings.push(
-        finding({
-          category: 'missing-manifest',
-          expected: filePath,
-          filePath,
-          literal: null,
-        }),
-      );
-      continue;
-    }
-    const manifest = JSON.parse(fs.readFileSync(absolutePath, 'utf8'));
-    if (manifest.version !== baselineManifest.version) {
-      findings.push(
-        finding({
-          category: 'manifest-version',
-          expected: baselineManifest.version,
-          filePath,
-          literal: manifest.version ?? null,
-        }),
-      );
-    }
-
-    const expectedPrivate = helperManifestPaths.has(filePath)
-      ? false
-      : baselineManifest.private === true;
-    const actualPrivate = manifest.private === true;
-    if (actualPrivate !== expectedPrivate) {
-      findings.push(
-        finding({
-          category: 'manifest-privacy',
-          expected: expectedPrivate,
-          filePath,
-          literal: actualPrivate,
-        }),
-      );
-    }
-
-    for (const field of dependencyFields) {
-      const expectedDependencies = {};
-      for (const [oldName, expected] of Object.entries(
-        baselineManifest[field] ?? {},
-      )) {
-        const canonicalName =
-          rewritePackageSpecifier(oldName, inventory) ?? oldName;
-        const fixtureLink = fixtureLinks.get(filePath);
-        expectedDependencies[canonicalName] =
-          fixtureLink?.[0] === canonicalName ? fixtureLink[1] : expected;
-      }
-      const literal = manifest[field] ?? {};
-      if (!isDeepStrictEqual(literal, expectedDependencies)) {
-        findings.push(
-          finding({
-            category: 'manifest-preservation',
-            expected: expectedDependencies,
-            filePath,
-            literal,
-          }),
-        );
-      }
-    }
-  }
-  return findings;
-}
-
-export function auditRepository({baseline, inventory, repoRoot}) {
+export function auditRepository({inventory, repoRoot}) {
   const root = path.resolve(repoRoot);
   const findings = [];
   for (const entry of enumerateRepositoryFiles({repoRoot: root})) {
     findings.push(
       ...auditText({
         category: entry.category,
-        filePath: normalizedPath(path.relative(root, entry.path)),
+        filePath: path.relative(root, entry.path),
         inventory,
         text: fs.readFileSync(entry.path, 'utf8'),
       }),
     );
   }
-  findings.push(...preservationFindings({baseline, inventory, repoRoot: root}));
   return uniqueSortedFindings(findings);
 }

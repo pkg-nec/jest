@@ -41,28 +41,6 @@ const helperReleasePackageNames = new Set([
 const upstreamPublishedDeclarations = new Map([
   ['@pkg-nec/jest-get-type@30.1.0', new Set(['build/index.d.mts'])],
 ]);
-const upstreamPublishedBuildInputs = new Map([
-  [
-    '@pkg-nec/jest-pattern@30.4.0',
-    new Set([
-      'src/__tests__/__snapshots__/TestPathPatterns.test.ts.snap',
-      'src/__tests__/TestPathPatterns.test.ts',
-      'src/index.ts',
-      'src/TestPathPatterns.ts',
-      'tsconfig.json',
-    ]),
-  ],
-  [
-    '@pkg-nec/jest-snapshot-utils@30.4.1',
-    new Set([
-      'src/__tests__/utils.test.ts',
-      'src/index.ts',
-      'src/types.ts',
-      'src/utils.ts',
-      'tsconfig.json',
-    ]),
-  ],
-]);
 
 export function isHelperReleasePackageName(packageName) {
   return helperReleasePackageNames.has(packageName);
@@ -80,16 +58,21 @@ function normalizeManifestEntry(file) {
   return normalized;
 }
 
-function collectStrings(value, files) {
-  if (typeof value === 'string') files.add(normalizeManifestEntry(value));
-  else if (value && typeof value === 'object') {
-    for (const child of Object.values(value)) collectStrings(child, files);
+function collectManifestTargets(value, files) {
+  if (typeof value === 'string') {
+    const normalized = normalizeManifestEntry(value);
+    if (!normalized.includes('*')) files.add(normalized);
+  } else if (value && typeof value === 'object') {
+    for (const child of Object.values(value)) {
+      collectManifestTargets(child, files);
+    }
   }
 }
 
 export function manifestEntryFiles(manifest) {
   const files = new Set();
-  collectStrings(manifest?.exports, files);
+  collectManifestTargets(manifest?.exports, files);
+  collectManifestTargets(manifest?.bin, files);
   if (typeof manifest?.main === 'string') {
     files.add(normalizeManifestEntry(manifest.main));
   }
@@ -105,9 +88,7 @@ export function validateReleaseFiles({files, helper, manifest, packageName}) {
   const policyKey = `${packageName}@${manifest?.version ?? ''}`;
   const publishedDeclarations =
     upstreamPublishedDeclarations.get(policyKey) ?? new Set();
-  const publishedBuildInputs =
-    upstreamPublishedBuildInputs.get(policyKey) ?? new Set();
-  const required = ['LICENSE', 'package.json'];
+  const required = [...new Set(['LICENSE', 'package.json', ...entries])];
   const problems = new Set(
     required
       .filter(file => !normalizedFiles.includes(file))
@@ -117,12 +98,8 @@ export function validateReleaseFiles({files, helper, manifest, packageName}) {
   for (const file of normalizedFiles) {
     const basename = file.split('/').at(-1);
     if (prohibitedBasenames.has(basename)) problems.add(`prohibited ${file}`);
-    if (file.startsWith('src/') && !publishedBuildInputs.has(file)) {
-      problems.add(`prohibited ${file}`);
-    }
-    if (file === 'tsconfig.json' && !publishedBuildInputs.has(file)) {
-      problems.add(`prohibited ${file}`);
-    }
+    if (file.startsWith('src/')) problems.add(`prohibited ${file}`);
+    if (file === 'tsconfig.json') problems.add(`prohibited ${file}`);
     if (
       declarationPattern.test(file) &&
       !entries.includes(file) &&
@@ -135,7 +112,7 @@ export function validateReleaseFiles({files, helper, manifest, packageName}) {
   if (helper) {
     const comparison = comparePackageFiles({
       actualFiles: normalizedFiles,
-      expectedFiles: [...new Set([...required, 'README.md', ...entries])],
+      expectedFiles: [...required, 'README.md'],
     });
     for (const file of comparison.missing) problems.add(`missing ${file}`);
     for (const file of comparison.added) problems.add(`additional ${file}`);

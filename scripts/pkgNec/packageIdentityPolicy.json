@@ -1,0 +1,341 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "manifestPath": "package.json",
+      "newName": "@pkg-nec/monorepo",
+      "oldName": "@jest/monorepo",
+      "publishable": false
+    },
+    {
+      "manifestPath": "packages/babel-jest/package.json",
+      "newName": "@pkg-nec/babel-jest",
+      "oldName": "babel-jest",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/babel-plugin-jest-hoist/package.json",
+      "newName": "@pkg-nec/babel-plugin-jest-hoist",
+      "oldName": "babel-plugin-jest-hoist",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/babel-preset-jest/package.json",
+      "newName": "@pkg-nec/babel-preset-jest",
+      "oldName": "babel-preset-jest",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/create-jest/package.json",
+      "newName": "@pkg-nec/create-jest",
+      "oldName": "create-jest",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/diff-sequences/package.json",
+      "newName": "@pkg-nec/jest-diff-sequences",
+      "oldName": "@jest/diff-sequences",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/expect-utils/package.json",
+      "newName": "@pkg-nec/jest-expect-utils",
+      "oldName": "@jest/expect-utils",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/expect/package.json",
+      "newName": "@pkg-nec/expect",
+      "oldName": "expect",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-changed-files/package.json",
+      "newName": "@pkg-nec/jest-changed-files",
+      "oldName": "jest-changed-files",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-circus/package.json",
+      "newName": "@pkg-nec/jest-circus",
+      "oldName": "jest-circus",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-cli/package.json",
+      "newName": "@pkg-nec/jest-cli",
+      "oldName": "jest-cli",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-config/package.json",
+      "newName": "@pkg-nec/jest-config",
+      "oldName": "jest-config",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-console/package.json",
+      "newName": "@pkg-nec/jest-console",
+      "oldName": "@jest/console",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-core/package.json",
+      "newName": "@pkg-nec/jest-core",
+      "oldName": "@jest/core",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-create-cache-key-function/package.json",
+      "newName": "@pkg-nec/jest-create-cache-key-function",
+      "oldName": "@jest/create-cache-key-function",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-diff/package.json",
+      "newName": "@pkg-nec/jest-diff",
+      "oldName": "jest-diff",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-docblock/package.json",
+      "newName": "@pkg-nec/jest-docblock",
+      "oldName": "jest-docblock",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-each/package.json",
+      "newName": "@pkg-nec/jest-each",
+      "oldName": "jest-each",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-environment-jsdom-abstract/package.json",
+      "newName": "@pkg-nec/jest-environment-jsdom-abstract",
+      "oldName": "@jest/environment-jsdom-abstract",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-environment-jsdom/package.json",
+      "newName": "@pkg-nec/jest-environment-jsdom",
+      "oldName": "jest-environment-jsdom",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-environment-node/package.json",
+      "newName": "@pkg-nec/jest-environment-node",
+      "oldName": "jest-environment-node",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-environment/package.json",
+      "newName": "@pkg-nec/jest-environment",
+      "oldName": "@jest/environment",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-expect/package.json",
+      "newName": "@pkg-nec/jest-expect",
+      "oldName": "@jest/expect",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-fake-timers/package.json",
+      "newName": "@pkg-nec/jest-fake-timers",
+      "oldName": "@jest/fake-timers",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-get-type/package.json",
+      "newName": "@pkg-nec/jest-get-type",
+      "oldName": "@jest/get-type",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-globals/package.json",
+      "newName": "@pkg-nec/jest-globals",
+      "oldName": "@jest/globals",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-haste-map/package.json",
+      "newName": "@pkg-nec/jest-haste-map",
+      "oldName": "jest-haste-map",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-jasmine2/package.json",
+      "newName": "@pkg-nec/jest-jasmine2",
+      "oldName": "jest-jasmine2",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-leak-detector/package.json",
+      "newName": "@pkg-nec/jest-leak-detector",
+      "oldName": "jest-leak-detector",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-matcher-utils/package.json",
+      "newName": "@pkg-nec/jest-matcher-utils",
+      "oldName": "jest-matcher-utils",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-message-util/package.json",
+      "newName": "@pkg-nec/jest-message-util",
+      "oldName": "jest-message-util",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-mock/package.json",
+      "newName": "@pkg-nec/jest-mock",
+      "oldName": "jest-mock",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-pattern/package.json",
+      "newName": "@pkg-nec/jest-pattern",
+      "oldName": "@jest/pattern",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-phabricator/package.json",
+      "newName": "@pkg-nec/jest-phabricator",
+      "oldName": "jest-phabricator",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-regex-util/package.json",
+      "newName": "@pkg-nec/jest-regex-util",
+      "oldName": "jest-regex-util",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-reporters/package.json",
+      "newName": "@pkg-nec/jest-reporters",
+      "oldName": "@jest/reporters",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-resolve-dependencies/package.json",
+      "newName": "@pkg-nec/jest-resolve-dependencies",
+      "oldName": "jest-resolve-dependencies",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-resolve/package.json",
+      "newName": "@pkg-nec/jest-resolve",
+      "oldName": "jest-resolve",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-runner/package.json",
+      "newName": "@pkg-nec/jest-runner",
+      "oldName": "jest-runner",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-runtime/package.json",
+      "newName": "@pkg-nec/jest-runtime",
+      "oldName": "jest-runtime",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-schemas/package.json",
+      "newName": "@pkg-nec/jest-schemas",
+      "oldName": "@jest/schemas",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-snapshot-utils/package.json",
+      "newName": "@pkg-nec/jest-snapshot-utils",
+      "oldName": "@jest/snapshot-utils",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-snapshot/package.json",
+      "newName": "@pkg-nec/jest-snapshot",
+      "oldName": "jest-snapshot",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-source-map/package.json",
+      "newName": "@pkg-nec/jest-source-map",
+      "oldName": "@jest/source-map",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-test-result/package.json",
+      "newName": "@pkg-nec/jest-test-result",
+      "oldName": "@jest/test-result",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-test-sequencer/package.json",
+      "newName": "@pkg-nec/jest-test-sequencer",
+      "oldName": "@jest/test-sequencer",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-transform/package.json",
+      "newName": "@pkg-nec/jest-transform",
+      "oldName": "@jest/transform",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-types/package.json",
+      "newName": "@pkg-nec/jest-types",
+      "oldName": "@jest/types",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-util/package.json",
+      "newName": "@pkg-nec/jest-util",
+      "oldName": "jest-util",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-validate/package.json",
+      "newName": "@pkg-nec/jest-validate",
+      "oldName": "jest-validate",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-watcher/package.json",
+      "newName": "@pkg-nec/jest-watcher",
+      "oldName": "jest-watcher",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest-worker/package.json",
+      "newName": "@pkg-nec/jest-worker",
+      "oldName": "jest-worker",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/jest/package.json",
+      "newName": "@pkg-nec/jest",
+      "oldName": "jest",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/pretty-format/package.json",
+      "newName": "@pkg-nec/pretty-format",
+      "oldName": "pretty-format",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/test-globals/package.json",
+      "newName": "@pkg-nec/jest-test-globals",
+      "oldName": "@jest/test-globals",
+      "publishable": true
+    },
+    {
+      "manifestPath": "packages/test-utils/package.json",
+      "newName": "@pkg-nec/jest-test-utils",
+      "oldName": "@jest/test-utils",
+      "publishable": true
+    }
+  ]
+}

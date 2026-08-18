@@ -11,16 +11,11 @@ import fs from 'graceful-fs';
 const excludedDirectories = new Set([
   '.git',
   '.superpowers',
+  '.worktrees',
   'build',
   'coverage',
   'dist',
   'node_modules',
-]);
-const excludedFiles = new Set([
-  'docs/pkg-nec-rebrand-technical-guide.md',
-  'docs/superpowers/plans/2026-08-12-pkg-nec-package-rebrand.md',
-  'docs/superpowers/specs/2026-08-12-pkg-nec-package-rebrand-design.md',
-  'scripts/pkgNec/upstreamManifestBaseline.json',
 ]);
 const moduleExtensions = new Set([
   '.cjs',
@@ -39,7 +34,10 @@ function isExcludedDirectory(relativePath, name) {
   return (
     excludedDirectories.has(name) ||
     normalizedPath(relativePath) === '.pkg-nec-release' ||
-    normalizedPath(relativePath) === '.yarn/cache'
+    normalizedPath(relativePath) === '.yarn/cache' ||
+    normalizedPath(relativePath) === '.yarn/releases' ||
+    normalizedPath(relativePath) === '.yarn/unplugged' ||
+    normalizedPath(relativePath) === 'docs/superpowers'
   );
 }
 
@@ -92,9 +90,7 @@ export function enumerateRepositoryFiles({repoRoot}) {
         }
         continue;
       }
-      if (!entry.isFile() || excludedFiles.has(normalizedPath(relativePath))) {
-        continue;
-      }
+      if (!entry.isFile()) continue;
 
       const category = classify(relativePath);
       if (category !== null) files.push({category, path: absolutePath});

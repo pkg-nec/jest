@@ -14,15 +14,12 @@ import {pathToFileURL} from 'node:url';
 
 test('defines the complete release preparation pipeline', () => {
   const rootManifest = require('../../package.json');
-  expect(rootManifest.scripts['check:pkg-nec-pack-parity']).toBe(
-    'node ./scripts/checkPkgNecPackParity.mjs',
-  );
   expect(rootManifest.scripts['prepare:pkg-nec-release']).toBe(
-    'yarn build-clean && yarn build && yarn publish:pkg-nec:dry && yarn check:pkg-nec-pack-parity',
+    'yarn build-clean && yarn build && node ./scripts/preparePkgNecRelease.mjs',
   );
 });
 
-test('keeps helper source and test files out of release packs', async () => {
+test('keeps affected package source and test files out of release packs', async () => {
   const expectedPolicy = [
     '**/__mocks__/**',
     '**/__tests__/**',
@@ -35,7 +32,7 @@ test('keeps helper source and test files out of release packs', async () => {
   ];
 
   const policies = await Promise.all(
-    ['test-globals', 'test-utils'].map(async packageName =>
+    ['jest-pattern', 'jest-snapshot-utils'].map(async packageName =>
       readFile(join(repoRoot, 'packages', packageName, '.npmignore'), 'utf8'),
     ),
   );
@@ -47,21 +44,11 @@ test('keeps helper source and test files out of release packs', async () => {
 });
 
 const repoRoot = process.cwd();
-const oldJestCore = ['@jest', 'core'].join('/');
-const identityModuleUrl = pathToFileURL(
-  join(repoRoot, 'scripts/pkgNecPackageIdentity.mjs'),
-).href;
 const graphModuleUrl = pathToFileURL(
   join(repoRoot, 'scripts/pkgNec/releaseGraph.mjs'),
 ).href;
-const registryModuleUrl = pathToFileURL(
-  join(repoRoot, 'scripts/pkgNec/registryVisibility.mjs'),
-).href;
-const registryCommandModuleUrl = pathToFileURL(
-  join(repoRoot, 'scripts/waitForPkgNecRegistry.mjs'),
-).href;
-const dryRunModuleUrl = pathToFileURL(
-  join(repoRoot, 'scripts/publishPkgNecDry.mjs'),
+const releaseModuleUrl = pathToFileURL(
+  join(repoRoot, 'scripts/preparePkgNecRelease.mjs'),
 ).href;
 
 function runModuleProgram(program) {
@@ -89,15 +76,34 @@ async function writeManifest(repo, directory, manifest) {
 
 function buildGraph(repo, expectedPackageCount) {
   return runModuleProgram(`
-    import {discoverPackageIdentities} from ${JSON.stringify(
-      identityModuleUrl,
-    )};
+    import fs from 'graceful-fs';
+    import path from 'node:path';
     import {buildRuntimeReleaseGraph} from ${JSON.stringify(graphModuleUrl)};
 
-    const inventory = discoverPackageIdentities({
-      expectedPackageCount: ${expectedPackageCount},
-      repoRoot: ${JSON.stringify(repo)},
-    });
+    const repo = ${JSON.stringify(repo)};
+    const packages = fs
+      .readdirSync(path.join(repo, 'packages'), {withFileTypes: true})
+      .filter(entry => entry.isDirectory())
+      .sort((left, right) => left.name.localeCompare(right.name))
+      .map(entry => {
+        const manifestPath = path.join(repo, 'packages', entry.name, 'package.json');
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+        return {
+          manifestPath,
+          newName: '@pkg-nec/' + manifest.name,
+          oldName: manifest.name,
+          publishable: manifest.private !== true,
+        };
+      });
+    if (packages.length !== ${expectedPackageCount}) {
+      throw new Error('Unexpected fixture package count');
+    }
+    const identities = packages;
+    const inventory = {
+      byNewName: new Map(identities.map(item => [item.newName, item])),
+      byOldName: new Map(identities.map(item => [item.oldName, item])),
+      packages,
+    };
 
     try {
       const graph = buildRuntimeReleaseGraph(inventory);
@@ -256,394 +262,98 @@ describe('pkg-nec runtime release graph', () => {
   });
 });
 
-describe('pkg-nec registry visibility', () => {
-  test('classifies transient registry failures as retryable', () => {
+describe('pkg-nec release preparation', () => {
+  test('accepts a changed version and third-party range from the workspace manifest', () => {
     const result = runModuleProgram(`
-      import {classifyRegistryError} from ${JSON.stringify(registryModuleUrl)};
+      import {inspectPackedManifest} from ${JSON.stringify(releaseModuleUrl)};
 
-      const cases = ${JSON.stringify([
-        {code: 'E404', message: 'package not found'},
-        {
-          code: 'ENOTFOUND',
-          message: 'getaddrinfo ENOTFOUND registry.npmjs.org',
-        },
-        {code: 'ETIMEDOUT', message: 'request timed out'},
-        {message: 'too many requests', statusCode: 429},
-        {code: 'ECONNRESET', message: 'socket hang up'},
-        {message: 'service unavailable', statusCode: 503},
-        {code: 'ABORT_ERR', message: 'query aborted', name: 'AbortError'},
-      ])};
-      const classifications = cases.map(item => {
-        const error = Object.assign(new Error(item.message), item);
-        return classifyRegistryError(error);
-      });
-      console.log(JSON.stringify(classifications));
-    `);
-
-    expect(result).toEqual(Array.from({length: 7}).fill('retryable'));
-  });
-
-  test('classifies authentication, authorization, and unknown failures as fatal', () => {
-    const result = runModuleProgram(`
-      import {classifyRegistryError} from ${JSON.stringify(registryModuleUrl)};
-
-      const cases = ${JSON.stringify([
-        {code: 'E401', message: 'authentication required'},
-        {code: 'E403', message: 'authorization denied'},
-        {code: 'EINVALIDTAGNAME', message: 'invalid package'},
-      ])};
-      console.log(JSON.stringify(cases.map(item =>
-        classifyRegistryError(Object.assign(new Error(item.message), item)),
-      )));
-    `);
-
-    expect(result).toEqual(['fatal', 'fatal', 'fatal']);
-  });
-
-  test('classifies realistic npm adapter text from stderr and stdout', () => {
-    const result = runModuleProgram(`
-      import {classifyRegistryError} from ${JSON.stringify(registryModuleUrl)};
-
-      const cases = ${JSON.stringify([
-        {stderr: 'npm error code E503'},
-        {stdout: 'npm error 503 Service Unavailable'},
-        {stderr: 'npm error code EAI_AGAIN'},
-        {stdout: 'npm error code ECONNRESET'},
-        {stderr: 'npm error 429 Too Many Requests'},
-        {stderr: 'npm error code E401'},
-        {stdout: 'npm error code E403'},
-        {stderr: 'npm error Authentication token rejected'},
-      ])};
-      console.log(JSON.stringify(cases.map(item =>
-        classifyRegistryError(Object.assign(new Error('Command failed'), item)),
-      )));
-    `);
-
-    expect(result).toEqual([
-      'retryable',
-      'retryable',
-      'retryable',
-      'retryable',
-      'retryable',
-      'fatal',
-      'fatal',
-      'fatal',
-    ]);
-  });
-
-  test('retries transient failures with exact npm view arguments and returns evidence', () => {
-    const result = runModuleProgram(`
-      import {waitForExactVersion} from ${JSON.stringify(registryModuleUrl)};
-
-      const failures = [
-        {code: 'E404', message: 'not found'},
-        {code: 'ENOTFOUND', message: 'dns'},
-        {code: 'ETIMEDOUT', message: 'timeout'},
-        {statusCode: 429, message: 'rate limit'},
-        {code: 'ECONNRESET', message: 'connection'},
-        {statusCode: 502, message: 'bad gateway'},
-      ];
-      const calls = [];
-      let clock = 100;
-      const query = async (args, {signal}) => {
-        calls.push({args, hasSignal: signal instanceof AbortSignal});
-        const failure = failures.shift();
-        if (failure) throw Object.assign(new Error(failure.message), failure);
-        return {
-          dist: {integrity: 'sha512-registry-integrity'},
-          name: '@pkg-nec/jest',
-          version: '30.4.2',
-        };
-      };
-      const evidence = await waitForExactVersion({
-        deadlineMs: 100,
-        intervalMs: 10,
-        name: '@pkg-nec/jest',
-        now: () => clock,
-        query,
-        queryTimeoutMs: 25,
-        sleep: async milliseconds => {clock += milliseconds;},
-        version: '30.4.2',
-      });
-      console.log(JSON.stringify({calls, evidence}));
-    `);
-
-    expect(result.evidence).toEqual({
-      attempts: 7,
-      elapsedMs: 60,
-      integrity: 'sha512-registry-integrity',
-      name: '@pkg-nec/jest',
-      version: '30.4.2',
-    });
-    expect(result.calls).toEqual(
-      Array.from({length: 7}).fill({
-        args: ['view', '@pkg-nec/jest@30.4.2', '--json'],
-        hasSignal: true,
-      }),
-    );
-  });
-
-  test('aborts an overlong query and retries it', () => {
-    const result = runModuleProgram(`
-      import {waitForExactVersion} from ${JSON.stringify(registryModuleUrl)};
-
-      let attempts = 0;
-      let clock = 0;
-      const evidence = await waitForExactVersion({
-        deadlineMs: 50,
-        intervalMs: 3,
-        name: '@pkg-nec/jest-core',
-        now: () => clock,
-        query: async (_args, {signal}) => {
-          attempts += 1;
-          if (attempts > 1) {
-            return {
-              dist: {integrity: 'sha512-after-timeout'},
-              name: '@pkg-nec/jest-core',
-              version: '30.4.2',
-            };
-          }
-          return new Promise((_resolve, reject) => {
-            const inFlightQuery = setTimeout(() => {}, 50);
-            signal.addEventListener('abort', () => {
-              clearTimeout(inFlightQuery);
-              reject(Object.assign(new Error('query aborted'), {
-                code: 'ABORT_ERR',
-                name: 'AbortError',
-              }));
-            }, {once: true});
-          });
-        },
-        queryTimeoutMs: 5,
-        sleep: async milliseconds => {clock += milliseconds;},
-        version: '30.4.2',
-      });
-      console.log(JSON.stringify({attempts, evidence}));
-    `);
-
-    expect(result).toEqual({
-      attempts: 2,
-      evidence: {
-        attempts: 2,
-        elapsedMs: 3,
-        integrity: 'sha512-after-timeout',
-        name: '@pkg-nec/jest-core',
-        version: '30.4.2',
-      },
-    });
-  });
-
-  test('fails immediately on authorization errors and redacts credentials', () => {
-    const result = runModuleProgram(`
-      import {waitForExactVersion} from ${JSON.stringify(registryModuleUrl)};
-
-      let sleeps = 0;
-      try {
-        await waitForExactVersion({
-          name: '@pkg-nec/jest',
-          query: async () => {
-            throw Object.assign(
-              new Error('authorization: Bearer npm_secret123 _authToken=npm_other456'),
-              {code: 'E403'},
-            );
-          },
-          sleep: async () => {sleeps += 1;},
-          version: '30.4.2',
-        });
-      } catch (error) {
-        console.log(JSON.stringify({
-          attempts: error.attempts,
-          classification: error.classification,
-          message: error.message,
-          sleeps,
-        }));
-      }
-    `);
-
-    expect(result.classification).toBe('fatal');
-    expect(result.attempts).toBe(1);
-    expect(result.sleeps).toBe(0);
-    expect(result.message).toContain('@pkg-nec/jest@30.4.2');
-    expect(result.message).not.toContain('npm_secret123');
-    expect(result.message).not.toContain('npm_other456');
-  });
-
-  test('reports bounded deadline evidence without leaking the last error', () => {
-    const result = runModuleProgram(`
-      import {waitForExactVersion} from ${JSON.stringify(registryModuleUrl)};
-
-      let clock = 0;
-      try {
-        await waitForExactVersion({
-          deadlineMs: 20,
-          intervalMs: 10,
-          name: '@pkg-nec/jest-cli',
-          now: () => clock,
-          query: async () => {
-            throw Object.assign(
-              new Error('registry token npm_deadlineSecret'),
-              {code: 'ENOTFOUND'},
-            );
-          },
-          sleep: async milliseconds => {clock += milliseconds;},
-          version: '30.4.2',
-        });
-      } catch (error) {
-        console.log(JSON.stringify({
-          attempts: error.attempts,
-          classification: error.classification,
-          elapsedMs: error.elapsedMs,
-          message: error.message,
-        }));
-      }
-    `);
-
-    expect(result).toEqual(
-      expect.objectContaining({
-        attempts: 2,
-        classification: 'retryable',
-        elapsedMs: 20,
-      }),
-    );
-    expect(result.message).toContain('@pkg-nec/jest-cli@30.4.2');
-    expect(result.message).toContain('last error class: ENOTFOUND');
-    expect(result.message).toContain('2 attempts');
-    expect(result.message).not.toContain('npm_deadlineSecret');
-  });
-});
-
-describe('pkg-nec registry visibility command', () => {
-  test('accepts one exact canonical version and prints terminal evidence', () => {
-    const result = runModuleProgram(`
-      import {runRegistryVisibilityCommand} from ${JSON.stringify(
-        registryCommandModuleUrl,
-      )};
-
-      const lines = [];
-      const evidence = await runRegistryVisibilityCommand({
-        args: ['@pkg-nec/jest@30.4.2'],
-        now: () => 25,
-        query: async () => ({
-          dist: {integrity: 'sha512-cli-integrity'},
-          name: '@pkg-nec/jest',
-          version: '30.4.2',
-        }),
-        sleep: async () => {},
-        write: line => lines.push(line),
-      });
-      console.log(JSON.stringify({evidence, lines}));
-    `);
-
-    expect(result).toEqual({
-      evidence: {
-        attempts: 1,
-        elapsedMs: 0,
-        integrity: 'sha512-cli-integrity',
-        name: '@pkg-nec/jest',
-        version: '30.4.2',
-      },
-      lines: [
-        'package=@pkg-nec/jest',
-        'version=30.4.2',
-        'attempts=1',
-        'elapsedMs=0',
-        'integrity=sha512-cli-integrity',
-        'classification=visible',
-      ],
-    });
-  });
-
-  test('rejects missing, extra, noncanonical, and nonexact positional values', () => {
-    const result = runModuleProgram(`
-      import {runRegistryVisibilityCommand} from ${JSON.stringify(
-        registryCommandModuleUrl,
-      )};
-
-      const cases = [
-        [],
-        ['@pkg-nec/jest@30.4.2', 'extra'],
-        ['@jest/core@30.4.2'],
-        ['@pkg-nec/jest@^30.4.2'],
-      ];
-      const messages = [];
-      for (const args of cases) {
-        try {
-          await runRegistryVisibilityCommand({
-            args,
-            query: async () => {throw new Error('query must not run');},
-          });
-        } catch (error) {
-          messages.push(error.message);
-        }
-      }
-      console.log(JSON.stringify(messages));
-    `);
-
-    expect(result).toHaveLength(4);
-    expect(result).toEqual(
-      Array.from({length: 4}).fill(
-        'Usage: yarn check:pkg-nec-registry "@pkg-nec/name@version"',
-      ),
-    );
-  });
-});
-
-describe('pkg-nec publish-readiness packing', () => {
-  test('rejects packed identity, preservation, access, and dependency violations', () => {
-    const result = runModuleProgram(`
-      import {inspectPackedManifest} from ${JSON.stringify(dryRunModuleUrl)};
-
-      const baseline = {
-        'packages/jest-core/package.json': {
-          name: '@jest/core',
-          private: false,
-          version: '30.4.2',
-        },
-        'packages/jest/package.json': {
-          dependencies: {
-            [${JSON.stringify(oldJestCore)}]: 'workspace:*',
-            'import-local': '^3.2.0',
-          },
-          name: 'jest',
-          private: false,
-          version: '30.4.2',
-        },
-        'packages/jest-util/package.json': {
-          name: 'jest-util',
-          private: false,
-          version: '30.4.2',
-        },
+      const target = {
+        newName: '@pkg-nec/jest-core',
+        version: '31.0.0-security.2',
       };
       const workspace = {
-        newName: '@pkg-nec/jest',
-        oldName: 'jest',
+        newName: '@pkg-nec/example',
         publishable: true,
-        version: '30.4.2',
+        version: '31.0.0-security.1',
+      };
+      const inventory = {
+        byNewName: new Map([
+          [target.newName, target],
+          [workspace.newName, workspace],
+        ]),
+      };
+      const workspaceManifest = {
+        dependencies: {
+          '@pkg-nec/jest-core': 'workspace:*',
+          chalk: '^5.0.0',
+        },
+        name: '@pkg-nec/example',
+        version: '31.0.0-security.1',
       };
       const validManifest = {
         dependencies: {
-          '@pkg-nec/jest-core': '30.4.2',
-          'import-local': '^3.2.0',
+          '@pkg-nec/jest-core': '=31.0.0-security.2',
+          chalk: '^5.0.0',
         },
-        name: '@pkg-nec/jest',
-        publishConfig: {access: 'public'},
-        version: '30.4.2',
+        name: '@pkg-nec/example',
+        version: '31.0.0-security.1',
+      };
+
+      inspectPackedManifest({
+        inventory,
+        manifest: validManifest,
+        workspace,
+        workspaceManifest,
+      });
+      console.log(JSON.stringify({accepted: true}));
+    `);
+
+    expect(result).toEqual({accepted: true});
+  });
+
+  test('rejects packed values that differ from current source manifests', () => {
+    const result = runModuleProgram(`
+      import {inspectPackedManifest} from ${JSON.stringify(releaseModuleUrl)};
+
+      const target = {
+        newName: '@pkg-nec/jest-core',
+        version: '31.0.0-security.2',
+      };
+      const workspace = {
+        newName: '@pkg-nec/example',
+        publishable: true,
+        version: '31.0.0-security.1',
+      };
+      const inventory = {
+        byNewName: new Map([
+          [target.newName, target],
+          [workspace.newName, workspace],
+        ]),
+      };
+      const workspaceManifest = {
+        dependencies: {
+          '@pkg-nec/jest-core': 'workspace:*',
+          chalk: '^5.0.0',
+        },
+        name: '@pkg-nec/example',
+        version: '31.0.0-security.1',
+      };
+      const validManifest = {
+        dependencies: {
+          '@pkg-nec/jest-core': '31.0.0-security.2',
+          chalk: '^5.0.0',
+        },
+        name: '@pkg-nec/example',
+        version: '31.0.0-security.1',
       };
       const cases = [
-        {...validManifest, name: 'jest'},
+        {...validManifest, name: '@pkg-nec/other'},
         {...validManifest, version: '99.0.0'},
         {
           ...validManifest,
           dependencies: {
             ...validManifest.dependencies,
-            'import-local': '^99.0.0',
-          },
-        },
-        {
-          ...validManifest,
-          dependencies: {
-            ...validManifest.dependencies,
-            '@pkg-nec/missing': '30.4.2',
+            chalk: '^4.0.0',
           },
         },
         {
@@ -654,89 +364,59 @@ describe('pkg-nec publish-readiness packing', () => {
           },
         },
         {...validManifest, private: true},
-        {...validManifest, publishConfig: undefined},
         {
           ...validManifest,
           dependencies: {
             ...validManifest.dependencies,
-            'import-local': 'link:../import-local',
-          },
-        },
-        {
-          ...validManifest,
-          dependencies: {
-            [${JSON.stringify(oldJestCore)}]: '30.4.2',
-            'import-local': '^3.2.0',
-          },
-        },
-        {
-          ...validManifest,
-          peerDependenciesMeta: {
-            'import-local': {optional: 'link:../import-local'},
+            chalk: 'file:../chalk',
           },
         },
         {
           ...validManifest,
           dependencies: {
             ...validManifest.dependencies,
-            'left-pad': '^1.0.0',
+            chalk: 'link:../chalk',
           },
         },
         {
           ...validManifest,
           dependencies: {
             ...validManifest.dependencies,
-            '@pkg-nec/jest-util': '30.4.2',
-          },
-        },
-        {
-          ...validManifest,
-          dependencies: {
-            ...validManifest.dependencies,
-            'core-alias': 'npm:@pkg-nec/jest-core@30.4.2',
-          },
-        },
-        {
-          ...validManifest,
-          dependencies: {
-            ...validManifest.dependencies,
-            'import-local': 'npm:@jest/core@30.4.2',
+            chalk: 'workspace:*',
           },
         },
       ];
       const messages = cases.map(manifest => {
         try {
-          inspectPackedManifest({baseline, manifest, workspace});
+          inspectPackedManifest({
+            inventory,
+            manifest,
+            workspace,
+            workspaceManifest,
+          });
           return null;
         } catch (error) {
           return error.message;
         }
       });
-      inspectPackedManifest({baseline, manifest: validManifest, workspace});
       console.log(JSON.stringify(messages));
     `);
 
     expect(result).toEqual([
-      expect.stringMatching(/old name|name changed/i),
+      expect.stringMatching(/name changed/i),
       expect.stringMatching(/version changed/i),
-      expect.stringMatching(/third-party range changed/i),
-      expect.stringMatching(/unresolved internal dependency/i),
-      expect.stringMatching(/internal dependency version/i),
+      expect.stringMatching(/dependencies\.chalk/i),
+      expect.stringMatching(/dependencies\.@pkg-nec\/jest-core/i),
       expect.stringMatching(/private/i),
-      expect.stringMatching(/public access/i),
-      expect.stringMatching(/link:/i),
-      expect.stringMatching(/old name/i),
-      expect.stringMatching(/link:/i),
-      expect.stringMatching(/unexpected dependency/i),
-      expect.stringMatching(/unexpected dependency/i),
-      expect.stringMatching(/unexpected dependency|alias/i),
-      expect.stringMatching(/old name|alias/i),
+      expect.stringMatching(/dependencies\.chalk/i),
+      expect.stringMatching(/dependencies\.chalk/i),
+      expect.stringMatching(/dependencies\.chalk/i),
     ]);
   });
 
-  test('creates a dependency-ordered ledger with SHA-512 SRI', () => {
+  test('creates a versioned ledger tied to source', () => {
     const result = runModuleProgram(`
-      import {createReleaseLedger} from ${JSON.stringify(dryRunModuleUrl)};
+      import {createReleaseLedger} from ${JSON.stringify(releaseModuleUrl)};
 
       const order = ['@pkg-nec/jest-core', '@pkg-nec/jest'];
       const artifacts = [
@@ -757,16 +437,29 @@ describe('pkg-nec publish-readiness packing', () => {
           version: '30.4.2',
         },
       ];
-      console.log(JSON.stringify(createReleaseLedger({artifacts, order})));
+      console.log(JSON.stringify(createReleaseLedger({
+        artifacts,
+        generatedAt: '2026-08-18T00:00:00.000Z',
+        nodeVersion: 'v22.23.1',
+        order,
+        packageManager: 'yarn@4.18.0',
+        sourceCommit: '0123456789abcdef',
+      })));
     `);
 
-    expect(result.generatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(result).toMatchObject({
+      generatedAt: '2026-08-18T00:00:00.000Z',
+      nodeVersion: 'v22.23.1',
+      packageManager: 'yarn@4.18.0',
+      schemaVersion: 1,
+      sourceCommit: '0123456789abcdef',
+    });
     expect(result.packages).toEqual([
       {
         files: ['package.json'],
         integrity: 'sha512-prerequisite',
         name: '@pkg-nec/jest-core',
-        order: 0,
+        order: 1,
         prerequisites: [],
         tarball: 'pkg-nec-jest-core-30.4.2.tgz',
         version: '30.4.2',
@@ -775,12 +468,76 @@ describe('pkg-nec publish-readiness packing', () => {
         files: ['package.json'],
         integrity: 'sha512-consumer',
         name: '@pkg-nec/jest',
-        order: 1,
+        order: 2,
         prerequisites: ['@pkg-nec/jest-core'],
         tarball: 'pkg-nec-jest-30.4.2.tgz',
         version: '30.4.2',
       },
     ]);
+  });
+
+  test('rejects duplicate prepared artifact names before ordering', () => {
+    const result = runModuleProgram(`
+      import {createReleaseLedger} from ${JSON.stringify(releaseModuleUrl)};
+
+      const artifact = {
+        files: ['package.json'],
+        integrity: 'sha512-example',
+        name: '@pkg-nec/example',
+        prerequisites: [],
+        tarball: 'pkg-nec-example-1.0.0.tgz',
+        version: '1.0.0',
+      };
+      let message = 'accepted';
+      try {
+        createReleaseLedger({
+          artifacts: [artifact, {...artifact}],
+          generatedAt: '2026-08-18T00:00:00.000Z',
+          nodeVersion: 'v22.23.1',
+          order: ['@pkg-nec/example'],
+          packageManager: 'yarn@4.18.0',
+          sourceCommit: '0123456789abcdef',
+        });
+      } catch (error) {
+        message = error.message;
+      }
+      console.log(JSON.stringify(message));
+    `);
+
+    expect(result).toBe('Duplicate prepared artifact: @pkg-nec/example');
+  });
+
+  test('rejects a prepared artifact without SHA-512 integrity', () => {
+    const result = runModuleProgram(`
+      import {createReleaseLedger} from ${JSON.stringify(releaseModuleUrl)};
+
+      const artifact = {
+        files: ['package.json'],
+        integrity: 'sha256-example',
+        name: '@pkg-nec/example',
+        prerequisites: [],
+        tarball: 'pkg-nec-example-1.0.0.tgz',
+        version: '1.0.0',
+      };
+      let message = 'accepted';
+      try {
+        createReleaseLedger({
+          artifacts: [artifact],
+          generatedAt: '2026-08-18T00:00:00.000Z',
+          nodeVersion: 'v22.23.1',
+          order: ['@pkg-nec/example'],
+          packageManager: 'yarn@4.18.0',
+          sourceCommit: '0123456789abcdef',
+        });
+      } catch (error) {
+        message = error.message;
+      }
+      console.log(JSON.stringify(message));
+    `);
+
+    expect(result).toBe(
+      'Invalid prepared artifact integrity for @pkg-nec/example',
+    );
   });
 
   test('packs fixtures with exact Yarn arguments and writes reviewed ledgers safely', async () => {
@@ -790,7 +547,7 @@ describe('pkg-nec publish-readiness packing', () => {
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
-        import {runPublishDryCommand} from ${JSON.stringify(dryRunModuleUrl)};
+        import {runPrepareReleaseCommand} from ${JSON.stringify(releaseModuleUrl)};
 
         const repoRoot = ${JSON.stringify(temporaryRepo)};
         const outputDirectory = path.join(repoRoot, '.pkg-nec-release');
@@ -802,22 +559,6 @@ describe('pkg-nec publish-readiness packing', () => {
         fs.mkdirSync(outputDirectory, {recursive: true});
         fs.writeFileSync(path.join(outputDirectory, 'stale.tgz'), 'stale');
         fs.writeFileSync(licensePath, 'root license');
-        const baseline = {
-          'packages/jest-core/package.json': {
-            name: '@jest/core',
-            private: false,
-            version: '30.4.2',
-          },
-          'packages/jest/package.json': {
-            dependencies: {
-              [${JSON.stringify(oldJestCore)}]: 'workspace:*',
-              'import-local': '^3.2.0',
-            },
-            name: 'jest',
-            private: false,
-            version: '30.4.2',
-          },
-        };
         const packages = [
           {
             directory: path.join(repoRoot, 'packages/jest-core'),
@@ -836,6 +577,31 @@ describe('pkg-nec publish-readiness packing', () => {
             version: '30.4.2',
           },
         ];
+        fs.writeFileSync(
+          path.join(repoRoot, 'package.json'),
+          JSON.stringify({packageManager: 'yarn@4.18.0'}),
+        );
+        for (const workspace of packages) {
+          fs.mkdirSync(workspace.directory, {recursive: true});
+          fs.writeFileSync(
+            workspace.manifestPath,
+            JSON.stringify(
+              workspace.newName === '@pkg-nec/jest'
+                ? {
+                    dependencies: {
+                      '@pkg-nec/jest-core': 'workspace:*',
+                      'import-local': '^3.2.0',
+                    },
+                    name: workspace.newName,
+                    version: workspace.version,
+                  }
+                : {
+                    name: workspace.newName,
+                    version: workspace.version,
+                  },
+            ),
+          );
+        }
         const root = {
           directory: repoRoot,
           manifestPath: path.join(repoRoot, 'package.json'),
@@ -857,9 +623,8 @@ describe('pkg-nec publish-readiness packing', () => {
         ]);
         const calls = [];
         const repackCalls = [];
-        const ledger = await runPublishDryCommand({
+        const ledger = await runPrepareReleaseCommand({
           audit: () => [],
-          baseline,
           buildGraph: () => graph,
           inspectTarball: async tarballPath => {
             const final = fs.readFileSync(tarballPath, 'utf8').startsWith('final-');
@@ -892,6 +657,7 @@ describe('pkg-nec publish-readiness packing', () => {
             fs.mkdirSync(stagingDirectory);
             return stagingDirectory;
           },
+          readSourceCommit: async () => '0123456789abcdef',
           repoRoot,
           repackTarball: async ({
             finalTarballPath,
@@ -989,6 +755,12 @@ describe('pkg-nec publish-readiness packing', () => {
       ]);
       expect(result.staleExists).toBe(false);
       expect(result.ledger).toEqual(result.jsonLedger);
+      expect(result.ledger).toMatchObject({
+        nodeVersion: process.version,
+        packageManager: 'yarn@4.18.0',
+        schemaVersion: 1,
+        sourceCommit: '0123456789abcdef',
+      });
       expect(result.ledger.packages[0].tarball).toBe(
         '.pkg-nec-release/pkg-nec-jest-core-30.4.2.tgz',
       );
@@ -998,7 +770,7 @@ describe('pkg-nec publish-readiness packing', () => {
       ]);
       expect(result.ledger.packages[0]).toEqual(
         expect.objectContaining({
-          files: ['a.js', 'LICENSE', 'package.json', 'z.js'],
+          files: ['LICENSE', 'a.js', 'package.json', 'z.js'],
           integrity: `sha512-${createHash('sha512')
             .update('final-archive-jest-core')
             .digest('base64')}`,
@@ -1006,7 +778,7 @@ describe('pkg-nec publish-readiness packing', () => {
         }),
       );
       expect(result.markdownLedger).toContain(
-        '| 1 | @pkg-nec/jest | 30.4.2 | @pkg-nec/jest-core |',
+        '| 2 | @pkg-nec/jest | 30.4.2 | @pkg-nec/jest-core |',
       );
     } finally {
       await rm(temporaryRepo, {force: true, recursive: true});
@@ -1020,7 +792,7 @@ describe('pkg-nec publish-readiness packing', () => {
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
-        import {runPublishDryCommand} from ${JSON.stringify(dryRunModuleUrl)};
+        import {runPrepareReleaseCommand} from ${JSON.stringify(releaseModuleUrl)};
 
         const repoRoot = ${JSON.stringify(temporaryRepo)};
         const stagingDirectory = path.join(repoRoot, '.pkg-nec-release-stage-drift');
@@ -1039,19 +811,16 @@ describe('pkg-nec publish-readiness packing', () => {
           packages: [workspace],
           root: null,
         };
-        const baseline = {
-          'packages/jest-core/package.json': {
-            name: '@jest/core',
-            private: false,
-            version: '1.0.0',
-          },
-        };
+        fs.mkdirSync(workspace.directory, {recursive: true});
+        fs.writeFileSync(
+          workspace.manifestPath,
+          JSON.stringify({name: packageName, version: '1.0.0'}),
+        );
         fs.writeFileSync(path.join(repoRoot, 'LICENSE'), 'license');
         let message;
         try {
-          await runPublishDryCommand({
+          await runPrepareReleaseCommand({
             audit: () => [],
-            baseline,
             buildGraph: () => new Map([[packageName, new Set()]]),
             inspectTarball: async tarballPath => ({
               files: tarballPath.includes('.raw-')
@@ -1106,7 +875,7 @@ describe('pkg-nec publish-readiness packing', () => {
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
-        import {runPublishDryCommand} from ${JSON.stringify(dryRunModuleUrl)};
+        import {runPrepareReleaseCommand} from ${JSON.stringify(releaseModuleUrl)};
 
         const repoRoot = ${JSON.stringify(temporaryRepo)};
         const outputDirectory = path.join(repoRoot, '.pkg-nec-release');
@@ -1126,20 +895,18 @@ describe('pkg-nec publish-readiness packing', () => {
           packages: [workspace],
           root: null,
         };
+        fs.mkdirSync(workspace.directory, {recursive: true});
+        fs.writeFileSync(
+          workspace.manifestPath,
+          JSON.stringify({name: packageName, version: '1.0.0'}),
+        );
         fs.mkdirSync(outputDirectory);
         fs.writeFileSync(path.join(outputDirectory, 'previous.tgz'), 'previous');
         fs.writeFileSync(path.join(repoRoot, 'LICENSE'), 'license');
         let message;
         try {
-          await runPublishDryCommand({
+          await runPrepareReleaseCommand({
             audit: () => [],
-            baseline: {
-              'packages/jest-core/package.json': {
-                name: '@jest/core',
-                private: false,
-                version: '1.0.0',
-              },
-            },
             buildGraph: () => new Map([[packageName, new Set()]]),
             inspectTarball: async () => ({
               files: ['package/package.json'],
@@ -1195,7 +962,7 @@ describe('pkg-nec publish-readiness packing', () => {
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
-        import {runPublishDryCommand} from ${JSON.stringify(dryRunModuleUrl)};
+        import {runPrepareReleaseCommand} from ${JSON.stringify(releaseModuleUrl)};
 
         const repoRoot = ${JSON.stringify(temporaryRepo)};
         const stagingDirectory = path.join(repoRoot, '.pkg-nec-release-stage-cleanup');
@@ -1214,6 +981,11 @@ describe('pkg-nec publish-readiness packing', () => {
           packages: [workspace],
           root: null,
         };
+        fs.mkdirSync(workspace.directory, {recursive: true});
+        fs.writeFileSync(
+          workspace.manifestPath,
+          JSON.stringify({name: packageName, version: '1.0.0'}),
+        );
         const rm = fs.promises.rm;
         fs.promises.rm = async (target, options) => {
           if (path.resolve(target) === path.resolve(stagingDirectory)) {
@@ -1224,15 +996,8 @@ describe('pkg-nec publish-readiness packing', () => {
         fs.mkdirSync(stagingDirectory);
         let message;
         try {
-          await runPublishDryCommand({
+          await runPrepareReleaseCommand({
             audit: () => [],
-            baseline: {
-              'packages/jest-core/package.json': {
-                name: '@jest/core',
-                private: false,
-                version: '1.0.0',
-              },
-            },
             buildGraph: () => new Map([[packageName, new Set()]]),
             inspectTarball: async () => ({
               files: ['package/package.json'],
@@ -1268,6 +1033,98 @@ describe('pkg-nec publish-readiness packing', () => {
     }
   });
 
+  test('preserves promotion failure diagnostics when rollback also fails', async () => {
+    const temporaryRepo = await mkdtemp(
+      join(tmpdir(), 'pkg-nec-promotion-fail-'),
+    );
+
+    try {
+      const result = runModuleProgram(`
+        import path from 'node:path';
+        import fs from 'graceful-fs';
+        import {runPrepareReleaseCommand} from ${JSON.stringify(releaseModuleUrl)};
+
+        const repoRoot = ${JSON.stringify(temporaryRepo)};
+        const outputDirectory = path.join(repoRoot, '.pkg-nec-release');
+        const stagingDirectory = path.join(
+          repoRoot,
+          '.pkg-nec-release-stage-promotion',
+        );
+        fs.writeFileSync(
+          path.join(repoRoot, 'package.json'),
+          JSON.stringify({packageManager: 'yarn@4.18.0'}),
+        );
+        fs.mkdirSync(outputDirectory);
+        fs.writeFileSync(path.join(outputDirectory, 'previous.txt'), 'previous');
+
+        const rename = fs.promises.rename;
+        let backupPath;
+        let renameCalls = 0;
+        fs.promises.rename = async (source, target) => {
+          renameCalls += 1;
+          if (renameCalls === 1) {
+            backupPath = target;
+            return rename(source, target);
+          }
+          if (renameCalls === 2) throw new Error('promotion failed');
+          if (renameCalls === 3) throw new Error('rollback failed');
+          return rename(source, target);
+        };
+
+        let diagnostics;
+        try {
+          await runPrepareReleaseCommand({
+            audit: () => [],
+            buildGraph: () => new Map(),
+            inventory: {
+              byNewName: new Map(),
+              byOldName: new Map(),
+              packages: [],
+              root: null,
+            },
+            makeStagingDirectory: async () => {
+              fs.mkdirSync(stagingDirectory);
+              return stagingDirectory;
+            },
+            orderGraph: () => [],
+            readSourceCommit: async () => '0123456789abcdef',
+            repoRoot,
+            write: () => {},
+          });
+        } catch (error) {
+          diagnostics = {
+            backupPathMatches: error.backupPath === backupPath,
+            message: error.message,
+            rollbackMessage: error.rollbackError?.message ?? null,
+          };
+        } finally {
+          fs.promises.rename = rename;
+        }
+
+        console.log(JSON.stringify({
+          ...diagnostics,
+          backupContents: fs.readFileSync(
+            path.join(backupPath, 'previous.txt'),
+            'utf8',
+          ),
+          backupExists: fs.existsSync(backupPath),
+          stagingExists: fs.existsSync(stagingDirectory),
+        }));
+      `);
+
+      expect(result).toEqual({
+        backupContents: 'previous',
+        backupExists: true,
+        backupPathMatches: true,
+        message: 'promotion failed',
+        rollbackMessage: 'rollback failed',
+        stagingExists: false,
+      });
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+
   test('refuses root and outside output paths before removing files', async () => {
     const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-pack-safe-'));
 
@@ -1275,7 +1132,7 @@ describe('pkg-nec publish-readiness packing', () => {
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
-        import {runPublishDryCommand} from ${JSON.stringify(dryRunModuleUrl)};
+        import {runPrepareReleaseCommand} from ${JSON.stringify(releaseModuleUrl)};
 
         const repoRoot = ${JSON.stringify(temporaryRepo)};
         const marker = path.join(repoRoot, 'keep.txt');
@@ -1297,7 +1154,7 @@ describe('pkg-nec publish-readiness packing', () => {
           },
         ]) {
           try {
-            await runPublishDryCommand(options);
+            await runPrepareReleaseCommand(options);
           } catch (error) {
             messages.push(error.message);
           }
@@ -1329,7 +1186,7 @@ describe('pkg-nec publish-readiness packing', () => {
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
-        import {runPublishDryCommand} from ${JSON.stringify(dryRunModuleUrl)};
+        import {runPrepareReleaseCommand} from ${JSON.stringify(releaseModuleUrl)};
 
         const repoRoot = ${JSON.stringify(temporaryRepo)};
         const outsideDirectory = ${JSON.stringify(outsideDirectory)};
@@ -1349,7 +1206,7 @@ describe('pkg-nec publish-readiness packing', () => {
         }
         if (supported) {
           try {
-            await runPublishDryCommand({outputDirectory, repoRoot});
+            await runPrepareReleaseCommand({outputDirectory, repoRoot});
           } catch (error) {
             message = error.message;
           }
@@ -1381,7 +1238,7 @@ describe('pkg-nec publish-readiness packing', () => {
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
-        import {runPublishDryCommand} from ${JSON.stringify(dryRunModuleUrl)};
+        import {runPrepareReleaseCommand} from ${JSON.stringify(releaseModuleUrl)};
 
         const repoRoot = ${JSON.stringify(temporaryRepo)};
         const outsideDirectory = ${JSON.stringify(outsideDirectory)};
@@ -1389,9 +1246,8 @@ describe('pkg-nec publish-readiness packing', () => {
         fs.writeFileSync(marker, 'keep');
         let message;
         try {
-          await runPublishDryCommand({
+          await runPrepareReleaseCommand({
             audit: () => [],
-            baseline: {},
             buildGraph: () => new Map(),
             inventory: {
               byNewName: new Map(),
@@ -1429,22 +1285,9 @@ describe('pkg-nec publish-readiness packing', () => {
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
-        import {runPublishDryCommand} from ${JSON.stringify(dryRunModuleUrl)};
+        import {runPrepareReleaseCommand} from ${JSON.stringify(releaseModuleUrl)};
 
         const repoRoot = ${JSON.stringify(temporaryRepo)};
-        const baseline = {
-          'packages/jest-core/package.json': {
-            name: '@jest/core',
-            private: false,
-            version: '30.4.2',
-          },
-          'packages/jest/package.json': {
-            dependencies: {[${JSON.stringify(oldJestCore)}]: 'workspace:*'},
-            name: 'jest',
-            private: false,
-            version: '30.4.2',
-          },
-        };
         const packages = [
           ['@jest/core', '@pkg-nec/jest-core', 'jest-core'],
           ['jest', '@pkg-nec/jest', 'jest'],
@@ -1476,6 +1319,28 @@ describe('pkg-nec publish-readiness packing', () => {
           packages,
           root,
         };
+        fs.writeFileSync(
+          path.join(repoRoot, 'package.json'),
+          JSON.stringify({packageManager: 'yarn@4.18.0'}),
+        );
+        for (const workspace of packages) {
+          fs.mkdirSync(workspace.directory, {recursive: true});
+          fs.writeFileSync(
+            workspace.manifestPath,
+            JSON.stringify(
+              workspace.newName === '@pkg-nec/jest'
+                ? {
+                    dependencies: {'@pkg-nec/jest-core': 'workspace:*'},
+                    name: workspace.newName,
+                    version: workspace.version,
+                  }
+                : {
+                    name: workspace.newName,
+                    version: workspace.version,
+                  },
+            ),
+          );
+        }
         const graph = new Map([
           ['@pkg-nec/jest', new Set(['@pkg-nec/jest-core'])],
           ['@pkg-nec/jest-core', new Set()],
@@ -1494,9 +1359,8 @@ describe('pkg-nec publish-readiness packing', () => {
           let ledgerWrites = 0;
           let message;
           try {
-            await runPublishDryCommand({
+            await runPrepareReleaseCommand({
               audit: () => [],
-              baseline,
               buildGraph: () => graph,
               inspectTarball: async tarballPath => ({
                 files: [
@@ -1521,6 +1385,7 @@ describe('pkg-nec publish-readiness packing', () => {
                 fs.mkdirSync(stagingDirectory);
                 return stagingDirectory;
               },
+              readSourceCommit: async () => '0123456789abcdef',
               repoRoot,
               repackTarball: async ({finalTarballPath}) => {
                 fs.writeFileSync(finalTarballPath, 'final');

@@ -5,13 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {mkdir, mkdtemp, rm, writeFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
-import {tmpdir} from 'node:os';
-import {join} from 'node:path';
+import {join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
-import upstreamManifestBaseline from '../pkgNec/upstreamManifestBaseline.json';
+import policy from '../pkgNec/packageIdentityPolicy.json';
 
 const repoRoot = process.cwd();
 const identityModuleUrl = pathToFileURL(
@@ -22,55 +20,29 @@ function runIdentityRequest(request) {
   const program = `
     import * as identity from ${JSON.stringify(identityModuleUrl)};
     const request = ${JSON.stringify(request)};
+    const readFile = file =>
+      JSON.stringify(
+        request.manifests?.[file] ?? request.defaultManifest ?? {
+          name: 'test-package',
+          version: '1.0.0',
+        },
+      );
 
     try {
-      const inventory = identity.discoverPackageIdentities({
+      const inventory = identity.createPackageInventory({
+        policy: request.policy,
+        readFile,
         repoRoot: request.repoRoot,
-        expectedPackageCount: request.expectedPackageCount,
       });
       let result;
 
-      if (request.action === 'canonical') {
-        result = identity.canonicalName(request.name, {
-          isRoot: request.isRoot,
-        });
-      } else if (request.action === 'inventory') {
-        result = {
-          byOldName: Object.fromEntries(inventory.byOldName),
-          byNewNameSize: inventory.byNewName.size,
-          packageCount: inventory.packages.length,
-        };
-      } else if (request.action === 'rewrite') {
+      if (request.action === 'rewrite') {
         result = identity.rewritePackageSpecifier(request.specifier, inventory);
-      } else if (request.action === 'baseline') {
-        result = identity.createManifestBaseline(inventory);
-      } else if (request.action === 'assert-modified-version') {
-        const baseline = identity.createManifestBaseline(inventory);
-        const modifiedInventory = {
-          ...inventory,
-          packages: inventory.packages.map(pkg =>
-            pkg.oldName === '@pkg-nec/jest'
-              ? {...pkg, version: '0.0.0'}
-              : pkg,
-          ),
-        };
-        identity.assertManifestBaseline({
-          baseline,
-          inventory: modifiedInventory,
-        });
-        result = 'asserted';
-      } else if (request.action === 'assert-baseline') {
-        identity.assertManifestBaseline({
-          baseline: request.baseline,
-          inventory,
-        });
-        result = 'asserted';
       } else {
-        identity.assertManifestBaseline({
-          baseline: identity.createManifestBaseline(inventory),
-          inventory,
-        });
-        result = 'asserted';
+        result = {
+          packages: inventory.packages,
+          root: inventory.root,
+        };
       }
 
       console.log(JSON.stringify({result}));
@@ -93,72 +65,100 @@ function runIdentityRequest(request) {
   return output.result;
 }
 
-async function writeManifest(repo, directory, manifest) {
-  const manifestDirectory = join(repo, directory);
-  await mkdir(manifestDirectory, {recursive: true});
-  await writeFile(
-    join(manifestDirectory, 'package.json'),
-    `${JSON.stringify(manifest, null, 2)}\n`,
-  );
+function createTestPolicy({packageCount = 55} = {}) {
+  return {
+    packages: [
+      {
+        manifestPath: 'package.json',
+        newName: '@pkg-nec/monorepo',
+        oldName: '@jest/monorepo',
+        publishable: false,
+      },
+      ...Array.from({length: packageCount}, (_, index) => ({
+        manifestPath: `packages/package-${index}/package.json`,
+        newName: `@pkg-nec/package-${index}`,
+        oldName: `package-${index}`,
+        publishable: true,
+      })),
+    ],
+    schemaVersion: 1,
+  };
 }
 
 describe('pkg-nec package identities', () => {
-  test('keeps canonical package names stable', () => {
+  test('stores only durable identity facts for root plus 55 packages', () => {
+    expect(policy.schemaVersion).toBe(1);
+    expect(policy.packages).toHaveLength(56);
     expect(
-      runIdentityRequest({
-        action: 'canonical',
-        name: '@pkg-nec/jest-globals',
-        repoRoot,
-      }),
-    ).toBe('@pkg-nec/jest-globals');
+      policy.packages.filter(item => item.manifestPath !== 'package.json'),
+    ).toHaveLength(55);
+    for (const item of policy.packages) {
+      expect(Object.keys(item).sort()).toEqual([
+        'manifestPath',
+        'newName',
+        'oldName',
+        'publishable',
+      ]);
+    }
     expect(
-      runIdentityRequest({
-        action: 'canonical',
-        isRoot: true,
-        name: '@pkg-nec/monorepo',
-        repoRoot,
-      }),
-    ).toBe('@pkg-nec/monorepo');
+      policy.packages.find(item => item.manifestPath === 'package.json'),
+    ).toEqual({
+      manifestPath: 'package.json',
+      newName: '@pkg-nec/monorepo',
+      oldName: '@jest/monorepo',
+      publishable: false,
+    });
+    expect(
+      policy.packages.find(item => item.oldName === '@jest/test-globals')
+        .publishable,
+    ).toBe(true);
+    expect(
+      policy.packages.find(item => item.oldName === '@jest/test-utils')
+        .publishable,
+    ).toBe(true);
   });
 
-  test('discovers the complete release inventory and canonical names', () => {
-    const inventory = runIdentityRequest({action: 'inventory', repoRoot});
-
-    expect(Object.keys(inventory.byOldName)).toHaveLength(56);
-    expect(inventory.byNewNameSize).toBe(56);
-    expect(inventory.byOldName['@pkg-nec/monorepo'].newName).toBe(
-      '@pkg-nec/monorepo',
-    );
-    expect(inventory.byOldName['@pkg-nec/jest-globals'].newName).toBe(
-      '@pkg-nec/jest-globals',
-    );
-    expect(inventory.byOldName['@pkg-nec/jest'].newName).toBe('@pkg-nec/jest');
-    expect(inventory.byOldName['@pkg-nec/expect'].newName).toBe(
-      '@pkg-nec/expect',
-    );
-    expect(inventory.packageCount).toBe(55);
-    expect(
-      new Set(Object.values(inventory.byOldName).map(pkg => pkg.newName)).size,
-    ).toBe(56);
-    expect(inventory.byOldName['@pkg-nec/jest-test-globals'].publishable).toBe(
-      true,
-    );
-    expect(inventory.byOldName['@pkg-nec/jest-test-utils'].publishable).toBe(
-      true,
-    );
+  test('reads the version from the current manifest', () => {
+    const currentManifestPolicy = createTestPolicy();
+    currentManifestPolicy.packages[1] = {
+      manifestPath: 'packages/example/package.json',
+      newName: '@pkg-nec/example',
+      oldName: 'example',
+      publishable: true,
+    };
+    const inventory = runIdentityRequest({
+      action: 'inventory',
+      manifests: {
+        [resolve('/repo', 'package.json')]: {
+          name: '@pkg-nec/monorepo',
+          private: true,
+          version: '0.0.0',
+        },
+        [resolve('/repo', 'packages/example/package.json')]: {
+          dependencies: {third_party: '^9.0.0'},
+          name: '@pkg-nec/example',
+          version: '31.0.0-security.1',
+        },
+      },
+      policy: currentManifestPolicy,
+      repoRoot: '/repo',
+    });
+    expect(inventory.packages[0].version).toBe('31.0.0-security.1');
   });
 
-  test('keeps canonical package names and deep imports stable', () => {
+  test('rewrites known package names and deep imports from the policy', () => {
     expect(
       runIdentityRequest({
         action: 'rewrite',
+        policy,
         repoRoot,
-        specifier: '@pkg-nec/jest-globals/build/index.js',
+        specifier: '@jest/globals/build/index.js',
       }),
     ).toBe('@pkg-nec/jest-globals/build/index.js');
     expect(
       runIdentityRequest({
         action: 'rewrite',
+        policy,
         repoRoot,
         specifier: '@fast-check/jest',
       }),
@@ -166,112 +166,76 @@ describe('pkg-nec package identities', () => {
     expect(
       runIdentityRequest({
         action: 'rewrite',
+        policy,
         repoRoot,
         specifier: '@jest/globals-extra',
       }),
     ).toBeNull();
   });
 
-  test('rejects inventories with an unexpected release workspace count', async () => {
-    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-identity-'));
-
-    try {
-      await writeManifest(temporaryRepo, '.', {
-        name: '@jest/monorepo',
-        private: true,
-        version: '0.0.0',
-      });
-      await writeManifest(temporaryRepo, 'packages/jest', {
-        name: 'jest',
-        version: '1.0.0',
-      });
-
-      expect(() =>
-        runIdentityRequest({
-          action: 'inventory',
-          expectedPackageCount: 2,
-          repoRoot: temporaryRepo,
-        }),
-      ).toThrow('Expected 2 release workspaces, found 1');
-    } finally {
-      await rm(temporaryRepo, {force: true, recursive: true});
-    }
-  });
-
-  test('rejects inventories whose canonical package names collide', async () => {
-    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-identity-'));
-
-    try {
-      await writeManifest(temporaryRepo, '.', {
-        name: '@jest/monorepo',
-        private: true,
-        version: '0.0.0',
-      });
-      await writeManifest(temporaryRepo, 'packages/scoped', {
-        name: '@jest/foo',
-        version: '1.0.0',
-      });
-      await writeManifest(temporaryRepo, 'packages/unscoped', {
-        name: 'jest-foo',
-        version: '1.0.0',
-      });
-
-      expect(() =>
-        runIdentityRequest({
-          action: 'inventory',
-          expectedPackageCount: 2,
-          repoRoot: temporaryRepo,
-        }),
-      ).toThrow('Canonical package name collision: @pkg-nec/jest-foo');
-    } finally {
-      await rm(temporaryRepo, {force: true, recursive: true});
-    }
-  });
-
-  test('captures normalized manifest data and detects later changes', () => {
-    const baseline = runIdentityRequest({action: 'baseline', repoRoot});
-
-    expect(Object.keys(baseline)).toHaveLength(56);
-    expect(baseline['package.json']).toEqual(
-      expect.objectContaining({
-        name: '@pkg-nec/monorepo',
-        private: true,
-        version: '0.0.0',
-      }),
-    );
-    expect(baseline['packages/jest/package.json']).toEqual(
-      expect.objectContaining({
-        name: '@pkg-nec/jest',
-        private: false,
-        version: '30.4.2',
-      }),
-    );
-    expect(runIdentityRequest({action: 'assert', repoRoot})).toBe('asserted');
-    expect(() =>
-      runIdentityRequest({action: 'assert-modified-version', repoRoot}),
-    ).toThrow('Manifest baseline does not match current inventory');
-  });
-
-  test('preserves the committed upstream baseline as a migration reference', () => {
-    expect(
-      upstreamManifestBaseline['package.json'].devDependencies['@jest/globals'],
-    ).toBe('workspace:*');
-    expect(
-      upstreamManifestBaseline['package.json'].resolutions['lru-cache@^10.0.1'],
-    ).toBe(
-      'patch:lru-cache@npm:10.4.3#./.yarn/patches/lru-cache-npm-10.4.3-30c10b861a.patch',
-    );
-    expect(
-      upstreamManifestBaseline['packages/jest/package.json'].peerDependencies[
-        'node-notifier'
-      ],
-    ).toBe('^8.0.1 || ^9.0.0 || ^10.0.0');
+  test('rejects an unsupported package identity policy schema', () => {
     expect(() =>
       runIdentityRequest({
-        action: 'assert-baseline',
-        baseline: upstreamManifestBaseline,
-        repoRoot,
+        policy: {packages: [], schemaVersion: 2},
+        repoRoot: '/repo',
       }),
-    ).toThrow('Manifest baseline does not match current inventory');
+    ).toThrow('Unsupported pkg-nec package identity policy');
+  });
+
+  test('rejects duplicate manifest paths', () => {
+    const duplicateManifestPath = createTestPolicy();
+    duplicateManifestPath.packages[1].manifestPath = 'package.json';
+
+    expect(() =>
+      runIdentityRequest({
+        policy: duplicateManifestPath,
+        repoRoot: '/repo',
+      }),
+    ).toThrow(`Duplicate manifest path: ${resolve('/repo', 'package.json')}`);
+  });
+
+  test('rejects duplicate old package names', () => {
+    const duplicateOldName = createTestPolicy();
+    duplicateOldName.packages[1].oldName = '@jest/monorepo';
+
+    expect(() =>
+      runIdentityRequest({
+        policy: duplicateOldName,
+        repoRoot: '/repo',
+      }),
+    ).toThrow('Duplicate old package name: @jest/monorepo');
+  });
+
+  test('rejects duplicate new package names', () => {
+    const duplicateNewName = createTestPolicy();
+    duplicateNewName.packages[1].newName = '@pkg-nec/monorepo';
+
+    expect(() =>
+      runIdentityRequest({
+        policy: duplicateNewName,
+        repoRoot: '/repo',
+      }),
+    ).toThrow('Duplicate new package name: @pkg-nec/monorepo');
+  });
+
+  test('rejects a policy without the root manifest', () => {
+    const missingRoot = createTestPolicy();
+    missingRoot.packages[0].manifestPath = 'packages/root/package.json';
+
+    expect(() =>
+      runIdentityRequest({
+        policy: missingRoot,
+        repoRoot: '/repo',
+      }),
+    ).toThrow('Package identity policy is missing package.json');
+  });
+
+  test('rejects a package count other than 55', () => {
+    expect(() =>
+      runIdentityRequest({
+        policy: createTestPolicy({packageCount: 54}),
+        repoRoot: '/repo',
+      }),
+    ).toThrow('Expected 55 package identities, found 54');
   });
 });
