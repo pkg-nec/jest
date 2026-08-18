@@ -5,22 +5,21 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import {readFile as readFileFromDisk} from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import execa from 'execa';
 import {
   classifyRegistryError,
+  releaseEntryFromLedger,
   waitForExactVersion,
 } from './pkgNec/registryVisibility.mjs';
 
-const usage = 'Usage: yarn check:pkg-nec-registry "@pkg-nec/name@version"';
-const exactVersionPattern =
-  /^(@pkg-nec\/[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?)@(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)$/;
+const usage = 'Usage: yarn check:pkg-nec-registry <ledger-path> <package-name>';
 
-function parseExactPackageVersion(args) {
-  const match = args.length === 1 ? exactVersionPattern.exec(args[0]) : null;
-  if (!match) throw new Error(usage);
-  return {name: match[1], version: match[2]};
+function parseLedgerArguments(args) {
+  if (args.length !== 2 || !args[0] || !args[1]) throw new Error(usage);
+  return {ledgerPath: args[0], packageName: args[1]};
 }
 
 async function queryRegistry(args, {signal}) {
@@ -46,12 +45,19 @@ async function queryRegistry(args, {signal}) {
 export async function runRegistryVisibilityCommand({
   args = process.argv.slice(2),
   query = queryRegistry,
+  readFile = readFileFromDisk,
   now,
   sleep,
   write = console.log,
 }) {
-  const {name, version} = parseExactPackageVersion(args);
+  const {ledgerPath, packageName} = parseLedgerArguments(args);
+  const ledger = JSON.parse(await readFile(ledgerPath, 'utf8'));
+  const {integrity: expectedIntegrity, name, version} = releaseEntryFromLedger({
+    ledger,
+    packageName,
+  });
   const evidence = await waitForExactVersion({
+    expectedIntegrity,
     name,
     now,
     query,

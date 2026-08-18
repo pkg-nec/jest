@@ -122,7 +122,29 @@ function defaultSleep(milliseconds) {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
+function isSha512Integrity(integrity) {
+  return typeof integrity === 'string' && /^sha512-\S+$/.test(integrity);
+}
+
+export function releaseEntryFromLedger({ledger, packageName}) {
+  if (ledger?.schemaVersion !== 1 || !Array.isArray(ledger.packages)) {
+    throw new TypeError('Unsupported pkg-nec release ledger');
+  }
+  const matches = ledger.packages.filter(item => item?.name === packageName);
+  if (matches.length !== 1) {
+    throw new Error(
+      `Expected one release ledger entry for ${packageName}, found ${matches.length}`,
+    );
+  }
+  const [{integrity, name, version}] = matches;
+  if (!isSha512Integrity(integrity) || typeof version !== 'string') {
+    throw new TypeError(`Invalid release ledger entry for ${packageName}`);
+  }
+  return {integrity, name, version};
+}
+
 export async function waitForExactVersion({
+  expectedIntegrity,
   name,
   version,
   query,
@@ -134,6 +156,9 @@ export async function waitForExactVersion({
 }) {
   const startedAt = now();
   const exactSpecifier = `${name}@${version}`;
+  if (!isSha512Integrity(expectedIntegrity)) {
+    throw new TypeError(`Expected SHA-512 integrity for ${exactSpecifier}`);
+  }
   let attempts = 0;
   let lastError;
 
@@ -143,7 +168,12 @@ export async function waitForExactVersion({
     attempts += 1;
 
     try {
-      const result = await query(['view', exactSpecifier, '--json'], {
+      const result = await query([
+        'view',
+        exactSpecifier,
+        '--json',
+        '--registry=https://registry.npmjs.org/',
+      ], {
         signal: AbortSignal.timeout(Math.min(queryTimeoutMs, remainingMs)),
       });
       const manifest = parseRegistryResult(result);
@@ -156,6 +186,11 @@ export async function waitForExactVersion({
       if (typeof manifest?.dist?.integrity !== 'string') {
         throw new TypeError(
           `Registry response omitted integrity for ${exactSpecifier}`,
+        );
+      }
+      if (manifest.dist.integrity !== expectedIntegrity) {
+        throw new Error(
+          `Registry returned a different package integrity for ${exactSpecifier}`,
         );
       }
 
