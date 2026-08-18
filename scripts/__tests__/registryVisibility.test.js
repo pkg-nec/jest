@@ -197,7 +197,7 @@ describe('pkg-nec registry visibility', () => {
       try {
         await waitForExactVersion({
           expectedIntegrity: 'sha512-expected', name: '@pkg-nec/jest',
-          query: async () => { throw Object.assign(new Error('authorization: Bearer npm_secret123 _authToken=npm_other456'), {code: 'E403'}); },
+          query: async () => { throw Object.assign(new Error('authorization: Bearer npm_secret123 _authToken=npm_other456 _auth=basic_secret789 _password: password_secret012'), {code: 'E403'}); },
           sleep: async () => {sleeps += 1;}, version: '30.4.2',
         });
       } catch (error) {
@@ -211,6 +211,8 @@ describe('pkg-nec registry visibility', () => {
     expect(result.message).toContain('@pkg-nec/jest@30.4.2');
     expect(result.message).not.toContain('npm_secret123');
     expect(result.message).not.toContain('npm_other456');
+    expect(result.message).not.toContain('basic_secret789');
+    expect(result.message).not.toContain('password_secret012');
   });
 
   test('reports bounded deadline evidence without leaking the last error', () => {
@@ -221,7 +223,7 @@ describe('pkg-nec registry visibility', () => {
       try {
         await waitForExactVersion({
           deadlineMs: 20, expectedIntegrity: 'sha512-expected', intervalMs: 10, name: '@pkg-nec/jest-cli', now: () => clock,
-          query: async () => { throw Object.assign(new Error('registry token npm_deadlineSecret'), {code: 'ENOTFOUND'}); },
+          query: async () => { throw Object.assign(new Error('registry token npm_deadlineSecret //registry.npmjs.org/:_auth=timeout_auth345 //registry.npmjs.org/:_password=timeout_password678'), {code: 'ENOTFOUND'}); },
           sleep: async milliseconds => {clock += milliseconds;}, version: '30.4.2',
         });
       } catch (error) {
@@ -240,6 +242,8 @@ describe('pkg-nec registry visibility', () => {
     expect(result.message).toContain('last error class: ENOTFOUND');
     expect(result.message).toContain('2 attempts');
     expect(result.message).not.toContain('npm_deadlineSecret');
+    expect(result.message).not.toContain('timeout_auth345');
+    expect(result.message).not.toContain('timeout_password678');
   });
 });
 

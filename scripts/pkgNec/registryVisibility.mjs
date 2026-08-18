@@ -63,7 +63,10 @@ function redactRegistryError(value) {
       /(authorization\s*[:=]\s*)(?:basic|bearer)?\s*[^\s,;]+/gi,
       '$1[REDACTED]',
     )
-    .replaceAll(/(_authToken\s*[:=]\s*)[^\s,;]+/gi, '$1[REDACTED]')
+    .replaceAll(
+      /(_(?:authToken|auth|password)\s*[:=]\s*)[^\s,;]+/gi,
+      '$1[REDACTED]',
+    )
     .replaceAll(/\b(?:basic|bearer)\s+[^\s,;]+/gi, '[REDACTED]')
     .replaceAll(/npm_[A-Za-z0-9_-]+/g, '[REDACTED]')
     .replaceAll(/(https?:\/\/)[^\s/@:]+:[^\s/@]+@/gi, '$1[REDACTED]@');

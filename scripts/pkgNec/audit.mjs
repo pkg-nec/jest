@@ -21,11 +21,7 @@ const dependencyFields = [
   'peerDependenciesMeta',
   'resolutions',
 ];
-const historicalFiles = new Set([
-  'CHANGELOG.md',
-  'CHANGELOG_PRE_v30.md',
-  'docs/pkg-nec-rebrand-technical-guide.md',
-]);
+const historicalFiles = new Set(['CHANGELOG.md', 'CHANGELOG_PRE_v30.md']);
 const exactExceptions = new Set([
   ['jest.config.mjs', 'mapper-key', '^@jest/globals$'].join('\0'),
   ['tsconfig.test.json', 'compiler-path', '@jest/globals'].join('\0'),
@@ -65,6 +61,9 @@ const fixtureLinks = new Map([
     ],
   ],
 ]);
+const fixtureLinkTuples = new Set(
+  [...fixtureLinks].map(([filePath, tuple]) => [filePath, ...tuple].join('\0')),
+);
 const moduleSpecifierPattern =
   /\b(?:from\s*|import\s*\(|import\s+|require(?:\.resolve)?\s*\(|(?:createMockFromModule|doMock|dontMock|mock|requireActual|requireMock|setMock|unmock)\s*\()\s*['"]([^'"]+)['"]/g;
 const internalIdentityPattern =
@@ -388,8 +387,22 @@ function mapperKeyFindings({filePath, inventory, text}) {
 }
 
 function manifestIdentityForPath(filePath, inventory) {
-  return [inventory.root, ...inventory.packages].find(identity =>
-    normalizedPath(identity.manifestPath).endsWith(filePath),
+  const repoRoot = inventory.root.directory;
+  return [inventory.root, ...inventory.packages].find(
+    identity =>
+      normalizedPath(path.relative(repoRoot, identity.manifestPath)) ===
+      filePath,
+  );
+}
+
+function manifestDependencyTuples(manifest) {
+  return dependencyFields.flatMap(field =>
+    Object.entries(manifest[field] ?? {}).map(([dependencyName, value]) => ({
+      dependencyName,
+      field,
+      literal:
+        value !== null && typeof value === 'object' ? value.optional : value,
+    })),
   );
 }
 
@@ -397,6 +410,22 @@ function manifestPolicyFindings({filePath, inventory, text}) {
   const manifest = JSON.parse(text);
   const findings = [];
   const identity = manifestIdentityForPath(filePath, inventory);
+  const dependencyTuples = manifestDependencyTuples(manifest);
+
+  if (
+    !identity &&
+    /^packages\/[^/]+\/package\.json$/u.test(filePath) &&
+    manifest.private !== true
+  ) {
+    findings.push(
+      finding({
+        category: 'unrecognized-publishable-workspace',
+        expected: 'pkg-nec package identity policy entry',
+        filePath,
+        literal: manifest.name ?? null,
+      }),
+    );
+  }
 
   if (identity && manifest.name !== identity.newName) {
     findings.push(
@@ -434,17 +463,14 @@ function manifestPolicyFindings({filePath, inventory, text}) {
   const expectedFixtureLink = fixtureLinks.get(filePath);
   if (expectedFixtureLink) {
     const [expectedField, dependencyName, expected] = expectedFixtureLink;
-    const occurrences = dependencyFields.flatMap(field => {
-      const dependencies = manifest[field] ?? {};
-      return Object.hasOwn(dependencies, dependencyName)
-        ? [{field, value: dependencies[dependencyName]}]
-        : [];
-    });
+    const occurrences = dependencyTuples.filter(
+      tuple => tuple.dependencyName === dependencyName,
+    );
     const [occurrence] = occurrences;
     if (
       occurrences.length !== 1 ||
       occurrence.field !== expectedField ||
-      occurrence.value !== expected
+      occurrence.literal !== expected
     ) {
       findings.push(
         finding({
@@ -453,55 +479,63 @@ function manifestPolicyFindings({filePath, inventory, text}) {
           filePath,
           literal:
             occurrences.length === 1
-              ? occurrence.value
+              ? occurrence.literal
               : Object.fromEntries(
-                  occurrences.map(({field, value}) => [field, value]),
+                  occurrences.map(({field, literal}) => [field, literal]),
                 ),
         }),
       );
     }
   }
 
-  for (const field of dependencyFields) {
-    for (const [dependencyName, value] of Object.entries(
-      manifest[field] ?? {},
-    )) {
-      const literal =
-        value !== null && typeof value === 'object' ? value.optional : value;
-      if (
-        typeof literal === 'string' &&
-        literal.startsWith('workspace:') &&
-        dependencyName.startsWith('@pkg-nec/') &&
-        !inventory.byNewName.has(dependencyName)
-      ) {
-        findings.push(
-          finding({
-            category: 'unresolved-internal-dependency',
-            expected: 'known @pkg-nec package',
-            filePath,
-            literal: dependencyName,
-          }),
-        );
-      }
+  for (const {dependencyName, field, literal} of dependencyTuples) {
+    if (
+      typeof literal === 'string' &&
+      literal.startsWith('workspace:') &&
+      dependencyName.startsWith('@pkg-nec/') &&
+      !inventory.byNewName.has(dependencyName)
+    ) {
+      findings.push(
+        finding({
+          category: 'unresolved-internal-dependency',
+          expected: 'known @pkg-nec package',
+          filePath,
+          literal: dependencyName,
+        }),
+      );
     }
-  }
 
-  if (identity?.publishable) {
-    for (const field of dependencyFields) {
-      for (const value of Object.values(manifest[field] ?? {})) {
-        const literal =
-          value !== null && typeof value === 'object' ? value.optional : value;
-        if (typeof literal === 'string' && literal.startsWith('link:')) {
-          findings.push(
-            finding({
-              category: 'published-link',
-              expected: 'registry or workspace protocol',
-              filePath,
-              literal,
-            }),
-          );
-        }
-      }
+    if (
+      typeof literal !== 'string' ||
+      (!literal.startsWith('file:') && !literal.startsWith('link:'))
+    ) {
+      continue;
+    }
+
+    const tupleKey = [filePath, field, dependencyName, literal].join('\0');
+    if (fixtureLinkTuples.has(tupleKey)) continue;
+
+    const [expectedField, expectedName] = expectedFixtureLink ?? [];
+    if (field === expectedField && dependencyName === expectedName) continue;
+
+    if (expectedFixtureLink) {
+      findings.push(
+        finding({
+          category: 'fixture-link',
+          expected: 'only the approved fixture dependency tuple',
+          filePath,
+          literal,
+        }),
+      );
+    } else if (identity?.publishable) {
+      findings.push(
+        finding({
+          category: 'published-link',
+          expected: 'registry or workspace protocol',
+          filePath,
+          literal,
+        }),
+      );
     }
   }
 

@@ -58,16 +58,21 @@ function normalizeManifestEntry(file) {
   return normalized;
 }
 
-function collectStrings(value, files) {
-  if (typeof value === 'string') files.add(normalizeManifestEntry(value));
-  else if (value && typeof value === 'object') {
-    for (const child of Object.values(value)) collectStrings(child, files);
+function collectManifestTargets(value, files) {
+  if (typeof value === 'string') {
+    const normalized = normalizeManifestEntry(value);
+    if (!normalized.includes('*')) files.add(normalized);
+  } else if (value && typeof value === 'object') {
+    for (const child of Object.values(value)) {
+      collectManifestTargets(child, files);
+    }
   }
 }
 
 export function manifestEntryFiles(manifest) {
   const files = new Set();
-  collectStrings(manifest?.exports, files);
+  collectManifestTargets(manifest?.exports, files);
+  collectManifestTargets(manifest?.bin, files);
   if (typeof manifest?.main === 'string') {
     files.add(normalizeManifestEntry(manifest.main));
   }
@@ -83,7 +88,7 @@ export function validateReleaseFiles({files, helper, manifest, packageName}) {
   const policyKey = `${packageName}@${manifest?.version ?? ''}`;
   const publishedDeclarations =
     upstreamPublishedDeclarations.get(policyKey) ?? new Set();
-  const required = ['LICENSE', 'package.json'];
+  const required = [...new Set(['LICENSE', 'package.json', ...entries])];
   const problems = new Set(
     required
       .filter(file => !normalizedFiles.includes(file))
@@ -107,7 +112,7 @@ export function validateReleaseFiles({files, helper, manifest, packageName}) {
   if (helper) {
     const comparison = comparePackageFiles({
       actualFiles: normalizedFiles,
-      expectedFiles: [...new Set([...required, 'README.md', ...entries])],
+      expectedFiles: [...required, 'README.md'],
     });
     for (const file of comparison.missing) problems.add(`missing ${file}`);
     for (const file of comparison.added) problems.add(`additional ${file}`);

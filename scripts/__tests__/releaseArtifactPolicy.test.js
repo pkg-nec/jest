@@ -101,13 +101,58 @@ test('reports equal-count filename mismatches', () => {
   });
 });
 
-test('collects unique manifest entry files', () => {
-  expect(manifestEntryFiles(manifest)).toEqual([
+test('collects concrete manifest entry files across supported target shapes', () => {
+  expect(
+    manifestEntryFiles({
+      ...manifest,
+      bin: {
+        example: './bin/example.js',
+      },
+      exports: {
+        ...manifest.exports,
+        './conditional': [
+          {
+            node: {
+              import: './build/node.mjs',
+              require: './build/node.js',
+            },
+          },
+          './build/fallback.js',
+        ],
+        './features/*': './build/features/*.js',
+      },
+    }),
+  ).toEqual([
+    'bin/example.js',
+    'build/fallback.js',
     'build/index.d.ts',
     'build/index.js',
     'build/index.mjs',
+    'build/node.js',
+    'build/node.mjs',
     'package.json',
   ]);
+});
+
+test.each([
+  ['main', {main: './build/index.js'}, 'build/index.js'],
+  ['types', {types: './build/index.d.ts'}, 'build/index.d.ts'],
+  [
+    'conditional export',
+    {exports: {'.': {import: './build/index.mjs'}}},
+    'build/index.mjs',
+  ],
+  ['string bin', {bin: './bin/example.js'}, 'bin/example.js'],
+  ['object bin', {bin: {example: './bin/example.js'}}, 'bin/example.js'],
+])('requires a normal package %s target', (_kind, entryManifest, entry) => {
+  expect(() =>
+    validateReleaseFiles({
+      files: ['package/LICENSE', 'package/package.json'],
+      helper: false,
+      manifest: entryManifest,
+      packageName: '@pkg-nec/example',
+    }),
+  ).toThrow(`@pkg-nec/example release files invalid: missing ${entry}`);
 });
 
 test.each([
@@ -119,7 +164,14 @@ test.each([
 ])('rejects prohibited release file %s', file => {
   expect(() =>
     validateReleaseFiles({
-      files: ['package/LICENSE', 'package/package.json', file],
+      files: [
+        'package/LICENSE',
+        'package/build/index.d.ts',
+        'package/build/index.js',
+        'package/build/index.mjs',
+        'package/package.json',
+        file,
+      ],
       helper: false,
       manifest,
       packageName: '@pkg-nec/example',
@@ -202,7 +254,14 @@ test.each([
 ])('rejects removed build input %s %s', (packageName, file) => {
   expect(() =>
     validateReleaseFiles({
-      files: ['package/LICENSE', 'package/package.json', file],
+      files: [
+        'package/LICENSE',
+        'package/build/index.d.ts',
+        'package/build/index.js',
+        'package/build/index.mjs',
+        'package/package.json',
+        file,
+      ],
       helper: false,
       manifest: {...manifest, name: packageName, version: '30.4.1'},
       packageName,

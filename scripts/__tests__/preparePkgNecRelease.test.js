@@ -476,6 +476,70 @@ describe('pkg-nec release preparation', () => {
     ]);
   });
 
+  test('rejects duplicate prepared artifact names before ordering', () => {
+    const result = runModuleProgram(`
+      import {createReleaseLedger} from ${JSON.stringify(releaseModuleUrl)};
+
+      const artifact = {
+        files: ['package.json'],
+        integrity: 'sha512-example',
+        name: '@pkg-nec/example',
+        prerequisites: [],
+        tarball: 'pkg-nec-example-1.0.0.tgz',
+        version: '1.0.0',
+      };
+      let message = 'accepted';
+      try {
+        createReleaseLedger({
+          artifacts: [artifact, {...artifact}],
+          generatedAt: '2026-08-18T00:00:00.000Z',
+          nodeVersion: 'v22.23.1',
+          order: ['@pkg-nec/example'],
+          packageManager: 'yarn@4.18.0',
+          sourceCommit: '0123456789abcdef',
+        });
+      } catch (error) {
+        message = error.message;
+      }
+      console.log(JSON.stringify(message));
+    `);
+
+    expect(result).toBe('Duplicate prepared artifact: @pkg-nec/example');
+  });
+
+  test('rejects a prepared artifact without SHA-512 integrity', () => {
+    const result = runModuleProgram(`
+      import {createReleaseLedger} from ${JSON.stringify(releaseModuleUrl)};
+
+      const artifact = {
+        files: ['package.json'],
+        integrity: 'sha256-example',
+        name: '@pkg-nec/example',
+        prerequisites: [],
+        tarball: 'pkg-nec-example-1.0.0.tgz',
+        version: '1.0.0',
+      };
+      let message = 'accepted';
+      try {
+        createReleaseLedger({
+          artifacts: [artifact],
+          generatedAt: '2026-08-18T00:00:00.000Z',
+          nodeVersion: 'v22.23.1',
+          order: ['@pkg-nec/example'],
+          packageManager: 'yarn@4.18.0',
+          sourceCommit: '0123456789abcdef',
+        });
+      } catch (error) {
+        message = error.message;
+      }
+      console.log(JSON.stringify(message));
+    `);
+
+    expect(result).toBe(
+      'Invalid prepared artifact integrity for @pkg-nec/example',
+    );
+  });
+
   test('packs fixtures with exact Yarn arguments and writes reviewed ledgers safely', async () => {
     const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-pack-'));
 
@@ -964,6 +1028,98 @@ describe('pkg-nec release preparation', () => {
       `);
 
       expect(result).toEqual({message: 'repack failed'});
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+
+  test('preserves promotion failure diagnostics when rollback also fails', async () => {
+    const temporaryRepo = await mkdtemp(
+      join(tmpdir(), 'pkg-nec-promotion-fail-'),
+    );
+
+    try {
+      const result = runModuleProgram(`
+        import path from 'node:path';
+        import fs from 'graceful-fs';
+        import {runPrepareReleaseCommand} from ${JSON.stringify(releaseModuleUrl)};
+
+        const repoRoot = ${JSON.stringify(temporaryRepo)};
+        const outputDirectory = path.join(repoRoot, '.pkg-nec-release');
+        const stagingDirectory = path.join(
+          repoRoot,
+          '.pkg-nec-release-stage-promotion',
+        );
+        fs.writeFileSync(
+          path.join(repoRoot, 'package.json'),
+          JSON.stringify({packageManager: 'yarn@4.18.0'}),
+        );
+        fs.mkdirSync(outputDirectory);
+        fs.writeFileSync(path.join(outputDirectory, 'previous.txt'), 'previous');
+
+        const rename = fs.promises.rename;
+        let backupPath;
+        let renameCalls = 0;
+        fs.promises.rename = async (source, target) => {
+          renameCalls += 1;
+          if (renameCalls === 1) {
+            backupPath = target;
+            return rename(source, target);
+          }
+          if (renameCalls === 2) throw new Error('promotion failed');
+          if (renameCalls === 3) throw new Error('rollback failed');
+          return rename(source, target);
+        };
+
+        let diagnostics;
+        try {
+          await runPrepareReleaseCommand({
+            audit: () => [],
+            buildGraph: () => new Map(),
+            inventory: {
+              byNewName: new Map(),
+              byOldName: new Map(),
+              packages: [],
+              root: null,
+            },
+            makeStagingDirectory: async () => {
+              fs.mkdirSync(stagingDirectory);
+              return stagingDirectory;
+            },
+            orderGraph: () => [],
+            readSourceCommit: async () => '0123456789abcdef',
+            repoRoot,
+            write: () => {},
+          });
+        } catch (error) {
+          diagnostics = {
+            backupPathMatches: error.backupPath === backupPath,
+            message: error.message,
+            rollbackMessage: error.rollbackError?.message ?? null,
+          };
+        } finally {
+          fs.promises.rename = rename;
+        }
+
+        console.log(JSON.stringify({
+          ...diagnostics,
+          backupContents: fs.readFileSync(
+            path.join(backupPath, 'previous.txt'),
+            'utf8',
+          ),
+          backupExists: fs.existsSync(backupPath),
+          stagingExists: fs.existsSync(stagingDirectory),
+        }));
+      `);
+
+      expect(result).toEqual({
+        backupContents: 'previous',
+        backupExists: true,
+        backupPathMatches: true,
+        message: 'promotion failed',
+        rollbackMessage: 'rollback failed',
+        stagingExists: false,
+      });
     } finally {
       await rm(temporaryRepo, {force: true, recursive: true});
     }

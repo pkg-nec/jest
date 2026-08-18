@@ -55,6 +55,10 @@ function containsLocalLink(value) {
   return Object.values(value).some(containsLocalLink);
 }
 
+function isSha512Integrity(integrity) {
+  return typeof integrity === 'string' && /^sha512-\S+$/u.test(integrity);
+}
+
 function expectSameKeys({actual, expected, field, workspace}) {
   const actualKeys = Object.keys(actual).sort();
   const expectedKeys = Object.keys(expected).sort();
@@ -139,6 +143,19 @@ export function createReleaseLedger({
   packageManager,
   sourceCommit,
 }) {
+  const artifactNames = new Set();
+  for (const artifact of artifacts) {
+    if (artifactNames.has(artifact.name)) {
+      throw new Error(`Duplicate prepared artifact: ${artifact.name}`);
+    }
+    artifactNames.add(artifact.name);
+    if (!isSha512Integrity(artifact.integrity)) {
+      throw new TypeError(
+        `Invalid prepared artifact integrity for ${artifact.name}`,
+      );
+    }
+  }
+
   const artifactsByName = new Map(artifacts.map(item => [item.name, item]));
   const packages = order.map((name, index) => {
     const artifact = artifactsByName.get(name);
@@ -328,7 +345,12 @@ async function promoteReleaseDirectory({
     await fs.promises.rename(stagingDirectory, releaseDirectory);
   } catch (error) {
     if (movedPrevious) {
-      await fs.promises.rename(previousDirectory, releaseDirectory);
+      try {
+        await fs.promises.rename(previousDirectory, releaseDirectory);
+      } catch (rollbackError) {
+        error.backupPath = previousDirectory;
+        error.rollbackError = rollbackError;
+      }
     }
     throw error;
   }

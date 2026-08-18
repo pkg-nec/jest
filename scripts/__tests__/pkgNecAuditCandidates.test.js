@@ -377,7 +377,7 @@ describe('pkg-nec audit candidates', () => {
     ).toEqual([]);
   });
 
-  test('enumerates supported files with generated and historical exclusions', async () => {
+  test('enumerates supported files with generated-directory exclusions', async () => {
     const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-files-'));
     const files = [
       'README.md',
@@ -388,6 +388,7 @@ describe('pkg-nec audit candidates', () => {
       'e2e/fixture/yarn.lock',
       '.github/workflows/test.yml',
       '.git/config.js',
+      '.worktrees/linked/index.js',
       '.yarn/cache/archive.js',
       'node_modules/pkg/index.js',
       'packages/example/build/index.js',
@@ -411,6 +412,10 @@ describe('pkg-nec audit candidates', () => {
       expect(enumerated).toEqual([
         {category: 'workflow', path: '.github/workflows/test.yml'},
         {category: 'documentation', path: 'README.md'},
+        {
+          category: 'documentation',
+          path: 'docs/pkg-nec-rebrand-technical-guide.md',
+        },
         {category: 'fixture-lock', path: 'e2e/fixture/yarn.lock'},
         {category: 'manifest', path: 'package.json'},
         {category: 'module', path: 'src/index.ts'},

@@ -11,12 +11,12 @@ import fs from 'graceful-fs';
 const excludedDirectories = new Set([
   '.git',
   '.superpowers',
+  '.worktrees',
   'build',
   'coverage',
   'dist',
   'node_modules',
 ]);
-const excludedFiles = new Set(['docs/pkg-nec-rebrand-technical-guide.md']);
 const moduleExtensions = new Set([
   '.cjs',
   '.js',
@@ -90,9 +90,7 @@ export function enumerateRepositoryFiles({repoRoot}) {
         }
         continue;
       }
-      if (!entry.isFile() || excludedFiles.has(normalizedPath(relativePath))) {
-        continue;
-      }
+      if (!entry.isFile()) continue;
 
       const category = classify(relativePath);
       if (category !== null) files.push({category, path: absolutePath});

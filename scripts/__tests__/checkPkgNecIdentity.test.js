@@ -458,6 +458,78 @@ describe('pkg-nec identity audit', () => {
     );
   });
 
+  test('rejects unapproved repository-only dependency tuples in fixture manifests', () => {
+    expect(
+      auditText({
+        category: 'manifest',
+        filePath: 'e2e/global-setup/package.json',
+        inventory,
+        text: JSON.stringify({
+          dependencies: {
+            '@pkg-nec/jest': 'link:../../packages/jest',
+            'local-reporter': 'file:../../packages/local-reporter',
+          },
+          devDependencies: {
+            '@pkg-nec/jest-util': 'link:../../packages/jest-util',
+          },
+          name: 'fixture',
+          private: true,
+        }),
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'fixture-link',
+          literal: 'file:../../packages/local-reporter',
+        }),
+        expect.objectContaining({
+          category: 'fixture-link',
+          literal: 'link:../../packages/jest',
+        }),
+      ]),
+    );
+  });
+
+  test('rejects file dependencies in published manifests', () => {
+    expect(
+      auditText({
+        category: 'manifest',
+        filePath: 'packages/globals/package.json',
+        inventory,
+        text: JSON.stringify({
+          dependencies: {
+            '@pkg-nec/jest-util': 'file:../jest-util',
+          },
+          name: '@pkg-nec/jest-globals',
+          publishConfig: {access: 'public'},
+        }),
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        category: 'published-link',
+        expected: 'registry or workspace protocol',
+        literal: 'file:../jest-util',
+      }),
+    ]);
+  });
+
+  test('allows source workspace dependencies in published manifests', () => {
+    expect(
+      auditText({
+        category: 'manifest',
+        filePath: 'packages/globals/package.json',
+        inventory,
+        text: JSON.stringify({
+          dependencies: {
+            '@pkg-nec/jest-util': 'workspace:^',
+          },
+          name: '@pkg-nec/jest-globals',
+          publishConfig: {access: 'public'},
+        }),
+      }),
+    ).toEqual([]);
+  });
+
   test('allows old identities throughout upstream npm fixture-lock records', () => {
     const npmRecord = [
       '"@jest/types@npm:^29.6.3":',
@@ -655,20 +727,19 @@ describe('pkg-nec identity audit', () => {
     ]);
   });
 
-  test.each([
-    'CHANGELOG.md',
-    'CHANGELOG_PRE_v30.md',
-    'docs/pkg-nec-rebrand-technical-guide.md',
-  ])('allows historical package identities only in %s', filePath => {
-    expect(
-      auditText({
-        category: filePath.endsWith('.json') ? 'json' : 'documentation',
-        filePath,
-        inventory,
-        text: 'npm install @jest/globals',
-      }),
-    ).toEqual([]);
-  });
+  test.each(['CHANGELOG.md', 'CHANGELOG_PRE_v30.md'])(
+    'allows historical package identities only in %s',
+    filePath => {
+      expect(
+        auditText({
+          category: filePath.endsWith('.json') ? 'json' : 'documentation',
+          filePath,
+          inventory,
+          text: 'npm install @jest/globals',
+        }),
+      ).toEqual([]);
+    },
+  );
 
   test('reports an unexpected old identity in an eligible text context', () => {
     expect(
@@ -797,6 +868,40 @@ describe('pkg-nec identity audit', () => {
         }),
       ]),
     );
+  });
+
+  test('matches policy manifests only by exact repository-relative path', () => {
+    expect(
+      auditText({
+        category: 'manifest',
+        filePath: 'jest/package.json',
+        inventory,
+        text: JSON.stringify({
+          name: 'private-fixture',
+          private: true,
+        }),
+      }),
+    ).toEqual([]);
+  });
+
+  test('rejects an unlisted public package workspace', () => {
+    expect(
+      auditText({
+        category: 'manifest',
+        filePath: 'packages/unlisted/package.json',
+        inventory,
+        text: JSON.stringify({
+          name: '@pkg-nec/unlisted',
+          publishConfig: {access: 'public'},
+          version: '1.0.0',
+        }),
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        category: 'unrecognized-publishable-workspace',
+        literal: '@pkg-nec/unlisted',
+      }),
+    ]);
   });
 
   test('allows only helper manifests to adopt public privacy metadata', async () => {
@@ -1017,6 +1122,74 @@ describe('pkg-nec identity audit', () => {
           repoRoot: temporaryRepo,
         }),
       ).toEqual([]);
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+
+  test('excludes linked worktrees from repository traversal', async () => {
+    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-audit-'));
+    const manifestPath = join(temporaryRepo, 'package.json');
+    const linkedSourcePath = join(temporaryRepo, '.worktrees/linked/index.js');
+    const temporaryInventory = makeInventory(temporaryRepo);
+    temporaryInventory.packages = [];
+
+    try {
+      await mkdir(join(temporaryRepo, '.worktrees/linked'), {recursive: true});
+      await writeFile(
+        manifestPath,
+        `${JSON.stringify({
+          name: '@pkg-nec/monorepo',
+          private: true,
+          version: '31.0.0',
+        })}\n`,
+      );
+      await writeFile(linkedSourcePath, `require('${oldGlobals}');\n`);
+
+      expect(
+        auditRepository({
+          inventory: temporaryInventory,
+          repoRoot: temporaryRepo,
+        }),
+      ).toEqual([]);
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+
+  test('audits a recreated removed rebrand guide', async () => {
+    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-audit-'));
+    const manifestPath = join(temporaryRepo, 'package.json');
+    const guidePath = join(
+      temporaryRepo,
+      'docs/pkg-nec-rebrand-technical-guide.md',
+    );
+    const temporaryInventory = makeInventory(temporaryRepo);
+    temporaryInventory.packages = [];
+
+    try {
+      await mkdir(join(temporaryRepo, 'docs'), {recursive: true});
+      await writeFile(
+        manifestPath,
+        `${JSON.stringify({
+          name: '@pkg-nec/monorepo',
+          private: true,
+          version: '31.0.0',
+        })}\n`,
+      );
+      await writeFile(guidePath, 'npm install jest-util\n');
+
+      expect(
+        auditRepository({
+          inventory: temporaryInventory,
+          repoRoot: temporaryRepo,
+        }),
+      ).toEqual([
+        expect.objectContaining({
+          filePath: 'docs/pkg-nec-rebrand-technical-guide.md',
+          literal: 'jest-util',
+        }),
+      ]);
     } finally {
       await rm(temporaryRepo, {force: true, recursive: true});
     }
