@@ -39,7 +39,10 @@ function isExcludedDirectory(relativePath, name) {
   return (
     excludedDirectories.has(name) ||
     normalizedPath(relativePath) === '.pkg-nec-release' ||
-    normalizedPath(relativePath) === '.yarn/cache'
+    normalizedPath(relativePath) === '.yarn/cache' ||
+    normalizedPath(relativePath) === '.yarn/releases' ||
+    normalizedPath(relativePath) === '.yarn/unplugged' ||
+    normalizedPath(relativePath) === 'docs/superpowers'
   );
 }
 

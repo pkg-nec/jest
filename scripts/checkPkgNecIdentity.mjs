@@ -8,47 +8,17 @@
 import path from 'node:path';
 import fs from 'graceful-fs';
 import {auditRepository} from './pkgNec/audit.mjs';
-import {canonicalName} from './pkgNecPackageIdentity.mjs';
+import {createPackageInventory} from './pkgNecPackageIdentity.mjs';
 
 const repoRoot = process.cwd();
-const baseline = JSON.parse(
+const policy = JSON.parse(
   fs.readFileSync(
-    path.join(repoRoot, 'scripts/pkgNec/upstreamManifestBaseline.json'),
+    path.join(repoRoot, 'scripts/pkgNec/packageIdentityPolicy.json'),
     'utf8',
   ),
 );
-const publishablePrivatePackages = new Set([
-  '@jest/test-globals',
-  '@jest/test-utils',
-]);
-
-function identityFromBaseline(filePath, record, {isRoot = false} = {}) {
-  const manifestPath = path.join(repoRoot, filePath);
-  return {
-    directory: path.dirname(manifestPath),
-    manifestPath,
-    newName: canonicalName(record.name, {isRoot}),
-    oldName: record.name,
-    publishable:
-      record.private !== true || publishablePrivatePackages.has(record.name),
-    version: record.version,
-  };
-}
-
-const root = identityFromBaseline('package.json', baseline['package.json'], {
-  isRoot: true,
-});
-const packages = Object.entries(baseline)
-  .filter(([filePath]) => filePath !== 'package.json')
-  .map(([filePath, record]) => identityFromBaseline(filePath, record));
-const identities = [root, ...packages];
-const inventory = {
-  byNewName: new Map(identities.map(identity => [identity.newName, identity])),
-  byOldName: new Map(identities.map(identity => [identity.oldName, identity])),
-  packages,
-  root,
-};
-const findings = auditRepository({baseline, inventory, repoRoot});
+const inventory = createPackageInventory({policy, repoRoot});
+const findings = auditRepository({inventory, repoRoot});
 
 if (findings.length === 0) {
   console.log('pkg-nec package identity audit passed');
