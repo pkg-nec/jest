@@ -25,7 +25,7 @@ import {
   localTarArguments,
   repackReleaseArtifact,
 } from './pkgNec/repackReleaseArtifact.mjs';
-import {canonicalName} from './pkgNecPackageIdentity.mjs';
+import {createPackageInventory} from './pkgNecPackageIdentity.mjs';
 
 const dependencyFields = [
   'dependencies',
@@ -33,122 +33,51 @@ const dependencyFields = [
   'optionalDependencies',
   'peerDependencies',
   'peerDependenciesMeta',
-  'resolutions',
 ];
-const publishablePrivatePackages = new Set([
-  '@jest/test-globals',
-  '@jest/test-utils',
-]);
 const releaseDirectoryName = '.pkg-nec-release';
 const defaultRepoRoot = path.resolve(
   fileURLToPath(new URL('..', import.meta.url)),
 );
-const defaultBaseline = JSON.parse(
+const defaultPolicy = JSON.parse(
   fs.readFileSync(
-    new URL('pkgNec/upstreamManifestBaseline.json', import.meta.url),
+    new URL('pkgNec/packageIdentityPolicy.json', import.meta.url),
     'utf8',
   ),
 );
 
-function identityFromBaseline(
-  repoRoot,
-  filePath,
-  record,
-  {isRoot = false} = {},
-) {
-  const manifestPath = path.join(repoRoot, filePath);
-  return {
-    directory: path.dirname(manifestPath),
-    manifestPath,
-    newName: canonicalName(record.name, {isRoot}),
-    oldName: record.name,
-    publishable:
-      record.private !== true || publishablePrivatePackages.has(record.name),
-    version: record.version,
-  };
-}
-
-function inventoryFromBaseline({baseline, repoRoot}) {
-  const root = identityFromBaseline(
-    repoRoot,
-    'package.json',
-    baseline['package.json'],
-    {isRoot: true},
-  );
-  const packages = Object.entries(baseline)
-    .filter(([filePath]) => filePath !== 'package.json')
-    .map(([filePath, record]) =>
-      identityFromBaseline(repoRoot, filePath, record),
-    );
-  const identities = [root, ...packages];
-
-  return {
-    byNewName: new Map(identities.map(item => [item.newName, item])),
-    byOldName: new Map(identities.map(item => [item.oldName, item])),
-    packages,
-    root,
-  };
-}
-
-function baselineIdentityMaps(baseline) {
-  const oldToNew = new Map();
-  const recordsByNewName = new Map();
-  const recordsByOldName = new Map();
-
-  for (const [filePath, record] of Object.entries(baseline)) {
-    const newName = canonicalName(record.name, {
-      isRoot: filePath === 'package.json',
-    });
-    oldToNew.set(record.name, newName);
-    recordsByNewName.set(newName, record);
-    recordsByOldName.set(record.name, record);
-  }
-
-  return {oldToNew, recordsByNewName, recordsByOldName};
-}
-
-function containsLinkValue(value) {
-  if (typeof value === 'string') return value.startsWith('link:');
-  if (value === null || typeof value !== 'object') return false;
-  return Object.values(value).some(containsLinkValue);
-}
-
-function containsOldInternalName(value, oldNames) {
+function containsLocalLink(value) {
   if (typeof value === 'string') {
-    return oldNames.find(oldName => value.includes(oldName)) ?? null;
+    return ['file:', 'link:', 'workspace:'].some(protocol =>
+      value.startsWith(protocol),
+    );
   }
-  if (value === null || typeof value !== 'object') return null;
-  for (const nestedValue of Object.values(value)) {
-    const oldName = containsOldInternalName(nestedValue, oldNames);
-    if (oldName) return oldName;
-  }
-  return null;
+  if (value === null || typeof value !== 'object') return false;
+  return Object.values(value).some(containsLocalLink);
 }
 
-export function inspectPackedManifest({baseline, manifest, workspace}) {
+function expectSameKeys({actual, expected, field, workspace}) {
+  const actualKeys = Object.keys(actual).sort();
+  const expectedKeys = Object.keys(expected).sort();
+  if (!isDeepStrictEqual(actualKeys, expectedKeys)) {
+    throw new Error(`${workspace.newName} changed ${field} dependency keys`);
+  }
+}
+
+export function inspectPackedManifest({
+  inventory,
+  manifest,
+  workspace,
+  workspaceManifest,
+}) {
   if (!manifest || typeof manifest !== 'object') {
     throw new TypeError(`Packed manifest missing for ${workspace?.newName}`);
-  }
-
-  const {oldToNew, recordsByNewName, recordsByOldName} =
-    baselineIdentityMaps(baseline);
-  const baselineRecord = recordsByOldName.get(workspace.oldName);
-  if (!baselineRecord) {
-    throw new Error(`Manifest baseline missing for ${workspace.newName}`);
-  }
-
-  if (manifest.name === workspace.oldName) {
-    throw new Error(`Packed manifest contains old name ${workspace.oldName}`);
   }
   if (manifest.name !== workspace.newName) {
     throw new Error(
       `Packed manifest name changed for ${workspace.newName}: ${manifest.name}`,
     );
   }
-  if (
-    manifest.version !== workspace.version ||
-    manifest.version !== baselineRecord.version
-  ) {
+  if (manifest.version !== workspaceManifest.version) {
     throw new Error(
       `Packed manifest version changed for ${workspace.newName}: ${manifest.version}`,
     );
@@ -156,143 +85,91 @@ export function inspectPackedManifest({baseline, manifest, workspace}) {
   if (manifest.private === true) {
     throw new Error(`Packed manifest is private: ${workspace.newName}`);
   }
-  if (manifest.publishConfig?.access !== 'public') {
-    throw new Error(
-      `Packed manifest is missing public access: ${workspace.newName}`,
-    );
-  }
-
-  const oldNames = [...oldToNew.keys()].sort(
-    (left, right) => right.length - left.length,
-  );
   for (const field of dependencyFields) {
-    const actualDependencies = manifest[field] ?? {};
-    const baselineDependencies = baselineRecord[field] ?? {};
-    const expectedDependencies = new Map(
-      Object.entries(baselineDependencies).map(([oldName, value]) => [
-        oldToNew.get(oldName) ?? oldName,
-        {internal: oldToNew.has(oldName), oldName, value},
-      ]),
-    );
+    const source = workspaceManifest[field] ?? {};
+    const packed = manifest[field] ?? {};
+    expectSameKeys({actual: packed, expected: source, field, workspace});
 
-    for (const [dependencyName, range] of Object.entries(actualDependencies)) {
-      if (oldToNew.has(dependencyName)) {
-        throw new Error(
-          `Packed manifest contains old name ${dependencyName} in ${field}`,
-        );
-      }
-      if (containsLinkValue(range)) {
-        throw new Error(
-          `Packed manifest contains link: value for ${field}.${dependencyName}`,
-        );
-      }
-      const oldValueName = containsOldInternalName(range, oldNames);
-      if (oldValueName) {
-        throw new Error(
-          `Packed manifest contains old name alias ${oldValueName} in ${field}.${dependencyName}`,
-        );
-      }
+    for (const [name, sourceValue] of Object.entries(source)) {
       if (
-        dependencyName.startsWith('@pkg-nec/') &&
-        !recordsByNewName.has(dependencyName)
+        typeof sourceValue !== 'string' ||
+        !sourceValue.startsWith('workspace:')
       ) {
+        if (!isDeepStrictEqual(packed[name], sourceValue)) {
+          throw new Error(`${workspace.newName} changed ${field}.${name}`);
+        }
+        continue;
+      }
+
+      const target = inventory.byNewName.get(name);
+      if (!target) {
         throw new Error(
-          `Unresolved internal dependency ${dependencyName} in ${workspace.newName}`,
+          `${workspace.newName} has an unknown workspace dependency: ${name}`,
         );
       }
-      if (!expectedDependencies.has(dependencyName)) {
-        throw new Error(
-          `Unexpected dependency ${field}.${dependencyName} in ${workspace.newName}`,
-        );
+      const protocol = sourceValue.slice('workspace:'.length);
+      const allowed =
+        protocol === '*'
+          ? new Set([target.version, `=${target.version}`])
+          : protocol === '^'
+            ? new Set([`^${target.version}`])
+            : protocol === '~'
+              ? new Set([`~${target.version}`])
+              : new Set([protocol]);
+      if (!allowed.has(packed[name])) {
+        throw new Error(`${workspace.newName} changed ${field}.${name}`);
       }
     }
 
-    for (const [dependencyName, expected] of expectedDependencies) {
-      if (!Object.hasOwn(actualDependencies, dependencyName)) {
-        if (expected.internal) {
-          throw new Error(
-            `Unresolved internal dependency ${dependencyName} in ${workspace.newName}`,
-          );
-        }
+    for (const [name, value] of Object.entries(packed)) {
+      if (containsLocalLink(value)) {
         throw new Error(
-          `Third-party range changed for ${field}.${dependencyName} in ${workspace.newName}`,
-        );
-      }
-
-      const actualRange = actualDependencies[dependencyName];
-      if (
-        expected.internal &&
-        field !== 'peerDependenciesMeta' &&
-        expected.value === 'workspace:*'
-      ) {
-        const dependencyVersion = recordsByNewName.get(dependencyName).version;
-        if (
-          actualRange !== dependencyVersion &&
-          actualRange !== `=${dependencyVersion}`
-        ) {
-          throw new Error(
-            `Packed internal dependency version changed for ${dependencyName} in ${workspace.newName}: ${actualRange}`,
-          );
-        }
-      } else if (!isDeepStrictEqual(actualRange, expected.value)) {
-        throw new Error(
-          `${expected.internal ? 'Internal dependency value' : 'Third-party range'} changed for ${field}.${dependencyName} in ${workspace.newName}`,
+          `${workspace.newName} contains a local dependency link in ${field}.${name}`,
         );
       }
     }
   }
 }
 
-export function createReleaseLedger({artifacts, order}) {
-  const artifactsByName = new Map();
-  for (const artifact of artifacts) {
-    if (artifactsByName.has(artifact.name)) {
-      throw new Error(`Duplicate release artifact: ${artifact.name}`);
-    }
-    if (!String(artifact.integrity).startsWith('sha512-')) {
-      throw new Error(`Release artifact lacks SHA-512 SRI: ${artifact.name}`);
-    }
-    artifactsByName.set(artifact.name, artifact);
-  }
-
-  const orderIndex = new Map(order.map((name, index) => [name, index]));
+export function createReleaseLedger({
+  artifacts,
+  generatedAt,
+  nodeVersion,
+  order,
+  packageManager,
+  sourceCommit,
+}) {
+  const artifactsByName = new Map(artifacts.map(item => [item.name, item]));
   const packages = order.map((name, index) => {
     const artifact = artifactsByName.get(name);
-    if (!artifact) throw new Error(`Release artifact missing for ${name}`);
-
-    return {
-      files: [...artifact.files].sort((left, right) =>
-        left.localeCompare(right),
-      ),
-      integrity: artifact.integrity,
-      name: artifact.name,
-      order: index,
-      prerequisites: [...artifact.prerequisites].sort(
-        (left, right) =>
-          (orderIndex.get(left) ?? Number.MAX_SAFE_INTEGER) -
-            (orderIndex.get(right) ?? Number.MAX_SAFE_INTEGER) ||
-          left.localeCompare(right),
-      ),
-      tarball: artifact.tarball,
-      version: artifact.version,
-    };
+    if (!artifact) {
+      throw new Error(`Missing prepared artifact for ${name}`);
+    }
+    return {...artifact, order: index + 1};
   });
-
   if (artifactsByName.size !== packages.length) {
-    const unexpected = [...artifactsByName.keys()].filter(
-      name => !orderIndex.has(name),
-    );
-    throw new Error(`Unexpected release artifact: ${unexpected.join(', ')}`);
+    throw new Error('Prepared artifacts do not match the release order');
   }
 
-  return {generatedAt: new Date().toISOString(), packages};
+  return {
+    generatedAt,
+    nodeVersion,
+    packageManager,
+    packages,
+    schemaVersion: 1,
+    sourceCommit,
+  };
 }
 
 function releaseMarkdown(ledger) {
   const lines = [
     '# pkg-nec Release Ledger',
     '',
+    `Schema version: ${ledger.schemaVersion}`,
     `Generated at: ${ledger.generatedAt}`,
+    `Source commit: ${ledger.sourceCommit}`,
+    `Node: ${ledger.nodeVersion}`,
+    `Package manager: ${ledger.packageManager}`,
     '',
     '| Order | Package | Version | Prerequisites | Tarball | Integrity | Files |',
     '| ---: | --- | --- | --- | --- | --- | ---: |',
@@ -398,6 +275,11 @@ async function defaultRunCommand(command, args, options) {
   await execa(command, args, {...options, stdio: 'inherit'});
 }
 
+async function defaultReadSourceCommit(root) {
+  const {stdout} = await execa('git', ['rev-parse', 'HEAD'], {cwd: root});
+  return stdout.trim();
+}
+
 async function defaultInspectTarball(tarballPath) {
   const {stdout: listing} = await execa(
     'tar',
@@ -456,15 +338,16 @@ async function promoteReleaseDirectory({
   }
 }
 
-export async function runPublishDryCommand({
+export async function runPrepareReleaseCommand({
   audit = auditRepository,
-  baseline = defaultBaseline,
   buildGraph = buildRuntimeReleaseGraph,
   inspectTarball = defaultInspectTarball,
   inventory,
   makeStagingDirectory = defaultMakeStagingDirectory,
   orderGraph = topologicalReleaseOrder,
   outputDirectory,
+  policy = defaultPolicy,
+  readSourceCommit = defaultReadSourceCommit,
   repackTarball = repackReleaseArtifact,
   repoRoot = defaultRepoRoot,
   runCommand = defaultRunCommand,
@@ -474,9 +357,8 @@ export async function runPublishDryCommand({
   const root = path.resolve(repoRoot);
   const releaseDirectory = resolveReleaseDirectory(root, outputDirectory);
   const packageInventory =
-    inventory ?? inventoryFromBaseline({baseline, repoRoot: root});
+    inventory ?? createPackageInventory({policy, repoRoot: root});
   const findings = audit({
-    baseline,
     inventory: packageInventory,
     repoRoot: root,
   });
@@ -517,6 +399,9 @@ export async function runPublishDryCommand({
       const stagedFinalTarballPath = path.join(stagingDirectory, tarballName);
       let rawFailure;
       try {
+        const workspaceManifest = JSON.parse(
+          fs.readFileSync(workspace.manifestPath, 'utf8'),
+        );
         await runCommand(
           'yarn',
           ['workspace', name, 'pack', '--out', rawTarballPath],
@@ -525,9 +410,10 @@ export async function runPublishDryCommand({
 
         const rawPacked = await inspectTarball(rawTarballPath);
         inspectPackedManifest({
-          baseline,
+          inventory: packageInventory,
           manifest: rawPacked.manifest,
           workspace,
+          workspaceManifest,
         });
         await repackTarball({
           finalTarballPath: stagedFinalTarballPath,
@@ -580,7 +466,17 @@ export async function runPublishDryCommand({
       if (rawCleanupError) throw rawCleanupError;
     }
 
-    ledger = createReleaseLedger({artifacts, order});
+    const rootManifest = JSON.parse(
+      fs.readFileSync(path.join(root, 'package.json'), 'utf8'),
+    );
+    ledger = createReleaseLedger({
+      artifacts,
+      generatedAt: new Date().toISOString(),
+      nodeVersion: process.version,
+      order,
+      packageManager: rootManifest.packageManager,
+      sourceCommit: await readSourceCommit(root),
+    });
     await writeFile(
       path.join(stagingDirectory, 'release-ledger.json'),
       `${JSON.stringify(ledger, null, 2)}\n`,
@@ -618,7 +514,7 @@ const isMain =
 
 if (isMain) {
   try {
-    await runPublishDryCommand();
+    await runPrepareReleaseCommand();
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
