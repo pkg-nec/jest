@@ -5,6 +5,7 @@
 *~
 api-extractor.json
 coverage
+/.superpowers
 
 /packages/*/build
 /packages/*/dist
