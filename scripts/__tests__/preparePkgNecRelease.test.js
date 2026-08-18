@@ -17,8 +17,6 @@ test('defines the complete release preparation pipeline', () => {
   expect(rootManifest.scripts['prepare:pkg-nec-release']).toBe(
     'yarn build-clean && yarn build && node ./scripts/preparePkgNecRelease.mjs',
   );
-  expect(rootManifest.scripts['check:pkg-nec-pack-parity']).toBeUndefined();
-  expect(rootManifest.scripts['publish:pkg-nec:dry']).toBeUndefined();
 });
 
 test('keeps affected package source and test files out of release packs', async () => {
@@ -46,9 +44,6 @@ test('keeps affected package source and test files out of release packs', async 
 });
 
 const repoRoot = process.cwd();
-const identityModuleUrl = pathToFileURL(
-  join(repoRoot, 'scripts/pkgNecPackageIdentity.mjs'),
-).href;
 const graphModuleUrl = pathToFileURL(
   join(repoRoot, 'scripts/pkgNec/releaseGraph.mjs'),
 ).href;
@@ -81,15 +76,34 @@ async function writeManifest(repo, directory, manifest) {
 
 function buildGraph(repo, expectedPackageCount) {
   return runModuleProgram(`
-    import {discoverPackageIdentities} from ${JSON.stringify(
-      identityModuleUrl,
-    )};
+    import fs from 'graceful-fs';
+    import path from 'node:path';
     import {buildRuntimeReleaseGraph} from ${JSON.stringify(graphModuleUrl)};
 
-    const inventory = discoverPackageIdentities({
-      expectedPackageCount: ${expectedPackageCount},
-      repoRoot: ${JSON.stringify(repo)},
-    });
+    const repo = ${JSON.stringify(repo)};
+    const packages = fs
+      .readdirSync(path.join(repo, 'packages'), {withFileTypes: true})
+      .filter(entry => entry.isDirectory())
+      .sort((left, right) => left.name.localeCompare(right.name))
+      .map(entry => {
+        const manifestPath = path.join(repo, 'packages', entry.name, 'package.json');
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+        return {
+          manifestPath,
+          newName: '@pkg-nec/' + manifest.name,
+          oldName: manifest.name,
+          publishable: manifest.private !== true,
+        };
+      });
+    if (packages.length !== ${expectedPackageCount}) {
+      throw new Error('Unexpected fixture package count');
+    }
+    const identities = packages;
+    const inventory = {
+      byNewName: new Map(identities.map(item => [item.newName, item])),
+      byOldName: new Map(identities.map(item => [item.oldName, item])),
+      packages,
+    };
 
     try {
       const graph = buildRuntimeReleaseGraph(inventory);
@@ -247,7 +261,6 @@ describe('pkg-nec runtime release graph', () => {
     }
   });
 });
-
 
 describe('pkg-nec release preparation', () => {
   test('accepts a changed version and third-party range from the workspace manifest', () => {

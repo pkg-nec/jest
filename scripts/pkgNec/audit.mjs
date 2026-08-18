@@ -25,9 +25,6 @@ const historicalFiles = new Set([
   'CHANGELOG.md',
   'CHANGELOG_PRE_v30.md',
   'docs/pkg-nec-rebrand-technical-guide.md',
-  'docs/superpowers/plans/2026-08-12-pkg-nec-package-rebrand.md',
-  'docs/superpowers/specs/2026-08-12-pkg-nec-package-rebrand-design.md',
-  'scripts/pkgNec/upstreamManifestBaseline.json',
 ]);
 const exactExceptions = new Set([
   ['jest.config.mjs', 'mapper-key', '^@jest/globals$'].join('\0'),

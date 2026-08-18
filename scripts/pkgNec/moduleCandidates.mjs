@@ -313,8 +313,9 @@ function visit(node, inventory, edits, scope = null) {
   }
 }
 
-export function collectModuleCandidates({code, filePath, inventory}) {
-  const ast = parseSync(code, {
+export function collectModuleCandidates({code, filePath, inventory, text}) {
+  const source = text ?? code;
+  const ast = parseSync(source, {
     babelrc: false,
     configFile: false,
     filename: filePath,
@@ -326,17 +327,18 @@ export function collectModuleCandidates({code, filePath, inventory}) {
   const edits = [];
 
   visit(ast, inventory, edits);
-  return edits;
-}
+  const identities = [...inventory.byOldName.values()].sort(
+    (left, right) => right.oldName.length - left.oldName.length,
+  );
 
-export function applyTextEdits(text, edits) {
-  let result = text;
-
-  for (const edit of [...edits].sort(
-    (left, right) => right.start - left.start,
-  )) {
-    result = `${result.slice(0, edit.start)}${edit.replacement}${result.slice(edit.end)}`;
-  }
-
-  return result;
+  return edits.map(edit => ({
+    ...edit,
+    filePath,
+    oldName: identities.find(
+      identity =>
+        edit.oldValue === identity.oldName ||
+        edit.oldValue.startsWith(`${identity.oldName}/`),
+    ).oldName,
+    specifier: edit.oldValue,
+  }));
 }

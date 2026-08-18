@@ -16,12 +16,7 @@ const excludedDirectories = new Set([
   'dist',
   'node_modules',
 ]);
-const excludedFiles = new Set([
-  'docs/pkg-nec-rebrand-technical-guide.md',
-  'docs/superpowers/plans/2026-08-12-pkg-nec-package-rebrand.md',
-  'docs/superpowers/specs/2026-08-12-pkg-nec-package-rebrand-design.md',
-  'scripts/pkgNec/upstreamManifestBaseline.json',
-]);
+const excludedFiles = new Set(['docs/pkg-nec-rebrand-technical-guide.md']);
 const moduleExtensions = new Set([
   '.cjs',
   '.js',
