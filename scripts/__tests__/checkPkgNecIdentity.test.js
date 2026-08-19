@@ -167,6 +167,11 @@ describe('pkg-nec identity audit', () => {
         text: JSON.stringify({
           name: '@pkg-nec/wrong-globals',
           publishConfig: {access: 'public'},
+          repository: {
+            directory: 'packages/globals',
+            type: 'git',
+            url: 'https://github.com/pkg-nec/jest.git',
+          },
         }),
       }),
     ).toEqual([
@@ -477,6 +482,11 @@ describe('pkg-nec identity audit', () => {
           },
           name: '@pkg-nec/jest-globals',
           publishConfig: {access: 'public'},
+          repository: {
+            directory: 'packages/globals',
+            type: 'git',
+            url: 'https://github.com/pkg-nec/jest.git',
+          },
         }),
       }),
     ).toEqual([
@@ -603,6 +613,11 @@ describe('pkg-nec identity audit', () => {
           },
           name: '@pkg-nec/jest-globals',
           publishConfig: {access: 'public'},
+          repository: {
+            directory: 'packages/globals',
+            type: 'git',
+            url: 'https://github.com/pkg-nec/jest.git',
+          },
         }),
       }),
     ).toEqual([
@@ -626,6 +641,11 @@ describe('pkg-nec identity audit', () => {
           },
           name: '@pkg-nec/jest-globals',
           publishConfig: {access: 'public'},
+          repository: {
+            directory: 'packages/globals',
+            type: 'git',
+            url: 'https://github.com/pkg-nec/jest.git',
+          },
         }),
       }),
     ).toEqual([]);
@@ -971,6 +991,60 @@ describe('pkg-nec identity audit', () => {
     );
   });
 
+  test('requires the canonical repository URL and manifest directory for publishable packages', () => {
+    expect(
+      auditText({
+        category: 'manifest',
+        filePath: 'packages/jest/package.json',
+        inventory,
+        text: JSON.stringify({
+          name: '@pkg-nec/jest',
+          publishConfig: {access: 'public'},
+          repository: {
+            directory: 'packages/jest',
+            type: 'git',
+            url: 'https://github.com/jestjs/jest.git',
+          },
+          version: '30.4.2',
+        }),
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'repository-url',
+          expected: 'https://github.com/pkg-nec/jest.git',
+          literal: 'https://github.com/jestjs/jest.git',
+        }),
+      ]),
+    );
+
+    expect(
+      auditText({
+        category: 'manifest',
+        filePath: 'packages/jest/package.json',
+        inventory,
+        text: JSON.stringify({
+          name: '@pkg-nec/jest',
+          publishConfig: {access: 'public'},
+          repository: {
+            directory: 'packages/wrong',
+            type: 'git',
+            url: 'https://github.com/pkg-nec/jest.git',
+          },
+          version: '30.4.2',
+        }),
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'repository-directory',
+          expected: 'packages/jest',
+          literal: 'packages/wrong',
+        }),
+      ]),
+    );
+  });
+
   test('matches policy manifests only by exact repository-relative path', () => {
     expect(
       auditText({
@@ -1026,6 +1100,11 @@ describe('pkg-nec identity audit', () => {
       `${JSON.stringify({
         name: '@pkg-nec/jest-test-utils',
         publishConfig: {access: 'public'},
+        repository: {
+          directory: 'packages/test-utils',
+          type: 'git',
+          url: 'https://github.com/pkg-nec/jest.git',
+        },
         version: '1.0.0',
       })}\n`,
     );
@@ -1083,6 +1162,11 @@ describe('pkg-nec identity audit', () => {
     const publicManifest = {
       name: '@pkg-nec/jest-globals',
       publishConfig: {access: 'public'},
+      repository: {
+        directory: 'packages/globals',
+        type: 'git',
+        url: 'https://github.com/pkg-nec/jest.git',
+      },
       version: '1.0.0',
     };
     await writeFile(packageManifestPath, `${JSON.stringify(publicManifest)}\n`);

@@ -13,6 +13,9 @@ import {collectModuleCandidates} from './moduleCandidates.mjs';
 import {enumerateRepositoryFiles} from './repositoryFiles.mjs';
 import {collectStructuredCandidates} from './structuredCandidates.mjs';
 
+export const EXPECTED_PUBLISH_REPOSITORY_URL =
+  'https://github.com/pkg-nec/jest.git';
+
 const dependencyFields = [
   'dependencies',
   'devDependencies',
@@ -472,6 +475,35 @@ function manifestPolicyFindings({filePath, inventory, text}) {
         expected: 'public',
         filePath,
         literal: manifest.publishConfig?.access ?? null,
+      }),
+    );
+  }
+
+  if (
+    identity?.publishable &&
+    manifest.repository?.url !== EXPECTED_PUBLISH_REPOSITORY_URL
+  ) {
+    findings.push(
+      finding({
+        category: 'repository-url',
+        expected: EXPECTED_PUBLISH_REPOSITORY_URL,
+        filePath,
+        literal: manifest.repository?.url ?? null,
+      }),
+    );
+  }
+
+  const expectedRepositoryDirectory = filePath.replace(/\/package\.json$/u, '');
+  if (
+    identity?.publishable &&
+    manifest.repository?.directory !== expectedRepositoryDirectory
+  ) {
+    findings.push(
+      finding({
+        category: 'repository-directory',
+        expected: expectedRepositoryDirectory,
+        filePath,
+        literal: manifest.repository?.directory ?? null,
       }),
     );
   }

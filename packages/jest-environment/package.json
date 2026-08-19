@@ -1,9 +1,9 @@
 {
   "name": "@pkg-nec/jest-environment",
-  "version": "30.4.1",
+  "version": "30.4.2",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jestjs/jest.git",
+    "url": "https://github.com/pkg-nec/jest.git",
     "directory": "packages/jest-environment"
   },
   "license": "MIT",

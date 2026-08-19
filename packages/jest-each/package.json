@@ -1,6 +1,6 @@
 {
   "name": "@pkg-nec/jest-each",
-  "version": "30.4.1",
+  "version": "30.4.2",
   "description": "Parameterised tests for Jest",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jestjs/jest.git",
+    "url": "https://github.com/pkg-nec/jest.git",
     "directory": "packages/jest-each"
   },
   "keywords": [

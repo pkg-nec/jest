@@ -1,9 +1,9 @@
 {
   "name": "@pkg-nec/jest-diff-sequences",
-  "version": "30.4.0",
+  "version": "30.4.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jestjs/jest.git",
+    "url": "https://github.com/pkg-nec/jest.git",
     "directory": "packages/diff-sequences"
   },
   "license": "MIT",

@@ -1,7 +1,7 @@
 {
   "name": "@pkg-nec/jest-reporters",
   "description": "Jest's reporters",
-  "version": "30.4.1",
+  "version": "30.4.2",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "exports": {
@@ -65,7 +65,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jestjs/jest.git",
+    "url": "https://github.com/pkg-nec/jest.git",
     "directory": "packages/jest-reporters"
   },
   "bugs": {
