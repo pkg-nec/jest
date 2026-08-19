@@ -43,7 +43,7 @@ For the first provenance release, every public package receives exactly one patc
 
 `@pkg-nec/jest` becomes `30.4.3`, so the anchor tag and GitHub Release name are `@pkg-nec/jest-v30.4.3`. The private root remains `0.0.0`. `lerna.json` moves to the anchor version `30.4.3`.
 
-The version changes, internal dependency resolutions, repository metadata, and resulting `yarn.lock` changes are committed before the tag is created. The workflow never calculates, writes, commits, or tags versions.
+The version changes, packed internal dependency resolutions, and repository metadata are committed before the tag is created. Run `yarn install` after changing the manifests and commit `yarn.lock` only if Yarn produces a semantic diff. The current workspace lock entries use `0.0.0-use.local`, so a lockfile change is not expected from manifest-only version bumps. The workflow never calculates, writes, commits, or tags versions.
 
 ## Trusted-publishing prerequisites
 
@@ -244,7 +244,7 @@ Verification will use the repository's focused build, pkg-nec tooling tests, ide
 - `.github/workflows/release.yml`
 - `package.json`
 - `lerna.json`
-- `yarn.lock`
+- `yarn.lock` only if the required reinstall produces a semantic change
 - all 55 public `packages/*/package.json` manifests
 - `scripts/validatePkgNecRelease.mjs`
 - `scripts/publishPkgNecRelease.mjs`
@@ -260,7 +260,7 @@ Verification will use the repository's focused build, pkg-nec tooling tests, ide
 
 ## Operator runbook
 
-1. Merge the reviewed workflow, tooling, manifest, lockfile, and documentation changes into `main`.
+1. Merge the reviewed workflow, tooling, manifest, any generated lockfile change, and documentation changes into `main`.
 2. Wait for Node CI to succeed on that exact commit.
 3. Configure all 55 npm trusted publishers with the exact workflow and environment identity.
 4. Create a GitHub Release named `@pkg-nec/jest-v30.4.3`, targeting that exact commit and using the same tag name.
