@@ -1,0 +1,410 @@
+{
+  "schemaVersion": 1,
+  "capturedDate": "2026-08-18",
+  "registry": "https://registry.npmjs.org/",
+  "release": {
+    "packageCount": 55,
+    "firstPublishedAt": "2026-08-17T06:01:22.387Z",
+    "lastPublishedAt": "2026-08-17T12:51:26.867Z",
+    "publicationMode": "manual dependency-first publication with public access and npm's default latest tag",
+    "latestTagMatches": 55,
+    "orderBasis": "npm publication timestamps matching the deterministic dependency-first preparation order"
+  },
+  "historicalLocalPreparation": {
+    "ledgerGeneratedAt": "2026-08-18T02:54:50.005Z",
+    "ledgerSchemaVersion": null,
+    "sourceCommit": null,
+    "nodeVersion": null,
+    "packageManager": null,
+    "integritiesMatchingRegistry": 27,
+    "packageCount": 55,
+    "status": "not the publication ledger; retained only as ignored local preparation history"
+  },
+  "packages": [
+    {
+      "order": 1,
+      "name": "@pkg-nec/babel-plugin-jest-hoist",
+      "version": "30.4.0",
+      "publishedAt": "2026-08-17T06:01:22.387Z",
+      "integrity": "sha512-8uEwytDwhZZSC9Ki7Ee/eRep52QbL+h9XF/jVBzV76UOiXi5Re/N5B3hYFReezVYoR0a1fZDX5VZvAxn35RQuA=="
+    },
+    {
+      "order": 2,
+      "name": "@pkg-nec/babel-preset-jest",
+      "version": "30.4.0",
+      "publishedAt": "2026-08-17T06:30:25.943Z",
+      "integrity": "sha512-4kOxsvN4TJB5PjHmCyzdq8AWgTROPScAyBmRSkbnKqVdhF9buJMkKLorEgXilqfCv2WenaO4IXtMamWHF0az/Q=="
+    },
+    {
+      "order": 3,
+      "name": "@pkg-nec/jest-diff-sequences",
+      "version": "30.4.0",
+      "publishedAt": "2026-08-17T06:37:08.425Z",
+      "integrity": "sha512-oXeGdqiQX4wA3ThGYYWXYpzJpQsbS7mVfSUcO0ikDJjK6Aqj1gOR4AQ23fnIbviyfF7tePfrVwpWVzufi3kYEQ=="
+    },
+    {
+      "order": 4,
+      "name": "@pkg-nec/jest-docblock",
+      "version": "30.4.0",
+      "publishedAt": "2026-08-17T06:43:29.247Z",
+      "integrity": "sha512-wP9jtaGNfAPCLET+mrvnu3JQNzJ0nTdjfDsgt0KJODwiqIfG44teSZJfetdVNeFVt3hxCN+wyKkIZS+wp+q/bw=="
+    },
+    {
+      "order": 5,
+      "name": "@pkg-nec/jest-get-type",
+      "version": "30.1.0",
+      "publishedAt": "2026-08-17T06:48:51.125Z",
+      "integrity": "sha512-q04cl4tLj87vfscGiY11OHmK18N6Wis24ZZ5pEtbMUqVZw8Jgp9cPo2vEFS2u2yH3dkbaxCWVELU/5M/+KXyTQ=="
+    },
+    {
+      "order": 6,
+      "name": "@pkg-nec/jest-expect-utils",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T06:54:54.591Z",
+      "integrity": "sha512-k2yYdyiO0K1QX18F22LnCXy1sEO/tCvzgT1piLKtabOgQ6eHNaDt6KIg09/IAEaweF3HUGLR40/HkYAT+og4nA=="
+    },
+    {
+      "order": 7,
+      "name": "@pkg-nec/jest-regex-util",
+      "version": "30.4.0",
+      "publishedAt": "2026-08-17T06:59:58.188Z",
+      "integrity": "sha512-sQCLNd86amLC/ZQBbdr+LPVarPNC4VxHUnD9e1cDU6eS16i/ZhUI2hPSFwXBNZu2eozqyqqh55Z8LlPPGOI4aQ=="
+    },
+    {
+      "order": 8,
+      "name": "@pkg-nec/jest-pattern",
+      "version": "30.4.0",
+      "publishedAt": "2026-08-17T07:05:02.772Z",
+      "integrity": "sha512-uUeVuPLUvMivFnI1yhlDxIaRjMuRMrqCv2iMQD82DPpwtPfBjCLHfM5sDcSzjTFPOjPg8X43J2PmAe7bxUCZ2A=="
+    },
+    {
+      "order": 9,
+      "name": "@pkg-nec/jest-schemas",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T07:15:16.833Z",
+      "integrity": "sha512-hfB0V2yRKvPlAkkq8nRDyIS8QiRhXpvGAuC71rTaWOSEb+V91zd57ikzt223MXK9cAVRz3L+X3UvKCM+JkN0sw=="
+    },
+    {
+      "order": 10,
+      "name": "@pkg-nec/jest-source-map",
+      "version": "30.0.1",
+      "publishedAt": "2026-08-17T07:20:25.218Z",
+      "integrity": "sha512-WcGciPLk8mNSg0MokDB9KCGvzzUCuYkb+kUJXwiGN4u3c2KpzgLIAy/cHNmXlA2n5ORtwT/eB76i0d9ZJGmw1A=="
+    },
+    {
+      "order": 11,
+      "name": "@pkg-nec/jest-types",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T07:26:24.613Z",
+      "integrity": "sha512-oCrTQ52xvHOGvyUFPgiU/MmRbvnX543Y2OzkH3WVd7VkOCffZT5y3oA7VpS61KB9A+l6+7uVRqNrHr29pU9aDA=="
+    },
+    {
+      "order": 12,
+      "name": "@pkg-nec/jest-create-cache-key-function",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T07:31:42.976Z",
+      "integrity": "sha512-M9xAuaSotxKrrigar/5gA9a9isptuC9H/SNdpUoLPIqeLIYNCF+mdCaVAUXY7+H+IHuceGm/XqLT7m7QJaS1Fw=="
+    },
+    {
+      "order": 13,
+      "name": "@pkg-nec/jest-snapshot-utils",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T07:36:02.142Z",
+      "integrity": "sha512-P8AKL2F2LdPzGIH31ZfjwBTSIG2RK9ZMkNzmHGgaEgPFjANgPfxLsw2sYFClukl3L0qMx6G9Vu1RyZzStWxH5A=="
+    },
+    {
+      "order": 14,
+      "name": "@pkg-nec/jest-util",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T07:40:41.905Z",
+      "integrity": "sha512-8B6TCrGFgv6U6iR2qhhI6Mq6PsFAqLL8lYzNx0LU4+DL7rurDE61HQryXBALcCP9mU4bw9PbOyA9fIg5AnF1YA=="
+    },
+    {
+      "order": 15,
+      "name": "@pkg-nec/jest-changed-files",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T07:46:20.018Z",
+      "integrity": "sha512-+FglqV76SSeoEyyh9EKED8j0RQAQ/zv2P0fd4YFEhoeVS2GwFC7ycj02LQwUfMaQlgtw6F8MRQNLdmxZ3mkxPw=="
+    },
+    {
+      "order": 16,
+      "name": "@pkg-nec/jest-mock",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T07:51:47.665Z",
+      "integrity": "sha512-9cIvydqo3mZx98IIptUhxFdtzQloW0j/SHoszItVMKxjuzWZQRpKZoIkvnLVeR4LbxNJFNSTeTd+idA171vIOw=="
+    },
+    {
+      "order": 17,
+      "name": "@pkg-nec/jest-worker",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T07:55:58.924Z",
+      "integrity": "sha512-gS8DK5G/3AA0PuCD1vD7wSUqXN5FZL08LBHmawFv8+0ZRK3g3W1QGe3L+gP2kLIqlUF1O8vG4RSlMBqNuVVOMw=="
+    },
+    {
+      "order": 18,
+      "name": "@pkg-nec/jest-haste-map",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T08:01:03.521Z",
+      "integrity": "sha512-u4JqYx/AQ0H2Tg62e82P+NbQyoo6OBfyljHXpJNVn3LpEnLyK09urw/XB9aXuyBGmnZqXmtaCaYIdFMaTMiFkw=="
+    },
+    {
+      "order": 19,
+      "name": "@pkg-nec/jest-transform",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T08:06:10.070Z",
+      "integrity": "sha512-FH2Jj+UM6hRDXslxk48rJVWocYTHRUSfCQTEzGAWTJR2h7CCWbv4UCP3IPIlL9NrBEUPuEmI+yg3jP+ht/2sYQ=="
+    },
+    {
+      "order": 20,
+      "name": "@pkg-nec/babel-jest",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T08:11:19.816Z",
+      "integrity": "sha512-A9++bhbg5rmqCRI+Hw+YgNWrVosLV+Z1jPQVieLk3fhiWtMSdFvEiJ0tBcFIWJl7iZ/bQdwCH08Ri5bm/JjE8A=="
+    },
+    {
+      "order": 21,
+      "name": "@pkg-nec/pretty-format",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T08:16:30.024Z",
+      "integrity": "sha512-6/xjUVBt4eOmbIiPoOlrGLobuPA76KZkZwxBVeuMeRK6dFcAgKkgn1j23VmzCTLyhHHNVHM2RZZoXYYl0cmXnw=="
+    },
+    {
+      "order": 22,
+      "name": "@pkg-nec/jest-diff",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T08:21:32.474Z",
+      "integrity": "sha512-iVBjIrKdN/zfcu5mhArNlhv2I0CYrSaT0Q3MXsekYQgtVN5qcDLeR71Tv9BpL0mxxHASvfQQaeRZRtytGovVbw=="
+    },
+    {
+      "order": 23,
+      "name": "@pkg-nec/jest-each",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T08:26:51.064Z",
+      "integrity": "sha512-oACfalsVMwHTDXyrZIoLPivUSkPfOLc27a9EcUrvASDhZ8EYBi7DiIRU8j+DWdZmU6rTLYQG7j5gf9jAAvjUEg=="
+    },
+    {
+      "order": 24,
+      "name": "@pkg-nec/jest-leak-detector",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T08:32:03.909Z",
+      "integrity": "sha512-hmZJfHtrv+qm/7uBT8caepg1PZfT+cvzuUPZ3ifE780WgCwQm3EHQU6kz8lQ3l0f4txhxaTreRd08zfkfPvVzg=="
+    },
+    {
+      "order": 25,
+      "name": "@pkg-nec/jest-matcher-utils",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T08:40:14.137Z",
+      "integrity": "sha512-zeKC3r/XLr1L1NA/UgBEfXu7TJ+JicudzJEXcGpJgn5hE0aD89bV7W85VXRdkivjFX2E7Lygp2uSwVhzXrF6fg=="
+    },
+    {
+      "order": 26,
+      "name": "@pkg-nec/jest-message-util",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T09:29:04.134Z",
+      "integrity": "sha512-uK1B08KQg9svcwpsw81ShGrBqlnigGlxZncgdbc3Q12XMW89o4ZJ+5ufME4Q+8CQzzvSFqbHXZEpfpps59JSEw=="
+    },
+    {
+      "order": 27,
+      "name": "@pkg-nec/expect",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T09:34:30.398Z",
+      "integrity": "sha512-W8+NgeK68bYIyuq3v6r/7npRUSWu8fR0NXuAEK7L9EK9iAnn0lxJF9Dbnv8zwHWBWAuTFvuP9TIfI87LOmhd5g=="
+    },
+    {
+      "order": 28,
+      "name": "@pkg-nec/jest-console",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T09:40:43.945Z",
+      "integrity": "sha512-efFCiTcvXaHdQxXE8xWRFrM6EFViuOetPOnBqdIEwWNQ5o2ECiurv9ES4nNelXE/SjHnn6OybcszdeDx0D1TVw=="
+    },
+    {
+      "order": 29,
+      "name": "@pkg-nec/jest-fake-timers",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T09:44:34.229Z",
+      "integrity": "sha512-9I1LmXOIyChj2XFns4q2gH/cOVTR8TLBDRcYbed+9tAYQb07rCEUGof93ba/MU/dtpRBtTb1AxZoEH3G9Lc/dg=="
+    },
+    {
+      "order": 30,
+      "name": "@pkg-nec/jest-environment",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T09:49:28.113Z",
+      "integrity": "sha512-jXFnZRciVrrnQvwNLmoeMlUvBd0ltnzMfNsc7Z0NwGp05+BGVc5Fe7Bwb7OV25Qrq7Zrq8GhB8L+AzWzPgZ6IQ=="
+    },
+    {
+      "order": 31,
+      "name": "@pkg-nec/jest-environment-jsdom-abstract",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T09:54:32.898Z",
+      "integrity": "sha512-SLexe3P7tL8gwblCDt3nQzjtp6/Kydw+8xMgkJzTdSDzlzVbDDsJyPa+E4GVZFebZbtWFjyHtXdZaB+ZrkmCgw=="
+    },
+    {
+      "order": 32,
+      "name": "@pkg-nec/jest-environment-jsdom",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T09:59:34.027Z",
+      "integrity": "sha512-JOOhc4+p+/wNAlooo+zqGS+wrqeVs7XGETp25WWxxbkBjFfC3uB2teql+hvy7a6ZeGDSujl5lKZLmrOuTtlTBA=="
+    },
+    {
+      "order": 33,
+      "name": "@pkg-nec/jest-snapshot",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T10:04:48.149Z",
+      "integrity": "sha512-FSK3LM2kwVMO06sKUk6vrvu9OM1P41+7a+drNB6FVroRu4aS5pA/9uN2KPHGCFvDcqD7Zzp5Xr3U/Qq/8J/fxw=="
+    },
+    {
+      "order": 34,
+      "name": "@pkg-nec/jest-expect",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T10:09:48.368Z",
+      "integrity": "sha512-VCQhNlTalc4EmZQ/pHzKQIeHFr8IDIxjrMouUjAaFqNcFhX/2bBteysEJbwmoHfPMsIKW9grHYwIn6elI7N47w=="
+    },
+    {
+      "order": 35,
+      "name": "@pkg-nec/jest-globals",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T10:29:16.096Z",
+      "integrity": "sha512-p3KuA5s49X+o5kccN6Z56p0CSfx79VYjqbPqNCs4IOUQg9ClMIZYfPpxoOus2oGiSSAIjf92G2YrS0QPNUYeuw=="
+    },
+    {
+      "order": 36,
+      "name": "@pkg-nec/jest-resolve-dependencies",
+      "version": "30.4.2",
+      "publishedAt": "2026-08-17T10:34:24.960Z",
+      "integrity": "sha512-eyop6r2xYFxiyl77tC/oe+eWSCxCNeH+7tUyDRaOKGTe8ziiY4Lex6XkaxDhtVIubjr0J1IwH7UFg1evQrjGdg=="
+    },
+    {
+      "order": 37,
+      "name": "@pkg-nec/jest-test-globals",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T11:20:51.393Z",
+      "integrity": "sha512-wGWw2+H2ShxrdWjm9NAgiLCVIRXBEjENgfj6LuGCzkBuXvlsL499e58w7KVPFMD5ov+e5aI7t6Kb6VgDkF5BMQ=="
+    },
+    {
+      "order": 38,
+      "name": "@pkg-nec/jest-test-result",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T11:25:32.851Z",
+      "integrity": "sha512-4Jo/1D776DWLsU9U8gq2u0TAYGgCy6IVIxmwKgm+Dc8GVX4Ya+Eqnk1LDWcfc3RvpsT7XTLs2eEMNNUDiFN6Cw=="
+    },
+    {
+      "order": 39,
+      "name": "@pkg-nec/jest-phabricator",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T11:30:30.657Z",
+      "integrity": "sha512-40Qxzwm+JoLj80ihK3yIrjY2CWa3kAGbupVGWd4Kbq79TWBhP/0mf6pLIxS9MrUGk+ockxKcFB6EndPgJ719Wg=="
+    },
+    {
+      "order": 40,
+      "name": "@pkg-nec/jest-reporters",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T11:35:33.356Z",
+      "integrity": "sha512-NsNmUP4KQN4mZ59MLH33SseNCsSxEz7FkW5PqJxu4cKy5DdJ6PVLkkkdXsyxgFYKnr9Fj31YD6ksXmPUHy7jRw=="
+    },
+    {
+      "order": 41,
+      "name": "@pkg-nec/jest-test-sequencer",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T11:40:38.976Z",
+      "integrity": "sha512-zc5x619gr+bEmAbiVOYLEo4lxuIdeRSBNMhEnON8MEQ2ETLfy6qvf86b0AG1ujt4VNV2xiWC1/skOoOEuEjScg=="
+    },
+    {
+      "order": 42,
+      "name": "@pkg-nec/jest-test-utils",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T11:45:44.518Z",
+      "integrity": "sha512-UfBbSV5hwIv7wqIQDn0Ibzh7Padez3iqlXYibLzwEjrBte+W5DToH51xQrXf5ZktpLU9UPjpxtdz/ClD/GSwyQ=="
+    },
+    {
+      "order": 43,
+      "name": "@pkg-nec/jest-validate",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T11:50:46.458Z",
+      "integrity": "sha512-fp/S45SD9o3zprJYriC4oqHTynkpeP6m/Hn0HonXflQ+JOh3qSbnZrCfUcBocz4a4NN4hA/9X6qcTiRgg8tf3A=="
+    },
+    {
+      "order": 44,
+      "name": "@pkg-nec/jest-environment-node",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T11:55:51.527Z",
+      "integrity": "sha512-SwNrlundm1fC/p2Eme3B3iKPubDcPMMirA6N1bSuHpPcpGNlDabqZlTvg3RsPih1puzUG96c0A6Jfg6tB/1mzg=="
+    },
+    {
+      "order": 45,
+      "name": "@pkg-nec/jest-resolve",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T12:01:49.403Z",
+      "integrity": "sha512-2MYPY3irk9tOhOfpBbTjh7301YK9rNkWKYoEll6nenipKnbIRnMEIO6J9r+4+ZoRmppbwAqpjwR8tqKEcppFiw=="
+    },
+    {
+      "order": 46,
+      "name": "@pkg-nec/jest-runtime",
+      "version": "30.4.2",
+      "publishedAt": "2026-08-17T12:06:09.706Z",
+      "integrity": "sha512-L7shg1EOaOM66NFjsouqVTSwlPo9H0kcWFk/9jfsB5iNMegGmlozH205pQ2zzBGs2RJIOuGUcznX/Gdi1KM1tQ=="
+    },
+    {
+      "order": 47,
+      "name": "@pkg-nec/jest-circus",
+      "version": "30.4.2",
+      "publishedAt": "2026-08-17T12:11:22.057Z",
+      "integrity": "sha512-WDD/Y4HgMiKb2kkh7fCnZ59ULokrJZcS4WXF1IwaRnM5Oyw2ubiYzSwKyGbS471Y81QE2gzLDUQCKpY6ERfj/Q=="
+    },
+    {
+      "order": 48,
+      "name": "@pkg-nec/jest-jasmine2",
+      "version": "30.4.2",
+      "publishedAt": "2026-08-17T12:16:19.336Z",
+      "integrity": "sha512-IGdCq10Yot2lW19n/s/C9sN59ZVI3nQKpQeJPSI353wZ4YzBhwjkU9nWaj+bkmvTinn8qu8r9lCkg/82vMoBEQ=="
+    },
+    {
+      "order": 49,
+      "name": "@pkg-nec/jest-watcher",
+      "version": "30.4.1",
+      "publishedAt": "2026-08-17T12:21:38.583Z",
+      "integrity": "sha512-Umm9CD3RK0X1gDO6irgEtq729l4lAA7H2Ys5s2xSCLLXLhLgq8ncUxX2n0x8jfS0OO9HGF9pZzY9/dIlicQK9Q=="
+    },
+    {
+      "order": 50,
+      "name": "@pkg-nec/jest-runner",
+      "version": "30.4.2",
+      "publishedAt": "2026-08-17T12:26:14.338Z",
+      "integrity": "sha512-re1utFtrmlL55Qrjob344Xe/0B/7NKYFSOku0NG7aGFDo70sRag4dPW8pnPqFwIBtwJc3Kzdco1YFpproxwLUw=="
+    },
+    {
+      "order": 51,
+      "name": "@pkg-nec/jest-config",
+      "version": "30.4.2",
+      "publishedAt": "2026-08-17T12:31:34.302Z",
+      "integrity": "sha512-kBPmxgGlbhntUHqBPnAUzx436JXxvVWsoGbq+juro1rASNU8zD0GJNa0aBv1OUNNSUKxi6lwwJLMu2CygY6ErA=="
+    },
+    {
+      "order": 52,
+      "name": "@pkg-nec/create-jest",
+      "version": "30.4.2",
+      "publishedAt": "2026-08-17T12:36:38.424Z",
+      "integrity": "sha512-Hh3CeqkZXwiZ5iaPvThbQwcyAay8uEGIyffmTEVBVIRfrzFud+BmdcsnQp+gsd/4f+f/9owZ0fs9JT8kTbAwpg=="
+    },
+    {
+      "order": 53,
+      "name": "@pkg-nec/jest-core",
+      "version": "30.4.2",
+      "publishedAt": "2026-08-17T12:41:21.230Z",
+      "integrity": "sha512-6kBFrg7vTqT5Sw5SD+6QYb1WKhBaGPu0+6q5wvBt6iFMpiXYIckwEiprEKx0d/Kzf4nSexnI0bkJ4OhEEOXRZQ=="
+    },
+    {
+      "order": 54,
+      "name": "@pkg-nec/jest-cli",
+      "version": "30.4.2",
+      "publishedAt": "2026-08-17T12:46:24.518Z",
+      "integrity": "sha512-KOrCnw+n5Ea+KfbYQ/0Y8b+791jNlUEsJagzaUNT+f9Xp02jla6OxkTiYkUICqbS12a3dcO7jzqJ72OasDzjvw=="
+    },
+    {
+      "order": 55,
+      "name": "@pkg-nec/jest",
+      "version": "30.4.2",
+      "publishedAt": "2026-08-17T12:51:26.867Z",
+      "integrity": "sha512-de2eTGEPTGY+46fmJNzNsxmfHS5nHOKURfZ7HnHbtTgO2N6eT4YCDJHfwt8ajMAeg/j6K/6geO64uZi60W6PQA=="
+    }
+  ]
+}
