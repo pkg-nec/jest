@@ -14,7 +14,12 @@ import type {ReporterContext} from '../types';
 
 jest.mock('../DefaultReporter');
 jest.mock('node-notifier', () => ({
-  notify: jest.fn(),
+  notify: jest.fn(
+    (
+      _options: unknown,
+      callback?: (error: Error | null, response: string) => void,
+    ) => callback?.(null, ''),
+  ),
 }));
 
 const initialContext: ReporterContext = {
@@ -208,6 +213,81 @@ test('test failure-change with moduleName', () => {
     moduleName: 'some-module',
     notifyMode: 'failure-change',
   });
+});
+
+test.each([
+  ['successful', aggregatedResultsSuccess],
+  ['failed', aggregatedResultsFailure],
+])('waits for a %s notification to complete', async (_, results) => {
+  const notify = require('node-notifier');
+  let completeNotification!: () => void;
+  notify.notify.mockImplementationOnce(
+    (
+      _options: unknown,
+      callback: (error: Error | null, response: string) => void,
+    ) => {
+      completeNotification = () => callback(null, '');
+    },
+  );
+
+  const context = {...initialContext};
+  const reporter = new NotifyReporter(
+    makeGlobalConfig({notify: true, notifyMode: 'always'}),
+    context,
+  );
+  let completed = false;
+  const completion = reporter.onRunComplete(new Set(), results);
+  void Promise.resolve(completion).then(() => {
+    completed = true;
+  });
+
+  await Promise.resolve();
+
+  expect(completed).toBe(false);
+  expect(context).toEqual({
+    ...initialContext,
+    firstRun: false,
+    previousSuccess: results.success,
+  });
+
+  completeNotification();
+  await completion;
+
+  expect(completed).toBe(true);
+});
+
+test('completes when the notifier reports an error', async () => {
+  const notify = require('node-notifier');
+  notify.notify.mockImplementationOnce(
+    (
+      _options: unknown,
+      callback: (error: Error | null, response: string) => void,
+    ) => callback(new Error('notification failed'), ''),
+  );
+
+  const reporter = new NotifyReporter(
+    makeGlobalConfig({notify: true, notifyMode: 'always'}),
+    {...initialContext},
+  );
+
+  await expect(
+    reporter.onRunComplete(new Set(), aggregatedResultsSuccess),
+  ).resolves.toBeUndefined();
+});
+
+test('does not wait for an interactive watch-mode notification', () => {
+  const notify = require('node-notifier');
+  notify.notify.mockImplementationOnce(() => {});
+
+  const reporter = new NotifyReporter(
+    makeGlobalConfig({notify: true, notifyMode: 'always', watch: true}),
+    {...initialContext},
+  );
+
+  expect(
+    reporter.onRunComplete(new Set(), aggregatedResultsFailure),
+  ).toBeUndefined();
+  expect(notify.notify).toHaveBeenCalledTimes(1);
 });
 
 describe('node-notifier is an optional dependency', () => {
