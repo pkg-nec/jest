@@ -221,20 +221,12 @@ By contributing to Jest, you agree that your contributions will be licensed unde
 
 ## Publishing a new release
 
-This project uses [`lerna-lite`](https://github.com/lerna-lite/lerna-lite) to publish to npm. To publish a new release, run:
+This fork uses a coordinated package-version propagation policy and a single anchor package to name each Git tag and GitHub Release. Follow the [release identity, preparation, ledger, publishing, and verification policy](./docs/pkg-nec-maintenance.md#release-identity-and-version-anchor) before publishing any package.
+
+Prepare and validate the complete release artifact set from the exact source commit:
 
 ```sh
-$ yarn lerna publish
+yarn prepare:pkg-nec-release
 ```
 
-This will prompt you for which versions to release.
-
-After the release is published, create the corresponding release on the fork's [GitHub repository](https://github.com/pkg-nec/jest).
-
-In order to publish a pre-release, the same steps apply, but you need to specify some extra flags:
-
-```sh
-$ yarn lerna publish *version-number* --preid alpha --pre-dist-tag next --dist-tag next
-```
-
-Where `version-number` is e.g. `30.0.0-alpha.5`.
+Publish only the prepared artifacts in ledger order, verify their registry integrity, and then create the matching tag and release on the fork's [GitHub repository](https://github.com/pkg-nec/jest). The release notes must list every affected package and its new version.

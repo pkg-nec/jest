@@ -166,7 +166,48 @@ The command:
 
 `yarn build:js` alone is not a release build. Preparation contacts no registry, compares against no upstream release, requires no npm credentials, and performs no registry mutation. If preparation fails, it does not promote a partial candidate and attempts to preserve the previous completed release directory.
 
-The command currently prepares all 55 packages. That was appropriate when every scoped name was new. Before a later live release, the publishing design must define whether all packages receive new versions or only a changed dependency closure is selected. Do not feed unchanged existing `name@version` entries to a publisher or assume a freshly rebuilt unchanged artifact will reproduce historical registry bytes.
+The command currently prepares all 55 packages. That was appropriate when every scoped name was new. For a later live release, calculate the affected dependency closure and release anchor using the policy below, and publish only the selected affected set. Do not feed unchanged existing `name@version` entries to a publisher or assume a freshly rebuilt unchanged artifact will reproduce historical registry bytes.
+
+## Release identity and version anchor
+
+Every release has one anchor package. The anchor package's new version determines both the Git tag and the GitHub Release name:
+
+```text
+<anchor-package>-v<new-version>
+```
+
+For example, a release anchored by `@pkg-nec/jest` at version `30.5.0` is named `@pkg-nec/jest-v30.5.0`. A release anchored by `@pkg-nec/jest-phabricator` at version `30.5.0` is named `@pkg-nec/jest-phabricator-v30.5.0`.
+
+Determine the anchor after calculating the complete affected package set:
+
+1. Start with every package changed since the previous release.
+2. Propagate a version bump to every direct and transitive internal dependent of those packages. Continue until no additional internal dependent is affected. Use the internal `workspace:` relationships that participate in workspace versioning, including development dependencies.
+3. If `@pkg-nec/jest` is affected directly or through propagation, use `@pkg-nec/jest` as the anchor.
+4. Otherwise, use the first affected package in this fallback order:
+   1. `@pkg-nec/create-jest`
+   2. `@pkg-nec/jest-create-cache-key-function`
+   3. `@pkg-nec/jest-environment-jsdom`
+   4. `@pkg-nec/jest-environment-jsdom-abstract`
+   5. `@pkg-nec/jest-phabricator`
+   6. `@pkg-nec/jest-test-globals`
+
+If several fallback packages are affected, their order above selects the anchor; the release name uses that anchor's new version. Do not bump `@pkg-nec/jest` solely to name a release when it is outside the affected set. If no package is affected, do not create a release.
+
+Create the tag on the exact source commit used to build the published artifacts. The tag and GitHub Release name must match exactly.
+
+## Release notes
+
+Every GitHub Release must identify the anchor package and source commit and list every affected package with its new version. Unchanged packages do not need to appear. For a bootstrap release that publishes the complete package set, list every published package and version.
+
+Use an explicit package-version section such as:
+
+```markdown
+## Affected package versions
+
+- `@pkg-nec/jest@30.5.0`
+- `@pkg-nec/jest-core@30.5.0`
+- `@pkg-nec/jest-runtime@30.5.0`
+```
 
 ## Schema-v1 release ledger contract
 
@@ -184,9 +225,9 @@ Treat a ledger and its tarballs as one immutable candidate. Do not edit the ledg
 
 This repository intentionally has no live publish command or trusted-publishing workflow. The first release's manual direct-to-`latest` procedure is historical evidence, not the current release runbook.
 
-Before the next npm release, a separately reviewed publisher must define and enforce:
+Before the next npm release, a separately reviewed publisher must implement and enforce:
 
-- the exact package/version selection and version-bump policy;
+- the affected package selection and version-bump policy defined above;
 - a clean source commit matching the ledger;
 - artifact and ledger integrity before publication;
 - rejection or verified resumption of an already existing exact version;
