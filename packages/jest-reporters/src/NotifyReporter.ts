@@ -18,6 +18,14 @@ const isDarwin = process.platform === 'darwin';
 
 const icon = path.resolve(__dirname, '../assets/jest_logo.png');
 
+type NotificationOptions = {
+  hint: string;
+  icon: string;
+  message: string;
+  timeout: false;
+  title: string;
+};
+
 export default class NotifyReporter extends BaseReporter {
   private readonly _notifier = loadNotifier();
   private readonly _globalConfig: Config.GlobalConfig;
@@ -34,7 +42,7 @@ export default class NotifyReporter extends BaseReporter {
   override onRunComplete(
     testContexts: Set<TestContext>,
     result: AggregatedResult,
-  ): void {
+  ): Promise<void> | void {
     const success =
       result.numFailedTests === 0 && result.numRuntimeErrorTestSuites === 0;
 
@@ -62,6 +70,7 @@ export default class NotifyReporter extends BaseReporter {
     const statusChanged =
       this._context.previousSuccess !== success || this._context.firstRun;
     const testsHaveRun = result.numTotalTests !== 0;
+    let notificationCompletion: Promise<void> | undefined;
 
     if (
       testsHaveRun &&
@@ -78,7 +87,7 @@ export default class NotifyReporter extends BaseReporter {
         result.numPassedTests,
       )} passed`;
 
-      this._notifier.notify({
+      notificationCompletion = this._notify({
         hint: 'int:transient:1',
         icon,
         message,
@@ -140,7 +149,7 @@ export default class NotifyReporter extends BaseReporter {
           },
         );
       } else {
-        this._notifier.notify({
+        notificationCompletion = this._notify({
           hint: 'int:transient:1',
           icon,
           message,
@@ -152,6 +161,14 @@ export default class NotifyReporter extends BaseReporter {
 
     this._context.previousSuccess = success;
     this._context.firstRun = false;
+
+    return notificationCompletion;
+  }
+
+  private _notify(options: NotificationOptions): Promise<void> {
+    return new Promise(resolve => {
+      this._notifier.notify(options, () => resolve());
+    });
   }
 }
 
