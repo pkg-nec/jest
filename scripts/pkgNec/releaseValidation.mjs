@@ -18,7 +18,8 @@ const fallbackAnchors = [
 
 export function parseReleaseTag(tagName) {
   if (typeof tagName !== 'string') {
-    throw new TypeError(`Invalid pkg-nec release tag: ${tagName}`);
+    // eslint-disable-next-line unicorn/prefer-type-error -- Preserve the legacy public error type.
+    throw new Error(`Invalid pkg-nec release tag: ${tagName}`);
   }
   const separator = tagName.lastIndexOf('-v');
   const anchorName = tagName.slice(0, separator);

@@ -100,10 +100,12 @@ test('parses release tags, selects the anchor, and validates patch-only transiti
     } from ${JSON.stringify(validationModuleUrl)};
 
     let invalidTag;
+    let invalidTagErrorName;
     try {
-      parseReleaseTag('v30.4.3');
+      parseReleaseTag(null);
     } catch (error) {
       invalidTag = error.message;
+      invalidTagErrorName = error.constructor.name;
     }
     let invalidTransition;
     try {
@@ -116,6 +118,7 @@ test('parses release tags, selects the anchor, and validates patch-only transiti
     }
     console.log(JSON.stringify({
       invalidTag,
+      invalidTagErrorName,
       invalidTransition,
       parsed: parseReleaseTag('@pkg-nec/jest-v30.4.3'),
       selected: selectReleaseAnchor([
@@ -131,6 +134,7 @@ test('parses release tags, selects the anchor, and validates patch-only transiti
 
   expect(result).toEqual({
     invalidTag: expect.stringMatching(/release tag/i),
+    invalidTagErrorName: 'Error',
     invalidTransition: expect.stringMatching(/one patch/i),
     parsed: {anchorName: '@pkg-nec/jest', anchorVersion: '30.4.3'},
     selected: '@pkg-nec/jest',

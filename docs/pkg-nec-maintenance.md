@@ -220,11 +220,11 @@ Before creating or publishing the GitHub Release, complete these external prereq
    Allowed npm action: npm publish
    ```
 
-2. Configure the protected GitHub environment named `npm-publish` in `pkg-nec/jest` with the required approval protection before publication. The workflow's `publish` job uses this environment and OIDC (`id-token: write`); approval must occur before it can use the trusted-publisher identity.
+2. Configure the protected GitHub environment named `npm-publish` in `pkg-nec/jest` with its required reviewers before publishing the Release. The workflow's `publish` job uses this environment and OIDC (`id-token: write`).
 
 3. Confirm successful Node CI for the exact source commit on `main`, then create the tag and GitHub Release on that same commit. The validator checks both the `main` ancestry and that successful Node CI run.
 
-For this full release, create a published GitHub Release with exact tag and Release name `@pkg-nec/jest-v30.4.3`. Its body must include the full source commit SHA and all 55 package/version lines. At the tagged source commit, generate the lines in Git Bash with:
+For this full release, publish a GitHub Release with exact tag and Release name `@pkg-nec/jest-v30.4.3`. Publishing it triggers the `validate` job. Its body must include the full source commit SHA and all 55 package/version lines. At the tagged source commit, generate the lines in Git Bash with:
 
 ```bash
 node --input-type=module <<'NODE'
@@ -251,6 +251,8 @@ Source commit: `<full-40-character-SHA>`
 ```
 
 Do not create a partial Release body as a workaround for a later selective release. The current workflow rejects a ledger that is not the full public inventory.
+
+After `validate` succeeds, GitHub pauses the `publish` job at the protected `npm-publish` environment. An authorized reviewer then approves that deployment; only then can the job use the trusted-publisher identity and publish the prepared artifacts. Do not attempt or expect environment approval before publishing the Release that triggers validation.
 
 ## Schema-v1 release ledger contract
 
