@@ -210,10 +210,22 @@ test('accepts the audited get-type 30.1.0 compatibility declaration', () => {
   ]);
 });
 
-test.each([
-  ['@pkg-nec/jest-get-type', '30.1.1'],
-  ['@pkg-nec/jest-regex-util', '30.1.0'],
-])(
+test('accepts the get-type compatibility declaration independently of version', () => {
+  expect(
+    validateReleaseFiles({
+      files: ['LICENSE', 'build/index.d.mts', 'build/index.js', 'package.json'],
+      helper: false,
+      manifest: {
+        exports: './build/index.js',
+        name: '@pkg-nec/jest-get-type',
+        version: '30.1.1',
+      },
+      packageName: '@pkg-nec/jest-get-type',
+    }),
+  ).toContain('build/index.d.mts');
+});
+
+test.each([['@pkg-nec/jest-regex-util', '30.1.0']])(
   'rejects the get-type compatibility declaration for %s@%s',
   (packageName, version) => {
     expect(() =>

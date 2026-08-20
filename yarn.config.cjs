@@ -71,7 +71,7 @@ module.exports = defineConfig({
         workspace.set(['repository', 'type'], 'git');
         workspace.set(
           ['repository', 'url'],
-          'https://github.com/jestjs/jest.git',
+          'https://github.com/pkg-nec/jest.git',
         );
         workspace.set(['repository', 'directory'], workspace.cwd);
       }

@@ -1,0 +1,208 @@
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+
+permissions: {}
+
+concurrency:
+  group: npm-release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Check out the release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.release.tag_name }}
+      - name: Fetch main for release validation
+        run: git fetch --no-tags origin main:refs/remotes/origin/main
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.18.0'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies
+        run: |
+          corepack enable
+          yarn install --immutable
+      - name: Build and audit package identities
+        run: |
+          yarn build:js
+          yarn check:pkg-nec-identity
+      - name: Run focused release tooling tests
+        run: yarn run test:pkg-nec-tooling
+      - name: Prepare release candidate
+        run: yarn prepare:pkg-nec-release
+      - name: Validate release candidate
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: yarn validate:pkg-nec-release .pkg-nec-release/release-ledger.json
+      - name: Upload release candidate
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          if-no-files-found: error
+          include-hidden-files: true
+          name: pkg-nec-release-candidate
+          path: .pkg-nec-release/
+          retention-days: 30
+
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out the release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.release.tag_name }}
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.18.0'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies
+        run: |
+          corepack enable
+          yarn install --immutable
+      - name: Install exact npm
+        run: npm install --global npm@11.19.0
+      - name: Download release candidate
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: pkg-nec-release-candidate
+          path: .pkg-nec-release
+      - name: Publish in ledger order with strict resumption
+        run: >-
+          yarn publish:pkg-nec-release .pkg-nec-release/release-ledger.json .pkg-nec-release/publication-journal.json '${{ github.event.release.tag_name }}'
+
+
+      - name: Upload publication journal
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          if-no-files-found: warn
+          include-hidden-files: true
+          name: pkg-nec-publication-evidence
+          path: .pkg-nec-release/publication-journal.json
+          retention-days: 30
+
+  verify:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.release.tag_name }}
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.18.0'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies
+        run: |
+          corepack enable
+          yarn install --immutable
+      - name: Install exact npm
+        run: npm install --global npm@11.19.0
+      - name: Download release candidate
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: pkg-nec-release-candidate
+          path: .pkg-nec-release
+      - name: Download publication journal
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: pkg-nec-publication-evidence
+          path: .pkg-nec-release
+      - name: Verify complete registry batch
+        run: |
+          yarn verify:pkg-nec-release \
+            .pkg-nec-release/release-ledger.json \
+            .pkg-nec-release/publication-journal.json \
+            .pkg-nec-release/registry-evidence.json \
+            .pkg-nec-release/registry-evidence.md
+      - name: Upload registry evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          if-no-files-found: warn
+          include-hidden-files: true
+          name: pkg-nec-registry-evidence
+          path: |
+            .pkg-nec-release/registry-evidence.json
+            .pkg-nec-release/registry-evidence.md
+          retention-days: 30
+
+  evidence:
+    needs: [validate, publish, verify]
+    if: ${{ always() && needs.validate.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download pkg-nec-release-candidate
+        continue-on-error: true
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: pkg-nec-release-candidate
+          path: .pkg-nec-release
+      - name: Download pkg-nec-publication-evidence
+        continue-on-error: true
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: pkg-nec-publication-evidence
+          path: .pkg-nec-release
+      - name: Download pkg-nec-registry-evidence
+        continue-on-error: true
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: pkg-nec-registry-evidence
+          path: .pkg-nec-release
+      - name: Write workflow summary
+        run: |
+          mkdir -p .pkg-nec-release
+          cat > .pkg-nec-release/workflow-summary.md <<'SUMMARY'
+          # pkg-nec release workflow evidence
+
+          - Release tag: `${{ github.event.release.tag_name }}`
+          - Source workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          - Validate job: `${{ needs.validate.result }}`
+          - Publish job: `${{ needs.publish.result }}`
+          - Verify job: `${{ needs.verify.result }}`
+          SUMMARY
+      - name: Attach durable release evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          assets=(.pkg-nec-release/workflow-summary.md)
+          for asset in \
+            .pkg-nec-release/release-ledger.json \
+            .pkg-nec-release/publication-journal.json \
+            .pkg-nec-release/registry-evidence.json \
+            .pkg-nec-release/registry-evidence.md
+          do
+            if [[ -f "$asset" ]]; then
+              assets+=("$asset")
+            fi
+          done
+          gh release upload "$RELEASE_TAG" "${assets[@]}" --repo "${{ github.repository }}" --clobber

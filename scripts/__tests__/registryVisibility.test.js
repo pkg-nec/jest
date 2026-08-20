@@ -32,6 +32,67 @@ function runModuleProgram(program) {
 }
 
 describe('pkg-nec registry visibility', () => {
+  test('exposes exact result, authoritative not-found, and redaction helpers', () => {
+    const result = runModuleProgram(`
+      import {
+        exactRegistryResult,
+        isRegistryNotFound,
+        redactRegistryFailure,
+      } from ${JSON.stringify(registryModuleUrl)};
+
+      const exact = exactRegistryResult({stdout: JSON.stringify({
+        dist: {integrity: 'sha512-registry'},
+        name: '@pkg-nec/jest',
+        version: '30.4.3',
+      })});
+      const notFound = [
+        isRegistryNotFound({code: 'E404'}),
+        isRegistryNotFound({statusCode: 404}),
+        isRegistryNotFound({code: 'E503'}),
+        isRegistryNotFound({statusCode: 503}),
+      ];
+      const redacted = redactRegistryFailure(Object.assign(
+        new Error('authorization: Bearer npm_secret'),
+        {stderr: '//registry.npmjs.org/:_authToken=npm_other'},
+      ));
+      console.log(JSON.stringify({exact, notFound, redacted}));
+    `);
+
+    expect(result.exact).toEqual({
+      integrity: 'sha512-registry',
+      name: '@pkg-nec/jest',
+      version: '30.4.3',
+    });
+    expect(result.notFound).toEqual([true, true, false, false]);
+    expect(result.redacted).not.toContain('npm_secret');
+    expect(result.redacted).not.toContain('npm_other');
+  });
+
+  test('recognizes authoritative raw npm CLI E404 output only', () => {
+    const result = runModuleProgram(`
+      import {isRegistryNotFound} from ${JSON.stringify(registryModuleUrl)};
+
+      const cases = [
+        {
+          message: 'Command failed with exit code 1: npm view @pkg-nec/missing@1.0.0',
+          stderr: 'npm error code E404\\nnpm error 404 Not Found - GET https://registry.npmjs.org/%40pkg-nec%2fmissing',
+        },
+        {
+          message: 'Command failed',
+          stderr: 'npm ERR! code E404\\nnpm ERR! 404 @pkg-nec/missing@1.0.0 is not in this registry',
+        },
+        {message: 'upstream mentioned npm error code E404 without a code line'},
+        {stderr: 'npm error code E401\\nnpm error authorization required'},
+        {stderr: 'npm error code E429\\nnpm error rate limited'},
+        {stderr: 'npm error code E503\\nnpm error service unavailable'},
+        {code: 'E401', stderr: 'npm error code E404'},
+      ];
+      console.log(JSON.stringify(cases.map(item => isRegistryNotFound(item))));
+    `);
+
+    expect(result).toEqual([true, true, false, false, false, false, false]);
+  });
+
   test('classifies transient registry failures as retryable', () => {
     const result = runModuleProgram(`
       import {classifyRegistryError} from ${JSON.stringify(registryModuleUrl)};

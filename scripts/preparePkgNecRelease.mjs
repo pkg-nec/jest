@@ -68,11 +68,16 @@ function expectSameKeys({actual, expected, field, workspace}) {
 }
 
 export function inspectPackedManifest({
+  expectedRepositoryDirectory,
+  expectedVersion,
   inventory,
   manifest,
   workspace,
   workspaceManifest,
 }) {
+  const repositoryDirectory =
+    expectedRepositoryDirectory ?? workspaceManifest?.repository?.directory;
+  const releaseVersion = expectedVersion ?? workspaceManifest?.version;
   if (!manifest || typeof manifest !== 'object') {
     throw new TypeError(`Packed manifest missing for ${workspace?.newName}`);
   }
@@ -81,13 +86,26 @@ export function inspectPackedManifest({
       `Packed manifest name changed for ${workspace.newName}: ${manifest.name}`,
     );
   }
-  if (manifest.version !== workspaceManifest.version) {
+  if (manifest.version !== releaseVersion) {
     throw new Error(
       `Packed manifest version changed for ${workspace.newName}: ${manifest.version}`,
     );
   }
+  if (
+    manifest.repository?.url !== 'https://github.com/pkg-nec/jest.git' ||
+    manifest.repository?.directory !== repositoryDirectory
+  ) {
+    throw new Error(
+      `Packed manifest repository changed for ${workspace.newName}: ${manifest.repository?.url}`,
+    );
+  }
   if (manifest.private === true) {
     throw new Error(`Packed manifest is private: ${workspace.newName}`);
+  }
+  if (manifest.publishConfig?.access !== 'public') {
+    throw new Error(
+      `Packed manifest access is not public: ${workspace.newName}`,
+    );
   }
   for (const field of dependencyFields) {
     const source = workspaceManifest[field] ?? {};

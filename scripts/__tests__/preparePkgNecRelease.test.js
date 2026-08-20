@@ -50,6 +50,9 @@ const graphModuleUrl = pathToFileURL(
 const releaseModuleUrl = pathToFileURL(
   join(repoRoot, 'scripts/preparePkgNecRelease.mjs'),
 ).href;
+const buildUtilsModuleUrl = pathToFileURL(
+  join(repoRoot, 'scripts/buildUtils.mjs'),
+).href;
 
 function runModuleProgram(program) {
   const child = spawnSync(
@@ -64,6 +67,29 @@ function runModuleProgram(program) {
 
   return JSON.parse(child.stdout.trim());
 }
+
+test('builds every public expect export from its source entry point', () => {
+  const entries = runModuleProgram(`
+    import {createBuildConfigs} from ${JSON.stringify(buildUtilsModuleUrl)};
+
+    const config = createBuildConfigs().find(
+      ({pkg}) => pkg.name === '@pkg-nec/expect',
+    );
+    console.log(JSON.stringify(config.webpackConfig.entry));
+  `);
+
+  expect(entries).toEqual({
+    index: `${join(repoRoot, 'packages', 'expect')}/src/index.ts`,
+    matchers: join(repoRoot, 'packages', 'expect', 'src', 'matchers.ts'),
+    toThrowMatchers: join(
+      repoRoot,
+      'packages',
+      'expect',
+      'src',
+      'toThrowMatchers.ts',
+    ),
+  });
+});
 
 async function writeManifest(repo, directory, manifest) {
   const manifestDirectory = join(repo, directory);
@@ -288,6 +314,10 @@ describe('pkg-nec release preparation', () => {
           chalk: '^5.0.0',
         },
         name: '@pkg-nec/example',
+        repository: {
+          directory: 'packages/example',
+          url: 'https://github.com/pkg-nec/jest.git',
+        },
         version: '31.0.0-security.1',
       };
       const validManifest = {
@@ -296,6 +326,11 @@ describe('pkg-nec release preparation', () => {
           chalk: '^5.0.0',
         },
         name: '@pkg-nec/example',
+        publishConfig: {access: 'public'},
+        repository: {
+          directory: 'packages/example',
+          url: 'https://github.com/pkg-nec/jest.git',
+        },
         version: '31.0.0-security.1',
       };
 
@@ -309,6 +344,42 @@ describe('pkg-nec release preparation', () => {
     `);
 
     expect(result).toEqual({accepted: true});
+  });
+
+  test('rejects a packed public package with missing access metadata', () => {
+    const result = runModuleProgram(`
+      import {inspectPackedManifest} from ${JSON.stringify(releaseModuleUrl)};
+
+      try {
+        inspectPackedManifest({
+          inventory: {byNewName: new Map()},
+          manifest: {
+            name: '@pkg-nec/example',
+            repository: {
+              directory: 'packages/example',
+              url: 'https://github.com/pkg-nec/jest.git',
+            },
+            version: '30.4.3',
+          },
+          workspace: {newName: '@pkg-nec/example'},
+          workspaceManifest: {
+            name: '@pkg-nec/example',
+            repository: {
+              directory: 'packages/example',
+              url: 'https://github.com/pkg-nec/jest.git',
+            },
+            version: '30.4.3',
+          },
+        });
+        console.log(JSON.stringify({error: null}));
+      } catch (error) {
+        console.log(JSON.stringify({error: error.message}));
+      }
+    `);
+
+    expect(result).toEqual({
+      error: expect.stringMatching(/packed manifest access is not public/i),
+    });
   });
 
   test('rejects packed values that differ from current source manifests', () => {
@@ -336,6 +407,10 @@ describe('pkg-nec release preparation', () => {
           chalk: '^5.0.0',
         },
         name: '@pkg-nec/example',
+        repository: {
+          directory: 'packages/example',
+          url: 'https://github.com/pkg-nec/jest.git',
+        },
         version: '31.0.0-security.1',
       };
       const validManifest = {
@@ -344,6 +419,11 @@ describe('pkg-nec release preparation', () => {
           chalk: '^5.0.0',
         },
         name: '@pkg-nec/example',
+        publishConfig: {access: 'public'},
+        repository: {
+          directory: 'packages/example',
+          url: 'https://github.com/pkg-nec/jest.git',
+        },
         version: '31.0.0-security.1',
       };
       const cases = [
@@ -412,6 +492,42 @@ describe('pkg-nec release preparation', () => {
       expect.stringMatching(/dependencies\.chalk/i),
       expect.stringMatching(/dependencies\.chalk/i),
     ]);
+  });
+
+  test('rejects a packed manifest whose repository URL differs from the source policy', () => {
+    const result = runModuleProgram(`
+      import {inspectPackedManifest} from ${JSON.stringify(releaseModuleUrl)};
+
+      try {
+        inspectPackedManifest({
+          inventory: {byNewName: new Map()},
+          manifest: {
+            name: '@pkg-nec/example',
+            repository: {
+              directory: 'packages/example',
+              url: 'https://github.com/other/jest.git',
+            },
+            version: '30.4.3',
+          },
+          workspace: {newName: '@pkg-nec/example'},
+          workspaceManifest: {
+            name: '@pkg-nec/example',
+            repository: {
+              directory: 'packages/example',
+              url: 'https://github.com/pkg-nec/jest.git',
+            },
+            version: '30.4.3',
+          },
+        });
+        console.log(JSON.stringify({error: null}));
+      } catch (error) {
+        console.log(JSON.stringify({error: error.message}));
+      }
+    `);
+
+    expect(result).toEqual({
+      error: expect.stringMatching(/packed manifest repository changed/i),
+    });
   });
 
   test('creates a versioned ledger tied to source', () => {
@@ -593,10 +709,22 @@ describe('pkg-nec release preparation', () => {
                       'import-local': '^3.2.0',
                     },
                     name: workspace.newName,
+                    repository: {
+                      directory: path
+                        .relative(repoRoot, workspace.directory)
+                        .replaceAll(path.sep, '/'),
+                      url: 'https://github.com/pkg-nec/jest.git',
+                    },
                     version: workspace.version,
                   }
                 : {
                     name: workspace.newName,
+                    repository: {
+                      directory: path
+                        .relative(repoRoot, workspace.directory)
+                        .replaceAll(path.sep, '/'),
+                      url: 'https://github.com/pkg-nec/jest.git',
+                    },
                     version: workspace.version,
                   },
             ),
@@ -639,6 +767,10 @@ describe('pkg-nec release preparation', () => {
               ? {
                   name: '@pkg-nec/jest-core',
                   publishConfig: {access: 'public'},
+                  repository: {
+                    directory: 'packages/jest-core',
+                    url: 'https://github.com/pkg-nec/jest.git',
+                  },
                   version: '30.4.2',
                 }
               : {
@@ -648,6 +780,10 @@ describe('pkg-nec release preparation', () => {
                   },
                   name: '@pkg-nec/jest',
                   publishConfig: {access: 'public'},
+                  repository: {
+                    directory: 'packages/jest',
+                    url: 'https://github.com/pkg-nec/jest.git',
+                  },
                   version: '30.4.2',
                 },
             };
@@ -814,7 +950,14 @@ describe('pkg-nec release preparation', () => {
         fs.mkdirSync(workspace.directory, {recursive: true});
         fs.writeFileSync(
           workspace.manifestPath,
-          JSON.stringify({name: packageName, version: '1.0.0'}),
+          JSON.stringify({
+            name: packageName,
+            repository: {
+              directory: 'packages/jest-core',
+              url: 'https://github.com/pkg-nec/jest.git',
+            },
+            version: '1.0.0',
+          }),
         );
         fs.writeFileSync(path.join(repoRoot, 'LICENSE'), 'license');
         let message;
@@ -832,6 +975,10 @@ describe('pkg-nec release preparation', () => {
                   : {dependencies: {'left-pad': '1.0.0'}}),
                 name: packageName,
                 publishConfig: {access: 'public'},
+                repository: {
+                  directory: 'packages/jest-core',
+                  url: 'https://github.com/pkg-nec/jest.git',
+                },
                 version: '1.0.0',
               },
             }),
@@ -898,7 +1045,14 @@ describe('pkg-nec release preparation', () => {
         fs.mkdirSync(workspace.directory, {recursive: true});
         fs.writeFileSync(
           workspace.manifestPath,
-          JSON.stringify({name: packageName, version: '1.0.0'}),
+          JSON.stringify({
+            name: packageName,
+            repository: {
+              directory: 'packages/jest-core',
+              url: 'https://github.com/pkg-nec/jest.git',
+            },
+            version: '1.0.0',
+          }),
         );
         fs.mkdirSync(outputDirectory);
         fs.writeFileSync(path.join(outputDirectory, 'previous.tgz'), 'previous');
@@ -913,6 +1067,10 @@ describe('pkg-nec release preparation', () => {
               manifest: {
                 name: packageName,
                 publishConfig: {access: 'public'},
+                repository: {
+                  directory: 'packages/jest-core',
+                  url: 'https://github.com/pkg-nec/jest.git',
+                },
                 version: '1.0.0',
               },
             }),
@@ -984,7 +1142,14 @@ describe('pkg-nec release preparation', () => {
         fs.mkdirSync(workspace.directory, {recursive: true});
         fs.writeFileSync(
           workspace.manifestPath,
-          JSON.stringify({name: packageName, version: '1.0.0'}),
+          JSON.stringify({
+            name: packageName,
+            repository: {
+              directory: 'packages/jest-core',
+              url: 'https://github.com/pkg-nec/jest.git',
+            },
+            version: '1.0.0',
+          }),
         );
         const rm = fs.promises.rm;
         fs.promises.rm = async (target, options) => {
@@ -1004,6 +1169,10 @@ describe('pkg-nec release preparation', () => {
               manifest: {
                 name: packageName,
                 publishConfig: {access: 'public'},
+                repository: {
+                  directory: 'packages/jest-core',
+                  url: 'https://github.com/pkg-nec/jest.git',
+                },
                 version: '1.0.0',
               },
             }),
@@ -1332,10 +1501,22 @@ describe('pkg-nec release preparation', () => {
                 ? {
                     dependencies: {'@pkg-nec/jest-core': 'workspace:*'},
                     name: workspace.newName,
+                    repository: {
+                      directory: path
+                        .relative(repoRoot, workspace.directory)
+                        .replaceAll(path.sep, '/'),
+                      url: 'https://github.com/pkg-nec/jest.git',
+                    },
                     version: workspace.version,
                   }
                 : {
                     name: workspace.newName,
+                    repository: {
+                      directory: path
+                        .relative(repoRoot, workspace.directory)
+                        .replaceAll(path.sep, '/'),
+                      url: 'https://github.com/pkg-nec/jest.git',
+                    },
                     version: workspace.version,
                   },
             ),
@@ -1371,12 +1552,20 @@ describe('pkg-nec release preparation', () => {
                   ? {
                       name: '@pkg-nec/jest-core',
                       publishConfig: {access: 'public'},
+                      repository: {
+                        directory: 'packages/jest-core',
+                        url: 'https://github.com/pkg-nec/jest.git',
+                      },
                       version: '30.4.2',
                     }
                   : {
                       dependencies: {'@pkg-nec/jest-core': '30.4.2'},
                       name: '@pkg-nec/jest',
                       publishConfig: {access: 'public'},
+                      repository: {
+                        directory: 'packages/jest',
+                        url: 'https://github.com/pkg-nec/jest.git',
+                      },
                       version: '30.4.2',
                     },
               }),

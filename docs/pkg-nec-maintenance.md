@@ -145,7 +145,16 @@ Do not make the existing nonzero audit a merge gate without first choosing and d
 
 ## Release preparation
 
-Prepare a release candidate explicitly; this is not a pull-request gate:
+This workflow version is intentionally strict for the one-time full 55-package npm provenance release. It prepares, validates, publishes, and verifies the complete public package set. It is not a pull-request gate.
+
+Run Node, npm, Corepack, and Yarn commands in Git Bash. In each fresh shell session, enable Corepack and install dependencies before running Yarn:
+
+```bash
+corepack enable
+yarn install
+```
+
+Prepare the immutable local candidate explicitly:
 
 ```bash
 yarn prepare:pkg-nec-release
@@ -164,9 +173,9 @@ The command:
 9. calculates SHA-512 integrity from the final tarball bytes; and
 10. atomically promotes the artifacts and schema-v1 ledgers into `.pkg-nec-release/`.
 
-`yarn build:js` alone is not a release build. Preparation contacts no registry, compares against no upstream release, requires no npm credentials, and performs no registry mutation. If preparation fails, it does not promote a partial candidate and attempts to preserve the previous completed release directory.
+`yarn build:js` alone is not a release build. Preparation contacts no registry, compares against no upstream release, requires no npm credentials, and performs no registry mutation. If preparation fails, it does not promote a partial candidate and attempts to preserve the previous completed release directory. `.pkg-nec-release/` is ignored, disposable output: never commit its ledger, artifacts, journal, or registry evidence.
 
-The command currently prepares all 55 packages. That was appropriate when every scoped name was new. For a later live release, calculate the affected dependency closure and release anchor using the policy below, and publish only the selected affected set. Do not feed unchanged existing `name@version` entries to a publisher or assume a freshly rebuilt unchanged artifact will reproduce historical registry bytes.
+Do not hand-edit a partial ledger, and do not trigger this strict workflow with a partial GitHub Release. For a later release with only a few changed packages, first land a reviewed selective-release enhancement. That enhancement must compute the changed packages and their affected transitive internal dependents, show the resulting set, patch-bump only that set, choose its anchor, and prepare and validate that subset. Until it exists, a partial attempt is unsafe or validator-rejected; using the current workflow could instead over-release all 55 packages.
 
 ## Release identity and version anchor
 
@@ -178,7 +187,9 @@ Every release has one anchor package. The anchor package's new version determine
 
 For example, a release anchored by `@pkg-nec/jest` at version `30.5.0` is named `@pkg-nec/jest-v30.5.0`. A release anchored by `@pkg-nec/jest-phabricator` at version `30.5.0` is named `@pkg-nec/jest-phabricator-v30.5.0`.
 
-Determine the anchor after calculating the complete affected package set:
+For the current one-time full release, the complete package set contains `@pkg-nec/jest`, so the anchor and exact Release tag/name are `@pkg-nec/jest-v30.4.3`. The validator requires all 55 entries and selects that anchor.
+
+The following anchor rules are requirements for the later reviewed selective-release enhancement, not instructions to manually select a subset for the current workflow. Determine the anchor only after that enhancement calculates and displays the complete affected package set:
 
 1. Start with every package changed since the previous release.
 2. Propagate a version bump to every direct and transitive internal dependent of those packages. Continue until no additional internal dependent is affected. Use the internal `workspace:` relationships that participate in workspace versioning, including development dependencies.
@@ -191,23 +202,57 @@ Determine the anchor after calculating the complete affected package set:
    5. `@pkg-nec/jest-phabricator`
    6. `@pkg-nec/jest-test-globals`
 
-If several fallback packages are affected, their order above selects the anchor; the release name uses that anchor's new version. Do not bump `@pkg-nec/jest` solely to name a release when it is outside the affected set. If no package is affected, do not create a release.
+If several fallback packages are affected, their order above selects the anchor; the release name uses that anchor's new version. Do not bump `@pkg-nec/jest` solely to name a release when it is outside the affected set. If no package is affected, do not create a release. Those rules become operational only with the reviewed implementation that computes the changed package closure, patch-bumps exactly that closure, and prepares and validates its ledger.
 
 Create the tag on the exact source commit used to build the published artifacts. The tag and GitHub Release name must match exactly.
 
-## Release notes
+## Release body and publication prerequisites
 
-Every GitHub Release must identify the anchor package and source commit and list every affected package with its new version. Unchanged packages do not need to appear. For a bootstrap release that publishes the complete package set, list every published package and version.
+Before creating or publishing the GitHub Release, complete these external prerequisites. They are not performed by this code change or by local preparation:
 
-Use an explicit package-version section such as:
+1. Configure npm trusted publishing for each of the 55 `@pkg-nec` packages. Each trusted-publisher binding must use exactly:
+
+   ```text
+   GitHub organization: pkg-nec
+   GitHub repository: jest
+   Workflow filename: release.yml
+   GitHub environment: npm-publish
+   Allowed npm action: npm publish
+   ```
+
+2. Configure the protected GitHub environment named `npm-publish` in `pkg-nec/jest` with its required reviewers before publishing the Release. The workflow's `publish` job uses this environment and OIDC (`id-token: write`).
+
+3. Confirm successful Node CI for the exact source commit on `main`, then create the tag and GitHub Release on that same commit. The validator checks both the `main` ancestry and that successful Node CI run.
+
+For this full release, publish a GitHub Release with exact tag and Release name `@pkg-nec/jest-v30.4.3`. Publishing it triggers the `validate` job. Its body must include the full source commit SHA and all 55 package/version lines. At the tagged source commit, generate the lines in Git Bash with:
+
+```bash
+node --input-type=module <<'NODE'
+import {readdir, readFile} from 'node:fs/promises';
+import path from 'node:path';
+const rows = [];
+for (const entry of await readdir('packages', {withFileTypes: true})) {
+  if (!entry.isDirectory()) continue;
+  const manifest = JSON.parse(await readFile(path.join('packages', entry.name, 'package.json'), 'utf8'));
+  if (manifest.private !== true) rows.push(`- \`${manifest.name}@${manifest.version}\``);
+}
+console.log(rows.sort().join('\n'));
+NODE
+```
+
+For example, put the commit on its own line and then paste the command's complete output under a package-version heading:
 
 ```markdown
-## Affected package versions
+Source commit: `<full-40-character-SHA>`
 
-- `@pkg-nec/jest@30.5.0`
-- `@pkg-nec/jest-core@30.5.0`
-- `@pkg-nec/jest-runtime@30.5.0`
+## Published package versions
+
+- `@pkg-nec/jest@30.4.3` ...all 55 generated lines...
 ```
+
+Do not create a partial Release body as a workaround for a later selective release. The current workflow rejects a ledger that is not the full public inventory.
+
+After `validate` succeeds, GitHub pauses the `publish` job at the protected `npm-publish` environment. An authorized reviewer then approves that deployment; only then can the job use the trusted-publisher identity and publish the prepared artifacts. Do not attempt or expect environment approval before publishing the Release that triggers validation.
 
 ## Schema-v1 release ledger contract
 
@@ -223,24 +268,13 @@ Treat a ledger and its tarballs as one immutable candidate. Do not edit the ledg
 
 ## Publication, verification, and provenance boundary
 
-This repository intentionally has no live publish command or trusted-publishing workflow. The first release's manual direct-to-`latest` procedure is historical evidence, not the current release runbook.
+Publishing is performed only by `.github/workflows/release.yml`, after the GitHub Release is published. It has four jobs:
 
-Before the next npm release, a separately reviewed publisher must implement and enforce:
+1. `validate` checks the tag, exact Release name and body, source commit, successful Node CI, all 55 patch transitions, and the complete candidate ledger; it uploads the immutable candidate.
+2. `publish` waits for `npm-publish` approval, downloads that candidate, and runs `npm publish --provenance` in dependency-first ledger order.
+3. `verify` checks the complete published batch against the exact ledger SHA-512 integrities.
+4. `evidence` runs after successful validation even if publish or verify fails, and attaches the workflow summary, ledger, publication journal, and available registry evidence to the GitHub Release.
 
-- the affected package selection and version-bump policy defined above;
-- a clean source commit matching the ledger;
-- artifact and ledger integrity before publication;
-- rejection or verified resumption of an already existing exact version;
-- dependency-first publication of the selected set;
-- npm trusted publishing, OIDC permissions, and provenance generation;
-- package `repository` metadata matching the public `pkg-nec` publishing repository;
-- post-publish visibility and integrity checks;
-- durable release evidence and failure/resumption handling.
+There are no serial post-publish waits between packages. A resumed publish first inspects the exact `name@version`: it can continue only when an already-present version has the ledger's exact SHA-512 integrity, recording it as `verified-existing`; any differing integrity is terminal and requires investigation. After publication, verification queries the public npm registry fairly in batches of at most eight under one shared 480-second deadline for the whole 55-package batch. It retries eligible visibility failures, writes per-package evidence on either success or failure, and treats authentication, authorization, malformed metadata, identity mismatch, and integrity mismatch as terminal.
 
-Post-publish verification uses a selected schema-v1 ledger entry:
-
-```bash
-yarn check:pkg-nec-registry <ledger-path> <package-name>
-```
-
-The verifier pins queries to `https://registry.npmjs.org/`, checks the exact name, version, and SHA-512 integrity, and has a 480-second overall deadline. It retries eligible not-found, network, timeout, rate-limit, and retryable server failures. Authentication, authorization, malformed metadata, name/version mismatch, and integrity mismatch are terminal. This command contacts npm and belongs after publication, not in pull-request CI or release preparation.
+If a job fails, do not publish tarballs manually and do not edit the ignored candidate or ledger. Review the GitHub Release attachments and job logs, resolve the cause, and re-run the Release workflow for the same tag only when every pre-existing package still matches its ledger integrity. The evidence attachment is the durable review record; local `.pkg-nec-release/` output is not. Do not add a new tag, create a second Release, or use a partial Release to resume the current strict full-release workflow.

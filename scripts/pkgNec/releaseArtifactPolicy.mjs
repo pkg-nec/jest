@@ -38,8 +38,8 @@ const helperReleasePackageNames = new Set([
   '@pkg-nec/jest-test-globals',
   '@pkg-nec/jest-test-utils',
 ]);
-const upstreamPublishedDeclarations = new Map([
-  ['@pkg-nec/jest-get-type@30.1.0', new Set(['build/index.d.mts'])],
+const additionallyPublishedDeclarations = new Map([
+  ['@pkg-nec/jest-get-type', new Set(['build/index.d.mts'])],
 ]);
 
 export function isHelperReleasePackageName(packageName) {
@@ -85,9 +85,8 @@ export function manifestEntryFiles(manifest) {
 export function validateReleaseFiles({files, helper, manifest, packageName}) {
   const normalizedFiles = normalizePackageFiles(files);
   const entries = manifestEntryFiles(manifest);
-  const policyKey = `${packageName}@${manifest?.version ?? ''}`;
   const publishedDeclarations =
-    upstreamPublishedDeclarations.get(policyKey) ?? new Set();
+    additionallyPublishedDeclarations.get(packageName) ?? new Set();
   const required = [...new Set(['LICENSE', 'package.json', ...entries])];
   const problems = new Set(
     required
