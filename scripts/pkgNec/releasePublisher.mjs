@@ -5,6 +5,26 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import semver from 'semver';
+
+const ledgerFields = new Set([
+  'generatedAt',
+  'nodeVersion',
+  'packageManager',
+  'packages',
+  'schemaVersion',
+  'sourceCommit',
+]);
+const packageFields = new Set([
+  'files',
+  'integrity',
+  'name',
+  'order',
+  'prerequisites',
+  'tarball',
+  'version',
+]);
+
 function matchingIntegrity(entry, observed) {
   return (
     observed.name === entry.name &&
@@ -32,26 +52,102 @@ function validSha512Integrity(integrity) {
   return digest.length === 64 && digest.toString('base64') === payload;
 }
 
-function validateLedger({ledger, releaseTag}) {
+function unexpectedField(value, allowed) {
+  return Object.keys(value).find(field => !allowed.has(field));
+}
+
+function validStringArray(value) {
+  return (
+    Array.isArray(value) &&
+    value.every(item => typeof item === 'string' && item.length > 0) &&
+    new Set(value).size === value.length
+  );
+}
+
+export function validateReleaseLedger({ledger, releaseTag}) {
   if (ledger?.schemaVersion !== 1) {
     throw new Error('Unsupported release ledger schema');
   }
   if (!Array.isArray(ledger.packages)) {
-    throw new Error('Release ledger packages must be an array');
+    throw new TypeError('Release ledger packages must be an array');
   }
-  if (!releaseTag) throw new Error('Release tag is required');
+  if (typeof releaseTag !== 'string' || releaseTag.length === 0) {
+    throw new Error('Release tag is required');
+  }
+  if (!/^[0-9a-f]{40}$/iu.test(ledger.sourceCommit)) {
+    throw new Error('Release ledger source commit must be a full Git commit');
+  }
+  const extraLedgerField = unexpectedField(ledger, ledgerFields);
+  if (extraLedgerField) {
+    throw new Error(`Unexpected release ledger field: ${extraLedgerField}`);
+  }
+  for (const metadataField of [
+    'generatedAt',
+    'nodeVersion',
+    'packageManager',
+  ]) {
+    if (
+      ledger[metadataField] !== undefined &&
+      (typeof ledger[metadataField] !== 'string' ||
+        ledger[metadataField].length === 0)
+    ) {
+      throw new TypeError(`Invalid release ledger ${metadataField}`);
+    }
+  }
+  if (ledger.packages.length === 0) {
+    throw new Error('Release ledger packages must not be empty');
+  }
 
   const names = new Set();
   for (const [index, entry] of ledger.packages.entries()) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      throw new TypeError(
+        `Invalid release ledger package at order ${index + 1}`,
+      );
+    }
+    const extraPackageField = unexpectedField(entry, packageFields);
+    if (extraPackageField) {
+      throw new Error(
+        `Unexpected release ledger package field: ${extraPackageField}`,
+      );
+    }
     if (entry.order !== index + 1) {
       throw new Error('Release ledger package order must be contiguous');
+    }
+    if (!/^@pkg-nec\/[a-z0-9][a-z0-9._-]*$/u.test(entry.name)) {
+      throw new TypeError(
+        `Invalid release ledger package name at order ${index + 1}`,
+      );
     }
     if (names.has(entry.name)) {
       throw new Error(`Duplicate release ledger package: ${entry.name}`);
     }
     names.add(entry.name);
+    if (semver.valid(entry.version) === null) {
+      throw new TypeError(`Invalid release ledger version for ${entry.name}`);
+    }
+    if (typeof entry.tarball !== 'string' || entry.tarball.length === 0) {
+      throw new TypeError(`Invalid release ledger tarball for ${entry.name}`);
+    }
+    if (!validStringArray(entry.prerequisites)) {
+      throw new TypeError(
+        `Invalid release ledger prerequisites for ${entry.name}`,
+      );
+    }
+    if (!validStringArray(entry.files) || entry.files.length === 0) {
+      throw new TypeError(`Invalid release ledger files for ${entry.name}`);
+    }
     if (!validSha512Integrity(entry.integrity)) {
       throw new Error(`Invalid release ledger integrity for ${entry.name}`);
+    }
+  }
+  for (const entry of ledger.packages) {
+    for (const prerequisite of entry.prerequisites) {
+      if (!names.has(prerequisite)) {
+        throw new Error(
+          `Unknown release prerequisite ${prerequisite} for ${entry.name}`,
+        );
+      }
     }
   }
 }
@@ -65,7 +161,7 @@ export async function publishRelease({
   releaseTag,
   verifyConflict,
 }) {
-  validateLedger({ledger, releaseTag});
+  validateReleaseLedger({ledger, releaseTag});
   const journal = initialJournal({ledger, releaseTag});
   await persistJournal(journal);
 

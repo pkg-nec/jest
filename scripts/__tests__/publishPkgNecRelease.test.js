@@ -6,27 +6,49 @@
  */
 
 import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {gunzipSync, gzipSync} from 'node:zlib';
+import fs from 'graceful-fs';
+
+const {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} = fs;
 
 const repoRoot = process.cwd();
 const publisherModuleUrl = pathToFileURL(
   join(repoRoot, 'scripts/pkgNec/releasePublisher.mjs'),
 ).href;
+const publisherCommandModuleUrl = pathToFileURL(
+  join(repoRoot, 'scripts/publishPkgNecRelease.mjs'),
+).href;
 const validIntegrity = `sha512-${'A'.repeat(86)}==`;
+function stateEntry(name, order, version) {
+  return {
+    files: ['package.json'],
+    integrity: validIntegrity,
+    name,
+    order,
+    prerequisites: [],
+    tarball: `.pkg-nec-release/${name.slice(1).replace('/', '-')}-${version}.tgz`,
+    version,
+  };
+}
 const ledger = {
   packages: [
-    {integrity: validIntegrity, name: '@pkg-nec/a', order: 1, version: '1.0.0'},
-    {integrity: validIntegrity, name: '@pkg-nec/b', order: 2, version: '2.0.0'},
-    {
-      integrity: validIntegrity,
-      name: '@pkg-nec/c',
-      order: 3,
-      version: '3.0.0',
-    },
+    stateEntry('@pkg-nec/a', 1, '1.0.0'),
+    stateEntry('@pkg-nec/b', 2, '2.0.0'),
+    stateEntry('@pkg-nec/c', 3, '3.0.0'),
   ],
   schemaVersion: 1,
-  sourceCommit: '0123456789abcdef',
+  sourceCommit: '0123456789abcdef0123456789abcdef01234567',
 };
 
 function matchingObserved(entry) {
@@ -105,6 +127,231 @@ function scenario(overrides = {}) {
   return {ledger, releaseTag: '@pkg-nec/jest-v30.4.3', ...overrides};
 }
 
+function writeTarChecksum(header) {
+  header.fill(0x20, 148, 156);
+  const checksum = [...header].reduce((sum, value) => sum + value, 0);
+  header.write(`${checksum.toString(8).padStart(6, '0')}\0 `, 148, 'ascii');
+}
+
+function tarEntry({contents, name, type = '0'}) {
+  const header = Buffer.alloc(512);
+  header.write(name, 0, 'utf8');
+  header.write('0000644\0', 100, 'ascii');
+  header.write('0000000\0', 108, 'ascii');
+  header.write('0000000\0', 116, 'ascii');
+  header.write(
+    `${contents.length.toString(8).padStart(11, '0')}\0`,
+    124,
+    'ascii',
+  );
+  header.write('00000000000\0', 136, 'ascii');
+  header.write(type, 156, 'ascii');
+  header.write('ustar\0', 257, 'ascii');
+  header.write('00', 263, 'ascii');
+  writeTarChecksum(header);
+  const padding = Buffer.alloc((512 - (contents.length % 512)) % 512);
+  return Buffer.concat([header, contents, padding]);
+}
+
+function tarballForManifest(manifest) {
+  return gzipSync(
+    Buffer.concat([
+      tarEntry({
+        contents: Buffer.from(JSON.stringify(manifest)),
+        name: 'package/package.json',
+      }),
+      Buffer.alloc(1024),
+    ]),
+  );
+}
+
+function runCommandFixture({
+  args: suppliedArgs,
+  journalParentAlias,
+  journalRelative = '.pkg-nec-release/publish-journal.json',
+  ledgerMutate = value => value,
+  ledgerRelative = '.pkg-nec-release/release-ledger.json',
+  missingTarball = false,
+  packages = [
+    {
+      dependencies: {},
+      directory: 'packages/a',
+      name: '@pkg-nec/a',
+      oldName: '@jest/a',
+      version: '1.0.0',
+    },
+  ],
+  packedMutate = value => value,
+  sourceMutate = value => value,
+  tagCommit = '0123456789abcdef0123456789abcdef01234567',
+  tarballMutate = value => value,
+  tempSymlinkOutside = false,
+} = {}) {
+  const fixtureRoot = mkdtempSync(join(tmpdir(), 'pkg-nec-publisher-'));
+  const outsideRoot = mkdtempSync(join(tmpdir(), 'pkg-nec-outside-'));
+  const releaseDirectory = join(fixtureRoot, '.pkg-nec-release');
+  mkdirSync(releaseDirectory, {recursive: true});
+
+  const identities = [];
+  const entries = [];
+  for (const [index, definition] of packages.entries()) {
+    const repository = {
+      directory: definition.directory,
+      url: 'https://github.com/pkg-nec/jest.git',
+    };
+    const sourceManifest = sourceMutate(
+      {
+        dependencies: definition.dependencies,
+        name: definition.name,
+        repository,
+        version: definition.version,
+      },
+      index,
+    );
+    const manifestPath = join(
+      fixtureRoot,
+      definition.directory,
+      'package.json',
+    );
+    mkdirSync(join(fixtureRoot, definition.directory), {recursive: true});
+    writeFileSync(manifestPath, JSON.stringify(sourceManifest));
+    identities.push({
+      directory: join(fixtureRoot, definition.directory),
+      manifestPath,
+      newName: definition.name,
+      oldName: definition.oldName,
+      publishable: true,
+      version: definition.version,
+    });
+
+    const packedManifest = packedMutate(structuredClone(sourceManifest), index);
+    const originalBytes = tarballForManifest(packedManifest);
+    const tarballBytes = tarballMutate(originalBytes, index);
+    const tarballName = `${definition.name.slice(1).replace('/', '-')}-${definition.version}.tgz`;
+    const tarballRelative =
+      definition.tarballRelative ?? `.pkg-nec-release/${tarballName}`;
+    if (!missingTarball) {
+      writeFileSync(join(fixtureRoot, tarballRelative), tarballBytes);
+    }
+    entries.push({
+      files: ['package.json'],
+      integrity: `sha512-${createHash('sha512')
+        .update(definition.bindTarballIntegrity ? tarballBytes : originalBytes)
+        .digest('base64')}`,
+      name: definition.name,
+      order: index + 1,
+      prerequisites: Object.keys(definition.dependencies).filter(name =>
+        packages.some(item => item.name === name || item.oldName === name),
+      ),
+      tarball: tarballRelative,
+      version: definition.version,
+    });
+  }
+
+  const candidateLedger = ledgerMutate({
+    packages: entries,
+    schemaVersion: 1,
+    sourceCommit: '0123456789abcdef0123456789abcdef01234567',
+  });
+  const ledgerPath = join(fixtureRoot, ledgerRelative);
+  mkdirSync(join(ledgerPath, '..'), {recursive: true});
+  writeFileSync(ledgerPath, JSON.stringify(candidateLedger));
+  const journalPath = join(fixtureRoot, journalRelative);
+  const journalParent = join(journalPath, '..');
+  if (journalParentAlias) {
+    mkdirSync(join(journalParent, '..'), {recursive: true});
+    symlinkSync(
+      journalParentAlias === 'release' ? releaseDirectory : outsideRoot,
+      journalParent,
+      'junction',
+    );
+  } else {
+    mkdirSync(journalParent, {recursive: true});
+  }
+  const outsideTarget = join(outsideRoot, 'outside-target.json');
+  writeFileSync(outsideTarget, 'outside-sentinel');
+  if (tempSymlinkOutside) {
+    symlinkSync(outsideTarget, `${journalPath}.tmp`, 'file');
+  }
+  const args = suppliedArgs?.({fixtureRoot, journalPath, ledgerPath}) ?? [
+    ledgerPath,
+    journalPath,
+    '@pkg-nec/a-v1.0.0',
+  ];
+
+  const child = spawnSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '--eval',
+      `
+        import fs from 'node:fs';
+        import path from 'node:path';
+        import {runPublishReleaseCommand} from ${JSON.stringify(publisherCommandModuleUrl)};
+        const fixtureRoot = ${JSON.stringify(fixtureRoot)};
+        const definitions = ${JSON.stringify(identities)};
+        const inventory = {
+          byNewName: new Map(definitions.map(item => [item.newName, item])),
+          byOldName: new Map(definitions.map(item => [item.oldName, item])),
+          packages: definitions,
+        };
+        const events = [];
+        const writes = [];
+        try {
+          const journal = await runPublishReleaseCommand({
+            args: ${JSON.stringify(args)},
+            inspect: async entry => {
+              events.push('npm-view:' + entry.name);
+              return {kind: 'absent'};
+            },
+            inventory,
+            now: () => '2026-08-19T12:34:56.000Z',
+            publish: async entry => { events.push('npm-publish:' + entry.name); },
+            readFile: async (...input) => {
+              events.push('read:' + path.relative(fixtureRoot, input[0]).replaceAll('\\\\', '/'));
+              return fs.promises.readFile(...input);
+            },
+            rename: async (from, to) => {
+              events.push('rename:' + path.basename(from) + '->' + path.basename(to));
+              return fs.promises.rename(from, to);
+            },
+            repoRoot: fixtureRoot,
+            runGit: async (gitArgs, options) => {
+              events.push('git:' + gitArgs.join(' ') + ':' + (options.cwd === fixtureRoot));
+              return {stdout: ${JSON.stringify(tagCommit)}};
+            },
+            verifyConflict: async entry => {
+              events.push('verify-conflict:' + entry.name);
+              return {integrity: entry.integrity, name: entry.name, version: entry.version};
+            },
+            write: value => events.push('write:' + value),
+            writeFile: async (file, value) => {
+              const text = String(value);
+              events.push('write-file:' + path.basename(file));
+              writes.push({file: path.basename(file), text});
+              return fs.promises.writeFile(file, value);
+            },
+          });
+          console.log(JSON.stringify({events, journal, writes}));
+        } catch (error) {
+          console.log(JSON.stringify({error: error.message, events, writes}));
+        }
+      `,
+    ],
+    {cwd: repoRoot, encoding: 'utf8'},
+  );
+  try {
+    if (child.status !== 0) throw new Error(child.stderr || child.stdout);
+    return {
+      ...JSON.parse(child.stdout.trim()),
+      outsideText: readFileSync(outsideTarget, 'utf8'),
+    };
+  } finally {
+    rmSync(fixtureRoot, {force: true, recursive: true});
+    rmSync(outsideRoot, {force: true, recursive: true});
+  }
+}
+
 test('publishes in ledger order without a post-publish registry verification', () => {
   const result = runPublisherScenario(scenario());
 
@@ -149,7 +396,7 @@ test('publishes in ledger order without a post-publish registry verification', (
     ],
     releaseTag: '@pkg-nec/jest-v30.4.3',
     schemaVersion: 1,
-    sourceCommit: '0123456789abcdef',
+    sourceCommit: '0123456789abcdef0123456789abcdef01234567',
   });
 });
 
@@ -163,7 +410,7 @@ test('persists an empty journal before its first inspection and each completed e
       packages: [],
       releaseTag: '@pkg-nec/jest-v30.4.3',
       schemaVersion: 1,
-      sourceCommit: '0123456789abcdef',
+      sourceCommit: '0123456789abcdef0123456789abcdef01234567',
     },
     {
       packages: [
@@ -178,7 +425,7 @@ test('persists an empty journal before its first inspection and each completed e
       ],
       releaseTag: '@pkg-nec/jest-v30.4.3',
       schemaVersion: 1,
-      sourceCommit: '0123456789abcdef',
+      sourceCommit: '0123456789abcdef0123456789abcdef01234567',
     },
     {
       packages: [
@@ -201,7 +448,7 @@ test('persists an empty journal before its first inspection and each completed e
       ],
       releaseTag: '@pkg-nec/jest-v30.4.3',
       schemaVersion: 1,
-      sourceCommit: '0123456789abcdef',
+      sourceCommit: '0123456789abcdef0123456789abcdef01234567',
     },
   ]);
 });
@@ -407,6 +654,54 @@ test('rejects invalid ledgers before invoking any adapter', () => {
     [{...ledger, schemaVersion: 2}, 'Unsupported release ledger schema'],
     [{...ledger, packages: {}}, 'Release ledger packages must be an array'],
     [
+      {...ledger, sourceCommit: '0123456789abcdef'},
+      'Release ledger source commit must be a full Git commit',
+    ],
+    [
+      {...ledger, unexpected: true},
+      'Unexpected release ledger field: unexpected',
+    ],
+    [
+      {...ledger, packages: [null]},
+      'Invalid release ledger package at order 1',
+    ],
+    [
+      {
+        ...ledger,
+        packages: [{...ledger.packages[0], unexpected: true}],
+      },
+      'Unexpected release ledger package field: unexpected',
+    ],
+    [
+      {...ledger, packages: [{...ledger.packages[0], name: ''}]},
+      'Invalid release ledger package name at order 1',
+    ],
+    [
+      {...ledger, packages: [{...ledger.packages[0], version: 'latest'}]},
+      'Invalid release ledger version for @pkg-nec/a',
+    ],
+    [
+      {...ledger, packages: [{...ledger.packages[0], tarball: 42}]},
+      'Invalid release ledger tarball for @pkg-nec/a',
+    ],
+    [
+      {...ledger, packages: [{...ledger.packages[0], prerequisites: 'a'}]},
+      'Invalid release ledger prerequisites for @pkg-nec/a',
+    ],
+    [
+      {
+        ...ledger,
+        packages: [
+          {...ledger.packages[0], prerequisites: ['@pkg-nec/missing']},
+        ],
+      },
+      'Unknown release prerequisite @pkg-nec/missing for @pkg-nec/a',
+    ],
+    [
+      {...ledger, packages: [{...ledger.packages[0], files: [42]}]},
+      'Invalid release ledger files for @pkg-nec/a',
+    ],
+    [
       {...ledger, packages: [{...ledger.packages[0], order: 2}]},
       'Release ledger package order must be contiguous',
     ],
@@ -450,4 +745,458 @@ test('rejects invalid ledgers before invoking any adapter', () => {
   const result = runPublisherScenario(scenario({releaseTag: ''}));
   expect(result.error).toBe('Release tag is required');
   expect(result.events).toEqual([]);
+});
+
+test('accepts legitimate schema-v1 release metadata fields', () => {
+  const result = runPublisherScenario(
+    scenario({
+      ledger: {
+        ...ledger,
+        generatedAt: '2026-08-19T12:34:56.000Z',
+        nodeVersion: 'v22.23.1',
+        packageManager: 'yarn@4.18.0',
+      },
+    }),
+  );
+
+  expect(result.error).toBeUndefined();
+  expect(result.journal.packages).toHaveLength(3);
+});
+
+test('npm adapters use the exact public registry arguments and redact failures', () => {
+  const child = spawnSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '--eval',
+      `
+        import {
+          inspectRegistryEntry,
+          publishRegistryEntry,
+        } from ${JSON.stringify(publisherCommandModuleUrl)};
+        const entry = {
+          integrity: 'sha512-ledger',
+          name: '@pkg-nec/jest',
+          tarball: '.pkg-nec-release/pkg-nec-jest-30.4.3.tgz',
+          version: '30.4.3',
+        };
+        const calls = [];
+        const present = await inspectRegistryEntry(entry, async (command, args) => {
+          calls.push({args, command});
+          return {stdout: JSON.stringify({
+            dist: {integrity: 'sha512-registry'},
+            name: entry.name,
+            version: entry.version,
+          })};
+        });
+        const failures = [];
+        for (const failure of [
+          Object.assign(new Error('Command failed with exit code 1: npm view'), {
+            stderr: 'npm error code E404\\nnpm error 404 Not Found - GET https://registry.npmjs.org/%40pkg-nec%2fjest',
+          }),
+          Object.assign(new Error('server Bearer npm_serverSecret'), {code: 'E503'}),
+          Object.assign(new Error('auth _authToken=npm_authSecret'), {code: 'E401'}),
+          new Error('malformed response'),
+        ]) {
+          try {
+            const value = failure.message === 'malformed response'
+              ? await inspectRegistryEntry(entry, async () => ({stdout: '{bad'}))
+              : await inspectRegistryEntry(entry, async () => { throw failure; });
+            failures.push(value);
+          } catch (error) {
+            failures.push({classification: error.classification, message: error.message});
+          }
+        }
+        await publishRegistryEntry(entry, async (command, args) => {
+          calls.push({args, command});
+          return {stdout: ''};
+        });
+        const publishFailures = [];
+        for (const failure of [
+          Object.assign(new Error('You cannot publish over the previously published versions: 30.4.3'), {code: 'E403'}),
+          Object.assign(new Error('authorization denied Bearer npm_publishSecret'), {code: 'E403'}),
+          Object.assign(new Error('service unavailable'), {code: 'E503'}),
+        ]) {
+          try {
+            await publishRegistryEntry(entry, async () => { throw failure; });
+          } catch (error) {
+            publishFailures.push({classification: error.classification, message: error.message});
+          }
+        }
+        console.log(JSON.stringify({calls, failures, present, publishFailures}));
+      `,
+    ],
+    {cwd: repoRoot, encoding: 'utf8'},
+  );
+  if (child.status !== 0) throw new Error(child.stderr || child.stdout);
+  const result = JSON.parse(child.stdout.trim());
+
+  expect(result.calls).toEqual([
+    {
+      args: [
+        'view',
+        '@pkg-nec/jest@30.4.3',
+        '--json',
+        '--registry=https://registry.npmjs.org/',
+      ],
+      command: 'npm',
+    },
+    {
+      args: [
+        'publish',
+        '.pkg-nec-release/pkg-nec-jest-30.4.3.tgz',
+        '--access',
+        'public',
+        '--provenance',
+        '--registry=https://registry.npmjs.org/',
+      ],
+      command: 'npm',
+    },
+  ]);
+  expect(result.present).toEqual({
+    integrity: 'sha512-registry',
+    kind: 'present',
+    name: '@pkg-nec/jest',
+    version: '30.4.3',
+  });
+  expect(result.failures[0]).toEqual({kind: 'absent'});
+  expect(result.failures.slice(1).map(item => item.classification)).toEqual([
+    'fatal',
+    'fatal',
+    'fatal',
+  ]);
+  expect(JSON.stringify(result.failures)).not.toContain('npm_serverSecret');
+  expect(JSON.stringify(result.failures)).not.toContain('npm_authSecret');
+  expect(result.publishFailures.map(item => item.classification)).toEqual([
+    'version-conflict',
+    'fatal',
+    'fatal',
+  ]);
+  expect(JSON.stringify(result.publishFailures)).not.toContain(
+    'npm_publishSecret',
+  );
+});
+
+test('publisher preflights tag, packed metadata, bytes, and order before side effects', () => {
+  const success = runCommandFixture();
+  const firstJournalWrite = success.events.findIndex(event =>
+    event.startsWith('write-file:'),
+  );
+  expect(success.events.slice(0, firstJournalWrite)).toEqual([
+    'read:.pkg-nec-release/release-ledger.json',
+    'git:rev-list -n 1 @pkg-nec/a-v1.0.0:true',
+    'read:packages/a/package.json',
+    'read:.pkg-nec-release/pkg-nec-a-1.0.0.tgz',
+  ]);
+  expect(success.events.slice(firstJournalWrite)).toEqual([
+    'write-file:publish-journal.json.tmp',
+    'rename:publish-journal.json.tmp->publish-journal.json',
+    'npm-view:@pkg-nec/a',
+    'npm-publish:@pkg-nec/a',
+    'write-file:publish-journal.json.tmp',
+    'rename:publish-journal.json.tmp->publish-journal.json',
+    'write:Published 1 pkg-nec release artifact(s).',
+  ]);
+  expect(success.writes).toHaveLength(2);
+  for (const {file, text} of success.writes) {
+    expect(file).toBe('publish-journal.json.tmp');
+    expect(text).toBe(`${JSON.stringify(JSON.parse(text), null, 2)}\n`);
+  }
+
+  const cases = [
+    {
+      expected: 'Release ledger source commit does not match the release tag',
+      options: {tagCommit: 'f'.repeat(40)},
+    },
+    {
+      expected: 'Invalid prepared artifact path for @pkg-nec/a',
+      options: {
+        ledgerMutate: value => ({
+          ...value,
+          packages: [{...value.packages[0], tarball: '../escape.tgz'}],
+        }),
+      },
+    },
+    {
+      expected: 'Prepared artifact missing for @pkg-nec/a',
+      options: {missingTarball: true},
+    },
+    {
+      expected: 'Prepared artifact integrity mismatch for @pkg-nec/a',
+      options: {
+        tarballMutate: value => Buffer.concat([value, Buffer.from('changed')]),
+      },
+    },
+  ];
+  for (const {expected, options} of cases) {
+    const result = runCommandFixture(options);
+    expect(result.error).toBe(expected);
+    expect(result.events).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^(?:npm-|rename:|write-file:)/u),
+      ]),
+    );
+  }
+});
+
+test('publisher rejects transported packed metadata mutations before journaling or npm', () => {
+  const alteredLedgerVersion = runCommandFixture({
+    ledgerMutate: value => ({
+      ...value,
+      packages: [{...value.packages[0], version: '9.9.9'}],
+    }),
+  });
+  expect(alteredLedgerVersion.error).toBe(
+    'Release ledger version does not match source for @pkg-nec/a',
+  );
+  expect(alteredLedgerVersion.events).not.toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(/^(?:npm-|rename:|write-file:)/u),
+    ]),
+  );
+
+  const mutations = [
+    [
+      manifest => ({...manifest, name: '@pkg-nec/wrong'}),
+      'Packed manifest name changed',
+    ],
+    [
+      manifest => ({...manifest, version: '9.9.9'}),
+      'Packed manifest version changed',
+    ],
+    [manifest => ({...manifest, private: true}), 'Packed manifest is private'],
+    [
+      manifest => ({...manifest, publishConfig: {access: 'restricted'}}),
+      'Packed manifest access is not public',
+    ],
+    [
+      manifest => ({
+        ...manifest,
+        repository: {
+          ...manifest.repository,
+          url: 'https://evil.invalid/repo.git',
+        },
+      }),
+      'Packed manifest repository changed',
+    ],
+    [
+      manifest => ({
+        ...manifest,
+        repository: {...manifest.repository, directory: 'packages/wrong'},
+      }),
+      'Packed manifest repository changed',
+    ],
+  ];
+  for (const [packedMutate, message] of mutations) {
+    const result = runCommandFixture({packedMutate});
+    expect(result.error).toContain(message);
+    expect(result.events).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^(?:npm-|rename:|write-file:)/u),
+      ]),
+    );
+  }
+
+  const wrongOrder = runCommandFixture({
+    packages: [
+      {
+        dependencies: {'@pkg-nec/b': '2.0.0'},
+        directory: 'packages/a',
+        name: '@pkg-nec/a',
+        oldName: '@jest/a',
+        version: '1.0.0',
+      },
+      {
+        dependencies: {},
+        directory: 'packages/b',
+        name: '@pkg-nec/b',
+        oldName: '@jest/b',
+        version: '2.0.0',
+      },
+    ],
+  });
+  expect(wrongOrder.error).toBe(
+    'Release ledger is not in dependency-first order',
+  );
+  expect(wrongOrder.events).not.toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(/^(?:npm-|rename:|write-file:)/u),
+    ]),
+  );
+
+  const jointlyWrongDirectory = runCommandFixture({
+    sourceMutate: manifest => ({
+      ...manifest,
+      repository: {...manifest.repository, directory: 'packages/wrong'},
+    }),
+  });
+  expect(jointlyWrongDirectory.error).toContain(
+    'Packed manifest repository changed',
+  );
+  expect(jointlyWrongDirectory.events).not.toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(/^(?:npm-|rename:|write-file:)/u),
+    ]),
+  );
+});
+
+test('publisher rejects usage and ledger or journal paths outside the release directory', () => {
+  const cases = [
+    {
+      args: () => [],
+      message:
+        'Usage: yarn publish:pkg-nec-release <ledger-path> <journal-path> <release-tag>',
+    },
+    {
+      args: ({fixtureRoot, journalPath}) => [
+        join(fixtureRoot, 'outside-ledger.json'),
+        journalPath,
+        '@pkg-nec/a-v1.0.0',
+      ],
+      message: 'Invalid release ledger path',
+    },
+    {
+      args: ({fixtureRoot, ledgerPath}) => [
+        ledgerPath,
+        join(fixtureRoot, 'outside-journal.json'),
+        '@pkg-nec/a-v1.0.0',
+      ],
+      message: 'Invalid publication journal path',
+    },
+  ];
+  for (const {args, message} of cases) {
+    const result = runCommandFixture({args});
+    expect(result.error).toContain(message);
+    expect(result.events).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^(?:npm-|rename:|write-file:)/u),
+      ]),
+    );
+  }
+});
+
+test('publisher rejects ledger and tarball collisions with the journal temp path', () => {
+  const cases = [
+    runCommandFixture({
+      ledgerRelative: '.pkg-nec-release/publish-journal.json.tmp',
+    }),
+    runCommandFixture({
+      packages: [
+        {
+          dependencies: {},
+          directory: 'packages/a',
+          name: '@pkg-nec/a',
+          oldName: '@jest/a',
+          tarballRelative: '.pkg-nec-release/publish-journal.json.tmp',
+          version: '1.0.0',
+        },
+      ],
+    }),
+  ];
+
+  expect(cases.map(result => result.error)).toEqual([
+    'Publication journal temp path conflicts with release input',
+    'Prepared artifact path is reused for @pkg-nec/a',
+  ]);
+  for (const result of cases) {
+    expect(result.events).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^(?:npm-|rename:|write-file:)/u),
+      ]),
+    );
+  }
+});
+
+test('publisher rejects canonical journal aliases and outside-root temp targets', () => {
+  const cases = [
+    {
+      expected: 'Publication path aliases release input',
+      result: runCommandFixture({
+        journalParentAlias: 'release',
+        journalRelative: '.pkg-nec-release/journal-alias/pkg-nec-a-1.0.0.tgz',
+      }),
+    },
+    {
+      expected: 'Invalid publication journal path',
+      result: runCommandFixture({
+        journalParentAlias: 'outside',
+        journalRelative: '.pkg-nec-release/outside-alias/journal.json',
+      }),
+    },
+    {
+      expected: 'Invalid publication journal temp path',
+      result: runCommandFixture({tempSymlinkOutside: true}),
+    },
+  ];
+
+  for (const {expected, result} of cases) {
+    expect(result.error).toContain(expected);
+    expect(result.events).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^(?:npm-|rename:|write-file:)/u),
+      ]),
+    );
+    expect(result.outsideText).toBe('outside-sentinel');
+  }
+});
+
+test('publisher rejects ambiguous or corrupt tar metadata before side effects', () => {
+  const cases = [
+    {
+      message: 'Prepared artifact has an invalid tar checksum for @pkg-nec/a',
+      mutate: value => {
+        const archive = gunzipSync(value);
+        archive[148] = archive[148] === 0x30 ? 0x31 : 0x30;
+        return gzipSync(archive);
+      },
+    },
+    {
+      message:
+        'Prepared artifact package manifest is not a regular file for @pkg-nec/a',
+      mutate: value => {
+        const archive = gunzipSync(value);
+        archive.write('2', 156, 'ascii');
+        writeTarChecksum(archive.subarray(0, 512));
+        return gzipSync(archive);
+      },
+    },
+    ...['x', 'g', 'L', 'K', 'N', 'X'].map(type => ({
+      message: `Prepared artifact contains unsupported tar extension ${type} for @pkg-nec/a`,
+      mutate: value =>
+        gzipSync(
+          Buffer.concat([
+            tarEntry({
+              contents: Buffer.from(
+                type === 'x' ? '25 path=package/package.json\n' : 'ignored\0',
+              ),
+              name: 'package/extension',
+              type,
+            }),
+            gunzipSync(value),
+          ]),
+        ),
+    })),
+  ];
+
+  for (const {message, mutate} of cases) {
+    const result = runCommandFixture({
+      packages: [
+        {
+          bindTarballIntegrity: true,
+          dependencies: {},
+          directory: 'packages/a',
+          name: '@pkg-nec/a',
+          oldName: '@jest/a',
+          version: '1.0.0',
+        },
+      ],
+      tarballMutate: mutate,
+    });
+    expect(result.error).toBe(message);
+    expect(result.events).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^(?:npm-|rename:|write-file:)/u),
+      ]),
+    );
+  }
 });

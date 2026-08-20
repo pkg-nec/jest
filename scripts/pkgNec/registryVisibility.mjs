@@ -42,7 +42,7 @@ function statusCode(error) {
 function errorText(error) {
   return [error?.message, error?.stderr, error?.stdout]
     .filter(value => typeof value === 'string')
-    .join(' ');
+    .join('\n');
 }
 
 function registryErrorClass(error) {
@@ -111,6 +111,35 @@ function parseRegistryResult(result) {
   const value = result?.stdout ?? result;
   const parsed = typeof value === 'string' ? JSON.parse(value) : value;
   return Array.isArray(parsed) ? parsed[0] : parsed;
+}
+
+export function isRegistryNotFound(error) {
+  const code = String(error?.code ?? '').toUpperCase();
+  if (code === 'E404') return true;
+  if (/^E[A-Z0-9_]+$/u.test(code)) return false;
+
+  const status = statusCode(error);
+  if (Number.isFinite(status)) return status === 404;
+
+  const npmCodes = [
+    ...redactRegistryError(errorText(error)).matchAll(
+      /(?:^|\r?\n)\s*npm\s+(?:error|err!)\s+code\s+(E[A-Z0-9_]+)\s*(?=\r?\n|$)/giu,
+    ),
+  ].map(match => match[1].toUpperCase());
+  return npmCodes.length > 0 && npmCodes.every(npmCode => npmCode === 'E404');
+}
+
+export function exactRegistryResult(result) {
+  const parsed = parseRegistryResult(result);
+  return {
+    integrity: parsed?.dist?.integrity,
+    name: parsed?.name,
+    version: parsed?.version,
+  };
+}
+
+export function redactRegistryFailure(error) {
+  return redactRegistryError(errorText(error));
 }
 
 function registryFailure({attempts, classification, elapsedMs, message}) {
@@ -182,19 +211,19 @@ export async function waitForExactVersion({
           signal: AbortSignal.timeout(Math.min(queryTimeoutMs, remainingMs)),
         },
       );
-      const manifest = parseRegistryResult(result);
+      const manifest = exactRegistryResult(result);
 
       if (manifest?.name !== name || manifest?.version !== version) {
         throw new Error(
           `Registry returned a different package version for ${exactSpecifier}`,
         );
       }
-      if (typeof manifest?.dist?.integrity !== 'string') {
+      if (typeof manifest?.integrity !== 'string') {
         throw new TypeError(
           `Registry response omitted integrity for ${exactSpecifier}`,
         );
       }
-      if (manifest.dist.integrity !== expectedIntegrity) {
+      if (manifest.integrity !== expectedIntegrity) {
         throw new Error(
           `Registry returned a different package integrity for ${exactSpecifier}`,
         );
@@ -203,7 +232,7 @@ export async function waitForExactVersion({
       return {
         attempts,
         elapsedMs: now() - startedAt,
-        integrity: manifest.dist.integrity,
+        integrity: manifest.integrity,
         name,
         version,
       };
