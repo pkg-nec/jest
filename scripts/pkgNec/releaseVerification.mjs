@@ -354,6 +354,13 @@ export async function verifyReleaseBatch({
     });
 
     if (batchFailure) {
+      const cancelledAt = now();
+      for (const state of states) {
+        if (state.classification === 'pending') {
+          state.classification = 'cancelled';
+          state.elapsedMs = cancelledAt - startedAt;
+        }
+      }
       batchFailure.evidence = buildEvidence({
         journal,
         ledger,

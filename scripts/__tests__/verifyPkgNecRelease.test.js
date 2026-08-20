@@ -392,6 +392,61 @@ test('fatal failure settles a concurrent non-cooperative peer and cleans both ti
   });
 });
 
+test('early fatal failure cancels every queued package without starting extra queries', () => {
+  const fixture = releaseFixture(12);
+  const result = runModuleProgram(`
+    import {verifyReleaseBatch} from ${JSON.stringify(verificationModuleUrl)};
+    const fixture = ${JSON.stringify(fixture)};
+    const calls = [];
+    try {
+      await verifyReleaseBatch({
+        journal: fixture.journal,
+        ledger: fixture.ledger,
+        now: () => 100,
+        query: async entry => {
+          calls.push(entry.name);
+          if (entry.order === 1) {
+            throw Object.assign(new Error('authorization denied'), {code: 'E401'});
+          }
+          return new Promise(() => {});
+        },
+        sleep: async () => { throw new Error('must not sleep'); },
+      });
+    } catch (error) {
+      console.log(JSON.stringify({
+        attempts: error.evidence.packages.map(item => item.attempts),
+        calls,
+        classifications: error.evidence.packages.map(item => item.classification),
+        elapsed: error.evidence.packages.map(item => item.elapsedMs),
+        evidenceCount: error.evidence.packages.length,
+        errorClassification: error.classification,
+      }));
+    }
+  `);
+
+  expect(result).toEqual({
+    attempts: [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+    calls: fixture.ledger.packages.slice(0, 8).map(item => item.name),
+    classifications: [
+      'fatal',
+      'cancelled',
+      'cancelled',
+      'cancelled',
+      'cancelled',
+      'cancelled',
+      'cancelled',
+      'cancelled',
+      'cancelled',
+      'cancelled',
+      'cancelled',
+      'cancelled',
+    ],
+    elapsed: Array.from({length: 12}, () => 0),
+    errorClassification: 'fatal',
+    evidenceCount: 12,
+  });
+});
+
 test('does not sleep after a successful final round near the deadline', () => {
   const fixture = releaseFixture();
   const result = runModuleProgram(`

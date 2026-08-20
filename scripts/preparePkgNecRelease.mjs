@@ -102,10 +102,7 @@ export function inspectPackedManifest({
   if (manifest.private === true) {
     throw new Error(`Packed manifest is private: ${workspace.newName}`);
   }
-  if (
-    manifest.publishConfig?.access !== undefined &&
-    manifest.publishConfig.access !== 'public'
-  ) {
+  if (manifest.publishConfig?.access !== 'public') {
     throw new Error(
       `Packed manifest access is not public: ${workspace.newName}`,
     );

@@ -326,6 +326,7 @@ describe('pkg-nec release preparation', () => {
           chalk: '^5.0.0',
         },
         name: '@pkg-nec/example',
+        publishConfig: {access: 'public'},
         repository: {
           directory: 'packages/example',
           url: 'https://github.com/pkg-nec/jest.git',
@@ -343,6 +344,42 @@ describe('pkg-nec release preparation', () => {
     `);
 
     expect(result).toEqual({accepted: true});
+  });
+
+  test('rejects a packed public package with missing access metadata', () => {
+    const result = runModuleProgram(`
+      import {inspectPackedManifest} from ${JSON.stringify(releaseModuleUrl)};
+
+      try {
+        inspectPackedManifest({
+          inventory: {byNewName: new Map()},
+          manifest: {
+            name: '@pkg-nec/example',
+            repository: {
+              directory: 'packages/example',
+              url: 'https://github.com/pkg-nec/jest.git',
+            },
+            version: '30.4.3',
+          },
+          workspace: {newName: '@pkg-nec/example'},
+          workspaceManifest: {
+            name: '@pkg-nec/example',
+            repository: {
+              directory: 'packages/example',
+              url: 'https://github.com/pkg-nec/jest.git',
+            },
+            version: '30.4.3',
+          },
+        });
+        console.log(JSON.stringify({error: null}));
+      } catch (error) {
+        console.log(JSON.stringify({error: error.message}));
+      }
+    `);
+
+    expect(result).toEqual({
+      error: expect.stringMatching(/packed manifest access is not public/i),
+    });
   });
 
   test('rejects packed values that differ from current source manifests', () => {
@@ -382,6 +419,7 @@ describe('pkg-nec release preparation', () => {
           chalk: '^5.0.0',
         },
         name: '@pkg-nec/example',
+        publishConfig: {access: 'public'},
         repository: {
           directory: 'packages/example',
           url: 'https://github.com/pkg-nec/jest.git',

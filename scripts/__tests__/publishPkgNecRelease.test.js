@@ -203,6 +203,7 @@ function runCommandFixture({
       {
         dependencies: definition.dependencies,
         name: definition.name,
+        publishConfig: {access: 'public'},
         repository,
         version: definition.version,
       },
@@ -970,6 +971,14 @@ test('publisher rejects transported packed metadata mutations before journaling 
       'Packed manifest access is not public',
     ],
     [
+      manifest => {
+        const {publishConfig: _publishConfig, ...withoutPublishConfig} =
+          manifest;
+        return withoutPublishConfig;
+      },
+      'Packed manifest access is not public',
+    ],
+    [
       manifest => ({
         ...manifest,
         repository: {
@@ -1117,7 +1126,9 @@ test('publisher rejects canonical journal aliases and outside-root temp targets'
       }),
     },
     {
-      expected: 'Invalid publication journal path',
+      // Both paths resolve outside the release root, so either concurrent
+      // validation may reject first.
+      expected: /Invalid publication journal(?: temp)? path/u,
       result: runCommandFixture({
         journalParentAlias: 'outside',
         journalRelative: '.pkg-nec-release/outside-alias/journal.json',
@@ -1130,7 +1141,7 @@ test('publisher rejects canonical journal aliases and outside-root temp targets'
   ];
 
   for (const {expected, result} of cases) {
-    expect(result.error).toContain(expected);
+    expect(result.error).toMatch(expected);
     expect(result.events).not.toEqual(
       expect.arrayContaining([
         expect.stringMatching(/^(?:npm-|rename:|write-file:)/u),
