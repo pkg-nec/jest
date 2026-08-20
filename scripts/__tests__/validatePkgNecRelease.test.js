@@ -679,6 +679,14 @@ test('defines a least-privilege provenance release workflow with durable evidenc
       ),
     }),
   );
+  expect(attachEvidenceStep.run).toContain(
+    '.pkg-nec-release/release-ledger.json',
+  );
+  expect(attachEvidenceStep.run).toContain(
+    '.pkg-nec-release/release-ledger.md',
+  );
+  expect(attachEvidenceStep.run).toContain('if [[ -f "$asset" ]]');
+  expect(attachEvidenceStep.run).not.toContain('touch release-ledger.md');
   expect(attachEvidenceStep.env).not.toHaveProperty('GH_REPO');
   expect(attachEvidenceStep.run).not.toMatch(/\.(?:tgz|tar\.gz)\b/u);
 

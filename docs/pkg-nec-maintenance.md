@@ -258,9 +258,11 @@ After `validate` succeeds, GitHub pauses the `publish` job at the protected `npm
 
 Preparation writes:
 
-- `.pkg-nec-release/release-ledger.json`, the machine-readable handoff contract;
-- `.pkg-nec-release/release-ledger.md`, the human-readable review report;
+- `.pkg-nec-release/release-ledger.json`, the authoritative machine-readable candidate contract;
+- `.pkg-nec-release/release-ledger.md`, the human-readable projection of that same contract;
 - 55 final `.tgz` artifacts referenced by the ledger.
+
+The evidence job attaches both ledger files when candidate preparation produced them. It never fabricates a missing ledger after a failed preparation.
 
 The schema-v1 ledger records generation time, source commit, Node version, package-manager version, and an ordered entry for each artifact. Each package entry contains its canonical name, current version, repository-relative tarball path, SHA-512 integrity, internal runtime prerequisites, one-based release order, and packed file inventory.
 
@@ -274,6 +276,8 @@ Publishing is performed only by `.github/workflows/release.yml`, after the GitHu
 2. `publish` waits for `npm-publish` approval, downloads that candidate, and runs `npm publish --provenance` in dependency-first ledger order.
 3. `verify` checks the complete published batch against the exact ledger SHA-512 integrities.
 4. `evidence` runs after successful validation even if publish or verify fails, and attaches the workflow summary, ledger, publication journal, and available registry evidence to the GitHub Release.
+
+For the already-published `@pkg-nec/jest-v30.4.3` Release only, a maintainer may download the retained `pkg-nec-release-candidate` artifact from workflow run `32349014929`, verify that its `release-ledger.md` corresponds to the retained `release-ledger.json` and the JSON ledger already attached to the Release, and attach only that retained Markdown file. This is an optional one-time manual backfill, not a new workflow behavior; do not regenerate or fabricate the file.
 
 There are no serial post-publish waits between packages. A resumed publish first inspects the exact `name@version`: it can continue only when an already-present version has the ledger's exact SHA-512 integrity, recording it as `verified-existing`; any differing integrity is terminal and requires investigation. After publication, verification queries the public npm registry fairly in batches of at most eight under one shared 480-second deadline for the whole 55-package batch. It retries eligible visibility failures, writes per-package evidence on either success or failure, and treats authentication, authorization, malformed metadata, identity mismatch, and integrity mismatch as terminal.
 

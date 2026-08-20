@@ -197,6 +197,7 @@ jobs:
           assets=(.pkg-nec-release/workflow-summary.md)
           for asset in \
             .pkg-nec-release/release-ledger.json \
+            .pkg-nec-release/release-ledger.md \
             .pkg-nec-release/publication-journal.json \
             .pkg-nec-release/registry-evidence.json \
             .pkg-nec-release/registry-evidence.md
