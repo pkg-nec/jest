@@ -69,6 +69,7 @@ This is one release subsystem rather than independent projects: validation produ
 ### Task 1: Patch package identities and artifact policy
 
 **Files:**
+
 - Modify: `scripts/pkgNec/audit.mjs:425-477`
 - Modify: `scripts/pkgNec/releaseArtifactPolicy.mjs:29-35,85-91`
 - Modify: `scripts/__tests__/checkPkgNecIdentity.test.js`
@@ -78,6 +79,7 @@ This is one release subsystem rather than independent projects: validation produ
 - Inspect/modify if generated: `yarn.lock`
 
 **Interfaces:**
+
 - Consumes: existing `auditRepository()` and `validateReleaseFiles()`.
 - Produces: canonical repository URL and package-directory enforcement; 55 public manifests at their next patch versions; `lerna.json` at `30.4.3`.
 
@@ -286,12 +288,14 @@ Expected: checks pass; unchanged `yarn.lock` is a harmless `git add` no-op.
 ### Task 2: Implement pure release validation
 
 **Files:**
+
 - Create: `scripts/pkgNec/releaseValidation.mjs`
 - Create: `scripts/__tests__/validatePkgNecRelease.test.js`
 - Modify: `scripts/preparePkgNecRelease.mjs:70-136`
 - Modify: `scripts/__tests__/preparePkgNecRelease.test.js`
 
 **Interfaces:**
+
 - Consumes: inventory, schema-v1 ledger, current/previous version maps, GitHub release event, packed manifests.
 - Produces: `parseReleaseTag(tagName)`, `selectReleaseAnchor(packageNames)`, `validatePatchTransitions({currentPackages, previousPackages})`, and `validateReleaseMetadata({event, inventory, ledger, tagCommit})`.
 
@@ -303,7 +307,9 @@ expect(parseReleaseTag('@pkg-nec/jest-v30.4.3')).toEqual({
   anchorVersion: '30.4.3',
 });
 expect(() => parseReleaseTag('v30.4.3')).toThrow(/release tag/);
-expect(selectReleaseAnchor(['@pkg-nec/jest-reporters', '@pkg-nec/jest'])).toBe('@pkg-nec/jest');
+expect(selectReleaseAnchor(['@pkg-nec/jest-reporters', '@pkg-nec/jest'])).toBe(
+  '@pkg-nec/jest',
+);
 expect(
   validatePatchTransitions({
     currentPackages: new Map([['@pkg-nec/jest', '30.4.3']]),
@@ -349,7 +355,11 @@ export function parseReleaseTag(tagName) {
   const separator = tagName.lastIndexOf('-v');
   const anchorName = tagName.slice(0, separator);
   const anchorVersion = tagName.slice(separator + 2);
-  if (separator < 1 || !anchorName.startsWith('@pkg-nec/') || semver.valid(anchorVersion) === null) {
+  if (
+    separator < 1 ||
+    !anchorName.startsWith('@pkg-nec/') ||
+    semver.valid(anchorVersion) === null
+  ) {
     throw new Error(`Invalid pkg-nec release tag: ${tagName}`);
   }
   return {anchorName, anchorVersion};
@@ -359,7 +369,8 @@ export function selectReleaseAnchor(packageNames) {
   const selected = new Set(packageNames);
   if (selected.has('@pkg-nec/jest')) return '@pkg-nec/jest';
   const fallback = fallbackAnchors.find(name => selected.has(name));
-  if (fallback === undefined) throw new Error('Selected release set has no valid anchor package');
+  if (fallback === undefined)
+    throw new Error('Selected release set has no valid anchor package');
   return fallback;
 }
 
@@ -367,10 +378,14 @@ export function validatePatchTransitions({currentPackages, previousPackages}) {
   const changed = [];
   for (const [name, previousVersion] of previousPackages) {
     const currentVersion = currentPackages.get(name);
-    if (currentVersion !== semver.inc(previousVersion, 'patch')) throw new Error(`${name} must advance by exactly one patch from ${previousVersion}`);
+    if (currentVersion !== semver.inc(previousVersion, 'patch'))
+      throw new Error(
+        `${name} must advance by exactly one patch from ${previousVersion}`,
+      );
     changed.push(name);
   }
-  if (currentPackages.size !== previousPackages.size) throw new Error('Current and previous public package sets differ');
+  if (currentPackages.size !== previousPackages.size)
+    throw new Error('Current and previous public package sets differ');
   return changed.sort((left, right) => left.localeCompare(right));
 }
 ```
@@ -388,7 +403,9 @@ if (
   manifest.repository?.url !== 'https://github.com/pkg-nec/jest.git' ||
   manifest.repository?.directory !== workspaceManifest.repository?.directory
 ) {
-  throw new Error(`Packed manifest repository changed for ${workspace.newName}: ${manifest.repository?.url}`);
+  throw new Error(
+    `Packed manifest repository changed for ${workspace.newName}: ${manifest.repository?.url}`,
+  );
 }
 ```
 
@@ -409,11 +426,13 @@ Expected: PASS, then one validation commit.
 ### Task 3: Add the validation CLI and CI gate
 
 **Files:**
+
 - Create: `scripts/validatePkgNecRelease.mjs`
 - Modify: `scripts/__tests__/validatePkgNecRelease.test.js`
 - Modify: `package.json`
 
 **Interfaces:**
+
 - Consumes: Task 2 validation exports; `GITHUB_EVENT_PATH`, `GITHUB_REPOSITORY`, `GITHUB_TOKEN`; ledger path; Git history; GitHub Actions runs.
 - Produces: `runValidateReleaseCommand({args, env, fetchImpl, readFile, runGit, write})`; `yarn validate:pkg-nec-release <ledger-path>`.
 
@@ -422,14 +441,16 @@ Expected: PASS, then one validation commit.
 Test argument rejection, previous-tag discovery, tag SHA resolution, `origin/main` ancestry, previous manifest loading, and Node CI lookup. Assert:
 
 ```javascript
-expect(fetchCalls).toEqual([{
-  headers: {
-    accept: 'application/vnd.github+json',
-    authorization: 'Bearer github-test-token',
-    'x-github-api-version': '2022-11-28',
+expect(fetchCalls).toEqual([
+  {
+    headers: {
+      accept: 'application/vnd.github+json',
+      authorization: 'Bearer github-test-token',
+      'x-github-api-version': '2022-11-28',
+    },
+    url: 'https://api.github.com/repos/pkg-nec/jest/actions/workflows/nodejs.yml/runs?head_sha=abc123&status=completed&per_page=100',
   },
-  url: 'https://api.github.com/repos/pkg-nec/jest/actions/workflows/nodejs.yml/runs?head_sha=abc123&status=completed&per_page=100',
-}]);
+]);
 ```
 
 Accept only `{conclusion: 'success', event: 'push', head_branch: 'main', head_sha: 'abc123'}`; otherwise throw `Node CI did not succeed for abc123`.
@@ -451,9 +472,15 @@ The default injected Git runner executes:
 
 ```javascript
 await runGit(['rev-list', '-n', '1', releaseTag], {cwd: repoRoot});
-await runGit(['merge-base', '--is-ancestor', tagCommit, 'origin/main'], {cwd: repoRoot});
-await runGit(['describe', '--tags', '--abbrev=0', `${releaseTag}^`], {cwd: repoRoot});
-await runGit(['show', `${previousTag}:${manifestRelativePath}`], {cwd: repoRoot});
+await runGit(['merge-base', '--is-ancestor', tagCommit, 'origin/main'], {
+  cwd: repoRoot,
+});
+await runGit(['describe', '--tags', '--abbrev=0', `${releaseTag}^`], {
+  cwd: repoRoot,
+});
+await runGit(['show', `${previousTag}:${manifestRelativePath}`], {
+  cwd: repoRoot,
+});
 ```
 
 Fetch the Step 1 endpoint with the exact headers and require a matching successful run. Redact the token from errors.
@@ -500,10 +527,12 @@ Expected: PASS and one CLI commit.
 ### Task 4: Implement the sequential resumable publisher
 
 **Files:**
+
 - Create: `scripts/pkgNec/releasePublisher.mjs`
 - Create: `scripts/__tests__/publishPkgNecRelease.test.js`
 
 **Interfaces:**
+
 - Consumes: schema-v1 ledger entries and injected `inspect`, `publish`, `verifyConflict`, and `persistJournal` functions.
 - Produces: `publishRelease({inspect, ledger, now, persistJournal, publish, releaseTag, verifyConflict})`; schema-v1 dispositions `published` and `verified-existing`.
 
@@ -542,9 +571,11 @@ Expected: FAIL because `releasePublisher.mjs` is absent.
 
 ```javascript
 function matchingIntegrity(entry, observed) {
-  return observed.name === entry.name &&
+  return (
+    observed.name === entry.name &&
     observed.version === entry.version &&
-    observed.integrity === entry.integrity;
+    observed.integrity === entry.integrity
+  );
 }
 
 function initialJournal({ledger, releaseTag}) {
@@ -566,7 +597,10 @@ for (const entry of ledger.packages) {
   const observed = await inspect(entry);
   let disposition;
   if (observed.kind === 'present') {
-    if (!matchingIntegrity(entry, observed)) throw new Error(`Registry integrity mismatch for ${entry.name}@${entry.version}`);
+    if (!matchingIntegrity(entry, observed))
+      throw new Error(
+        `Registry integrity mismatch for ${entry.name}@${entry.version}`,
+      );
     disposition = 'verified-existing';
   } else if (observed.kind === 'absent') {
     try {
@@ -575,11 +609,16 @@ for (const entry of ledger.packages) {
     } catch (error) {
       if (error.classification !== 'version-conflict') throw error;
       const conflictResult = await verifyConflict(entry);
-      if (!matchingIntegrity(entry, conflictResult)) throw new Error(`Registry integrity mismatch for ${entry.name}@${entry.version}`);
+      if (!matchingIntegrity(entry, conflictResult))
+        throw new Error(
+          `Registry integrity mismatch for ${entry.name}@${entry.version}`,
+        );
       disposition = 'verified-existing';
     }
   } else {
-    throw new Error(`Indeterminate registry state for ${entry.name}@${entry.version}`);
+    throw new Error(
+      `Indeterminate registry state for ${entry.name}@${entry.version}`,
+    );
   }
   journal.packages.push({
     completedAt: new Date(now()).toISOString(),
@@ -610,6 +649,7 @@ Expected: PASS and one publisher-core commit.
 ### Task 5: Add npm adapters and atomic journals
 
 **Files:**
+
 - Create: `scripts/publishPkgNecRelease.mjs`
 - Modify: `scripts/pkgNec/registryVisibility.mjs`
 - Modify: `scripts/__tests__/registryVisibility.test.js`
@@ -617,6 +657,7 @@ Expected: PASS and one publisher-core commit.
 - Modify: `package.json`
 
 **Interfaces:**
+
 - Consumes: `publishRelease()` and existing registry classification/wait behavior.
 - Produces: `isRegistryNotFound(error)`, `exactRegistryResult(result)`, `redactRegistryFailure(error)`, and `runPublishReleaseCommand({args, inspect, now, publish, readFile, rename, runGit, verifyConflict, write, writeFile})`; `yarn publish:pkg-nec-release <ledger-path> <journal-path> <release-tag>`.
 
@@ -626,11 +667,15 @@ Expected: PASS and one publisher-core commit.
 expect(isRegistryNotFound({code: 'E404'})).toBe(true);
 expect(isRegistryNotFound({statusCode: 404})).toBe(true);
 expect(isRegistryNotFound({code: 'E503'})).toBe(false);
-expect(exactRegistryResult({stdout: JSON.stringify({
-  dist: {integrity: 'sha512-registry'},
-  name: '@pkg-nec/jest',
-  version: '30.4.3',
-})})).toEqual({
+expect(
+  exactRegistryResult({
+    stdout: JSON.stringify({
+      dist: {integrity: 'sha512-registry'},
+      name: '@pkg-nec/jest',
+      version: '30.4.3',
+    }),
+  }),
+).toEqual({
   integrity: 'sha512-registry',
   name: '@pkg-nec/jest',
   version: '30.4.3',
@@ -654,7 +699,10 @@ Expected: FAIL because the exports and CLI are absent.
 
 ```javascript
 export function isRegistryNotFound(error) {
-  return String(error?.code ?? '').toUpperCase() === 'E404' || statusCode(error) === 404;
+  return (
+    String(error?.code ?? '').toUpperCase() === 'E404' ||
+    statusCode(error) === 404
+  );
 }
 
 export function exactRegistryResult(result) {
@@ -751,12 +799,14 @@ Expected: PASS and one npm-adapter commit.
 ### Task 6: Implement fair batch verification
 
 **Files:**
+
 - Create: `scripts/pkgNec/releaseVerification.mjs`
 - Create: `scripts/verifyPkgNecRelease.mjs`
 - Create: `scripts/__tests__/verifyPkgNecRelease.test.js`
 - Modify: `package.json`
 
 **Interfaces:**
+
 - Consumes: schema-v1 ledger, schema-v1 journal, injected `query(entry, {signal})`.
 - Produces: `verifyReleaseBatch({deadlineMs, intervalMs, journal, ledger, maxConcurrency, now, query, queryTimeoutMs, sleep})`; JSON/Markdown evidence; `yarn verify:pkg-nec-release <ledger> <journal> <evidence-json> <evidence-markdown>`.
 
@@ -789,7 +839,7 @@ Expected: FAIL because verifier files are absent.
 
 ```javascript
 async function mapWithConcurrency(items, limit, operation) {
-  const results = new Array(items.length);
+  const results = Array.from({length: items.length});
   let nextIndex = 0;
   async function worker() {
     while (nextIndex < items.length) {
@@ -798,7 +848,9 @@ async function mapWithConcurrency(items, limit, operation) {
       results[index] = await operation(items[index], index);
     }
   }
-  await Promise.all(Array.from({length: Math.min(limit, items.length)}, () => worker()));
+  await Promise.all(
+    Array.from({length: Math.min(limit, items.length)}, () => worker()),
+  );
   return results;
 }
 ```
@@ -808,7 +860,7 @@ Maintain unresolved state for every entry. Each round queries every unresolved e
 - [ ] **Step 4: Implement evidence and global-timeout results**
 
 ```javascript
-{
+const evidence = {
   completedAt: new Date(now()).toISOString(),
   elapsedMs: now() - startedAt,
   packages: ledger.packages.map(entry => ({
@@ -823,7 +875,7 @@ Maintain unresolved state for every entry. Each round queries every unresolved e
   releaseTag: journal.releaseTag,
   schemaVersion: 1,
   sourceCommit: ledger.sourceCommit,
-}
+};
 ```
 
 On deadline, throw with `classification = 'retryable'` and attach partial evidence as `error.evidence`.
@@ -855,10 +907,12 @@ Expected: PASS and one verification commit.
 ### Task 7: Build the least-privilege GitHub Actions workflow
 
 **Files:**
+
 - Create: `.github/workflows/release.yml`
 - Modify: `scripts/__tests__/validatePkgNecRelease.test.js`
 
 **Interfaces:**
+
 - Consumes: Tasks 3, 5, and 6 commands; GitHub Release event; `npm-publish` environment; npm trusted identity `pkg-nec/jest` + `release.yml` + `npm-publish`.
 - Produces: `pkg-nec-release-candidate`, `pkg-nec-publication-evidence`, and `pkg-nec-registry-evidence` workflow artifacts; durable GitHub Release assets.
 
@@ -946,10 +1000,7 @@ Check out the tag, set up Node with `registry-url: 'https://registry.npmjs.org'`
 ```yaml
 - name: Publish in ledger order with strict resumption
   run: >-
-    yarn publish:pkg-nec-release
-    .pkg-nec-release/release-ledger.json
-    .pkg-nec-release/publication-journal.json
-    '${{ github.event.release.tag_name }}'
+    yarn publish:pkg-nec-release .pkg-nec-release/release-ledger.json .pkg-nec-release/publication-journal.json '${{ github.event.release.tag_name }}'
 ```
 
 Add an `if: always()` upload for the journal named `pkg-nec-publication-evidence`. Do not call the single-package registry waiter.
@@ -1003,10 +1054,12 @@ git commit -m "ci: publish pkg-nec packages with provenance"
 ### Task 8: Update runbooks and perform release-focused verification
 
 **Files:**
+
 - Modify: `docs/pkg-nec-maintenance.md:146-246`
 - Modify: `CONTRIBUTING.md:222-232`
 
 **Interfaces:**
+
 - Consumes: completed workflow and commands.
 - Produces: trusted-publisher setup, Release body, protected approval, resumption, and evidence-review instructions.
 

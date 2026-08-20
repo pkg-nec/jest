@@ -18,7 +18,7 @@ const fallbackAnchors = [
 
 export function parseReleaseTag(tagName) {
   if (typeof tagName !== 'string') {
-    throw new Error(`Invalid pkg-nec release tag: ${tagName}`);
+    throw new TypeError(`Invalid pkg-nec release tag: ${tagName}`);
   }
   const separator = tagName.lastIndexOf('-v');
   const anchorName = tagName.slice(0, separator);
@@ -78,7 +78,9 @@ function validateReleasePackages({inventory, packages}) {
       throw new TypeError(`Invalid release package at order ${index + 1}`);
     }
     if (item.order !== index + 1) {
-      throw new Error(`Release package order must be contiguous at ${index + 1}`);
+      throw new Error(
+        `Release package order must be contiguous at ${index + 1}`,
+      );
     }
     if (typeof item.name !== 'string' || typeof item.version !== 'string') {
       throw new TypeError(`Invalid release package at order ${item.order}`);
@@ -90,7 +92,9 @@ function validateReleasePackages({inventory, packages}) {
 
     const workspace = inventory?.byNewName?.get(item.name);
     if (!workspace?.publishable) {
-      throw new Error(`Release package is not a publishable workspace: ${item.name}`);
+      throw new Error(
+        `Release package is not a publishable workspace: ${item.name}`,
+      );
     }
     if (workspace.version !== item.version) {
       throw new Error(`Release package version changed for ${item.name}`);
@@ -104,7 +108,9 @@ function validateReleasePackages({inventory, packages}) {
     publicPackageNames.size !== names.size ||
     [...publicPackageNames].some(name => !names.has(name))
   ) {
-    throw new Error('Release ledger public package set does not match inventory');
+    throw new Error(
+      'Release ledger public package set does not match inventory',
+    );
   }
   return names;
 }
@@ -114,7 +120,9 @@ export function validateReleaseMetadata({event, inventory, ledger, tagCommit}) {
     throw new TypeError('Unsupported pkg-nec release ledger');
   }
   if (ledger.sourceCommit !== tagCommit) {
-    throw new Error('Release ledger source commit does not match the release tag');
+    throw new Error(
+      'Release ledger source commit does not match the release tag',
+    );
   }
   if (!/^[0-9a-f]{40}$/iu.test(ledger.sourceCommit)) {
     throw new Error('Release ledger source commit must be a full Git commit');

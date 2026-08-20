@@ -221,12 +221,14 @@ By contributing to Jest, you agree that your contributions will be licensed unde
 
 ## Publishing a new release
 
-This fork uses a coordinated package-version propagation policy and a single anchor package to name each Git tag and GitHub Release. Follow the [release identity, preparation, ledger, publishing, and verification policy](./docs/pkg-nec-maintenance.md#release-identity-and-version-anchor) before publishing any package.
+This release workflow is intentionally strict for the one-time complete 55-package provenance release. Follow the [release preparation, trusted-publisher, publishing, verification, and evidence runbook](./docs/pkg-nec-maintenance.md#release-preparation) before creating the GitHub Release.
 
-Prepare and validate the complete release artifact set from the exact source commit:
+Before the Release is created, ensure successful Node CI for the exact source commit, all 55 npm trusted-publisher bindings and the protected `npm-publish` environment are configured, and the Release tag and Release name both exactly equal `@pkg-nec/jest-v30.4.3`. The body must contain the full source commit SHA and all 55 generated `@pkg-nec/package@version` lines.
+
+In Git Bash, start a fresh shell session with `corepack enable` and `yarn install`, then prepare the complete candidate from that exact source commit:
 
 ```sh
 yarn prepare:pkg-nec-release
 ```
 
-Publish only the prepared artifacts in ledger order, verify their registry integrity, and then create the matching tag and release on the fork's [GitHub repository](https://github.com/pkg-nec/jest). The release notes must list every affected package and its new version.
+Publish the matching GitHub Release only after `npm-publish` approval; the workflow publishes only prepared artifacts in ledger order, validates exact integrity for any resumption, verifies the complete batch under one 480-second deadline, and attaches durable evidence to the Release. Do not manually publish, hand-edit a partial ledger, or use this strict workflow for a partial later release; first land the reviewed selective-release enhancement described in the maintenance runbook.

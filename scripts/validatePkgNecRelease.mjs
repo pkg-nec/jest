@@ -9,12 +9,12 @@ import {readFile as readFileFromDisk} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import execa from 'execa';
-import {createPackageInventory} from './pkgNecPackageIdentity.mjs';
 import {
   parseReleaseTag,
   validatePatchTransitions,
   validateReleaseMetadata,
 } from './pkgNec/releaseValidation.mjs';
+import {createPackageInventory} from './pkgNecPackageIdentity.mjs';
 
 const usage = 'Usage: yarn validate:pkg-nec-release <ledger-path>';
 const requiredEnvironment =
@@ -49,7 +49,7 @@ function manifestRelativePath(repoRoot, manifestPath) {
 }
 
 function redactMessage(message, token) {
-  const redacted = String(message).replace(
+  const redacted = String(message).replaceAll(
     /Bearer\s+[^\s]+/giu,
     'Bearer <github-token-redacted>',
   );
@@ -110,17 +110,18 @@ export async function runValidateReleaseCommand({
   const {tag_name: releaseTag} = event?.release ?? {};
   parseReleaseTag(releaseTag);
 
-  const tagCommit = (
-    await runGit(['rev-list', '-n', '1', releaseTag], {cwd: repoRoot})
-  ).trim();
+  const tagCommitResult = await runGit(['rev-list', '-n', '1', releaseTag], {
+    cwd: repoRoot,
+  });
+  const tagCommit = tagCommitResult.trim();
   await runGit(['merge-base', '--is-ancestor', tagCommit, 'origin/main'], {
     cwd: repoRoot,
   });
-  const previousTag = (
-    await runGit(['describe', '--tags', '--abbrev=0', `${releaseTag}^`], {
-      cwd: repoRoot,
-    })
-  ).trim();
+  const previousTagResult = await runGit(
+    ['describe', '--tags', '--abbrev=0', `${releaseTag}^`],
+    {cwd: repoRoot},
+  );
+  const previousTag = previousTagResult.trim();
 
   const inventory = createInventory
     ? createInventory()

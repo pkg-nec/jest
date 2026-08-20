@@ -34,12 +34,12 @@ All other changes in the range affect CI, documentation, identity/release toolin
 For the first provenance release, every public package receives exactly one patch bump regardless of whether its runtime changed. This makes every `name@version` new on npm and gives every package a provenance-backed release.
 
 | Previous version | New version | Package count |
-| --- | --- | ---: |
-| `30.0.1` | `30.0.2` | 1 |
-| `30.1.0` | `30.1.1` | 1 |
-| `30.4.0` | `30.4.1` | 6 |
-| `30.4.1` | `30.4.2` | 37 |
-| `30.4.2` | `30.4.3` | 10 |
+| ---------------- | ----------- | ------------: |
+| `30.0.1`         | `30.0.2`    |             1 |
+| `30.1.0`         | `30.1.1`    |             1 |
+| `30.4.0`         | `30.4.1`    |             6 |
+| `30.4.1`         | `30.4.2`    |            37 |
+| `30.4.2`         | `30.4.3`    |            10 |
 
 `@pkg-nec/jest` becomes `30.4.3`, so the anchor tag and GitHub Release name are `@pkg-nec/jest-v30.4.3`. The private root remains `0.0.0`. `lerna.json` moves to the anchor version `30.4.3`.
 
