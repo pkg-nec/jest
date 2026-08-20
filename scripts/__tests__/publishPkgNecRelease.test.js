@@ -241,6 +241,7 @@ function runCommandFixture({
     },
   ],
   packedMutate = value => value,
+  renameFailureAt = null,
   sourceMutate = value => value,
   tagCommit = '0123456789abcdef0123456789abcdef01234567',
   tarballMutate = value => value,
@@ -350,6 +351,7 @@ function runCommandFixture({
         import {runPublishReleaseCommand} from ${JSON.stringify(publisherCommandModuleUrl)};
         const fixtureRoot = ${JSON.stringify(fixtureRoot)};
         const definitions = ${JSON.stringify(identities)};
+        const renameFailureAt = ${JSON.stringify(renameFailureAt)};
         const inventory = {
           byNewName: new Map(definitions.map(item => [item.newName, item])),
           byOldName: new Map(definitions.map(item => [item.oldName, item])),
@@ -357,6 +359,7 @@ function runCommandFixture({
         };
         const events = [];
         const writes = [];
+        let renameCount = 0;
         try {
           const journal = await runPublishReleaseCommand({
             args: ${JSON.stringify(args)},
@@ -373,6 +376,10 @@ function runCommandFixture({
             },
             rename: async (from, to) => {
               events.push('rename:' + path.basename(from) + '->' + path.basename(to));
+              renameCount += 1;
+              if (renameCount === renameFailureAt) {
+                throw new Error('publication journal rename failed');
+              }
               return fs.promises.rename(from, to);
             },
             repoRoot: fixtureRoot,
@@ -937,6 +944,8 @@ test('npm adapters use the exact public registry arguments and redact failures',
   );
 });
 
+// Mutation caught: rendering a package's live progress before its completed
+// journal entry has been atomically promoted.
 test('publisher preflights tag, packed metadata, bytes, and order before side effects', () => {
   const success = runCommandFixture();
   const firstJournalWrite = success.events.findIndex(event =>
@@ -955,6 +964,7 @@ test('publisher preflights tag, packed metadata, bytes, and order before side ef
     'npm-publish:@pkg-nec/a',
     'write-file:publish-journal.json.tmp',
     'rename:publish-journal.json.tmp->publish-journal.json',
+    'write:[1/1] @pkg-nec/a@1.0.0: published',
     'write:Published 1 pkg-nec release artifact(s).',
   ]);
   expect(success.writes).toHaveLength(2);
@@ -997,6 +1007,31 @@ test('publisher preflights tag, packed metadata, bytes, and order before side ef
       ]),
     );
   }
+});
+
+// Mutation caught: emitting package progress or final aggregate output after a
+// completed journal write has failed to promote.
+test('publisher writes no terminal output when package journal promotion fails', () => {
+  const result = runCommandFixture({renameFailureAt: 2});
+  const firstJournalWrite = result.events.findIndex(event =>
+    event.startsWith('write-file:'),
+  );
+
+  expect(result.error).toBe('publication journal rename failed');
+  expect(result.events.slice(firstJournalWrite)).toEqual([
+    'write-file:publish-journal.json.tmp',
+    'rename:publish-journal.json.tmp->publish-journal.json',
+    'npm-view:@pkg-nec/a',
+    'npm-publish:@pkg-nec/a',
+    'write-file:publish-journal.json.tmp',
+    'rename:publish-journal.json.tmp->publish-journal.json',
+  ]);
+  expect(result.events).not.toContain(
+    'write:[1/1] @pkg-nec/a@1.0.0: published',
+  );
+  expect(result.events).not.toContain(
+    'write:Published 1 pkg-nec release artifact(s).',
+  );
 });
 
 test('publisher rejects transported packed metadata mutations before journaling or npm', () => {
