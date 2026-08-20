@@ -182,6 +182,132 @@ test('does not emit progress when package journal persistence fails', () => {
   ]);
 });
 
+function runDeferredProgressScenario({rejectProgress = false} = {}) {
+  const child = spawnSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '--eval',
+      `
+        import {publishRelease} from ${JSON.stringify(publisherModuleUrl)};
+        const ledger = ${JSON.stringify({
+          ...ledger,
+          packages: ledger.packages.slice(0, 2),
+        })};
+        const events = [];
+        const persisted = [];
+        let progressCount = 0;
+        let releaseFirstProgress;
+        const firstProgress = new Promise(resolve => {
+          releaseFirstProgress = resolve;
+        });
+        let firstProgressStarted;
+        const firstProgressStart = new Promise(resolve => {
+          firstProgressStarted = resolve;
+        });
+        const publisher = publishRelease({
+          inspect: async entry => {
+            events.push({kind: 'inspect', name: entry.name});
+            return {kind: 'absent'};
+          },
+          ledger,
+          now: () => '2026-08-20T00:00:00.000Z',
+          onProgress: event => {
+            progressCount += 1;
+            events.push({kind: 'progress-start', name: event.name});
+            if (progressCount > 1) {
+              events.push({kind: 'progress-end', name: event.name});
+              return Promise.resolve();
+            }
+            firstProgressStarted();
+            const callback = (async () => {
+              await firstProgress;
+              if (${rejectProgress}) {
+                throw new Error('progress callback failed');
+              }
+              events.push({kind: 'progress-end', name: event.name});
+            })();
+            callback.catch(() => {});
+            return callback;
+          },
+          persistJournal: async journal => {
+            events.push({kind: 'persist', count: journal.packages.length});
+            persisted.push(structuredClone(journal));
+          },
+          publish: async entry => {
+            events.push({kind: 'publish', name: entry.name});
+          },
+          releaseTag: '@pkg-nec/a-v1.0.0',
+          verifyConflict: async () => {
+            throw new Error('unexpected conflict verification');
+          },
+        });
+        let publisherSettled = false;
+        publisher.then(
+          () => { publisherSettled = true; },
+          () => { publisherSettled = true; },
+        );
+        await firstProgressStart;
+        await new Promise(resolve => setImmediate(resolve));
+        const beforeRelease = {
+          events: structuredClone(events),
+          publisherSettled,
+        };
+        releaseFirstProgress();
+        try {
+          const journal = await publisher;
+          console.log(JSON.stringify({beforeRelease, events, journal, persisted}));
+        } catch (error) {
+          console.log(JSON.stringify({
+            beforeRelease,
+            error: error.message,
+            events,
+            persisted,
+          }));
+        }
+      `,
+    ],
+    {cwd: repoRoot, encoding: 'utf8'},
+  );
+  if (child.status !== 0) throw new Error(child.stderr || child.stdout);
+  return JSON.parse(child.stdout.trim());
+}
+
+test('keeps publication pending until deferred progress callback resolves', () => {
+  const result = runDeferredProgressScenario();
+
+  expect(result.beforeRelease).toEqual({
+    events: [
+      {count: 0, kind: 'persist'},
+      {kind: 'inspect', name: '@pkg-nec/a'},
+      {kind: 'publish', name: '@pkg-nec/a'},
+      {count: 1, kind: 'persist'},
+      {kind: 'progress-start', name: '@pkg-nec/a'},
+    ],
+    publisherSettled: false,
+  });
+  expect(result.events).toEqual([
+    ...result.beforeRelease.events,
+    {kind: 'progress-end', name: '@pkg-nec/a'},
+    {kind: 'inspect', name: '@pkg-nec/b'},
+    {kind: 'publish', name: '@pkg-nec/b'},
+    {count: 2, kind: 'persist'},
+    {kind: 'progress-start', name: '@pkg-nec/b'},
+    {kind: 'progress-end', name: '@pkg-nec/b'},
+  ]);
+  expect(result.journal.packages).toHaveLength(2);
+});
+
+test('propagates deferred progress rejection after persistence and stops publication', () => {
+  const result = runDeferredProgressScenario({rejectProgress: true});
+
+  expect(result.error).toBe('progress callback failed');
+  expect(result.beforeRelease.publisherSettled).toBe(false);
+  expect(result.events).toEqual(result.beforeRelease.events);
+  expect(result.persisted).toHaveLength(2);
+  expect(result.persisted[1].packages).toHaveLength(1);
+});
+
 function scenario(overrides = {}) {
   return {ledger, releaseTag: '@pkg-nec/jest-v30.4.3', ...overrides};
 }
