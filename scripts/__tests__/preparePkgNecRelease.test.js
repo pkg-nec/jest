@@ -50,6 +50,9 @@ const graphModuleUrl = pathToFileURL(
 const releaseModuleUrl = pathToFileURL(
   join(repoRoot, 'scripts/preparePkgNecRelease.mjs'),
 ).href;
+const buildUtilsModuleUrl = pathToFileURL(
+  join(repoRoot, 'scripts/buildUtils.mjs'),
+).href;
 
 function runModuleProgram(program) {
   const child = spawnSync(
@@ -64,6 +67,29 @@ function runModuleProgram(program) {
 
   return JSON.parse(child.stdout.trim());
 }
+
+test('builds every public expect export from its source entry point', () => {
+  const entries = runModuleProgram(`
+    import {createBuildConfigs} from ${JSON.stringify(buildUtilsModuleUrl)};
+
+    const config = createBuildConfigs().find(
+      ({pkg}) => pkg.name === '@pkg-nec/expect',
+    );
+    console.log(JSON.stringify(config.webpackConfig.entry));
+  `);
+
+  expect(entries).toEqual({
+    index: `${join(repoRoot, 'packages', 'expect')}/src/index.ts`,
+    matchers: join(repoRoot, 'packages', 'expect', 'src', 'matchers.ts'),
+    toThrowMatchers: join(
+      repoRoot,
+      'packages',
+      'expect',
+      'src',
+      'toThrowMatchers.ts',
+    ),
+  });
+});
 
 async function writeManifest(repo, directory, manifest) {
   const manifestDirectory = join(repo, directory);

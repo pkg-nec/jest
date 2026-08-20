@@ -184,53 +184,61 @@ export function createBuildConfigs() {
     }
 
     const separateChunks =
-      pkg.name === '@pkg-nec/jest-worker'
+      pkg.name === '@pkg-nec/expect'
         ? {
-            processChild: path.resolve(
+            matchers: path.resolve(packageDir, './src/matchers.ts'),
+            toThrowMatchers: path.resolve(
               packageDir,
-              './src/workers/processChild.ts',
-            ),
-            threadChild: path.resolve(
-              packageDir,
-              './src/workers/threadChild.ts',
+              './src/toThrowMatchers.ts',
             ),
           }
-        : pkg.name === '@pkg-nec/jest-haste-map'
-          ? {worker: path.resolve(packageDir, './src/worker.ts')}
-          : pkg.name === '@pkg-nec/jest-reporters'
-            ? {
-                CoverageWorker: path.resolve(
-                  packageDir,
-                  './src/CoverageWorker.ts',
-                ),
-              }
-            : pkg.name === '@pkg-nec/jest-runner'
-              ? {testWorker: path.resolve(packageDir, './src/testWorker.ts')}
-              : pkg.name === '@pkg-nec/jest-circus'
-                ? {
-                    jestAdapterInit: path.resolve(
-                      packageDir,
-                      './src/legacy-code-todo-rewrite/jestAdapterInit.ts',
-                    ),
-                  }
-                : pkg.name === '@pkg-nec/jest-jasmine2'
+        : pkg.name === '@pkg-nec/jest-worker'
+          ? {
+              processChild: path.resolve(
+                packageDir,
+                './src/workers/processChild.ts',
+              ),
+              threadChild: path.resolve(
+                packageDir,
+                './src/workers/threadChild.ts',
+              ),
+            }
+          : pkg.name === '@pkg-nec/jest-haste-map'
+            ? {worker: path.resolve(packageDir, './src/worker.ts')}
+            : pkg.name === '@pkg-nec/jest-reporters'
+              ? {
+                  CoverageWorker: path.resolve(
+                    packageDir,
+                    './src/CoverageWorker.ts',
+                  ),
+                }
+              : pkg.name === '@pkg-nec/jest-runner'
+                ? {testWorker: path.resolve(packageDir, './src/testWorker.ts')}
+                : pkg.name === '@pkg-nec/jest-circus'
                   ? {
-                      'jasmine/jasmineLight': path.resolve(
+                      jestAdapterInit: path.resolve(
                         packageDir,
-                        './src/jasmine/jasmineLight.ts',
-                      ),
-                      jestExpect: path.resolve(
-                        packageDir,
-                        './src/jestExpect.ts',
-                      ),
-                      setup_jest_globals: path.resolve(
-                        packageDir,
-                        './src/setup_jest_globals.ts',
+                        './src/legacy-code-todo-rewrite/jestAdapterInit.ts',
                       ),
                     }
-                  : pkg.name === '@pkg-nec/jest-snapshot'
-                    ? {worker: path.resolve(packageDir, './src/worker.ts')}
-                    : {};
+                  : pkg.name === '@pkg-nec/jest-jasmine2'
+                    ? {
+                        'jasmine/jasmineLight': path.resolve(
+                          packageDir,
+                          './src/jasmine/jasmineLight.ts',
+                        ),
+                        jestExpect: path.resolve(
+                          packageDir,
+                          './src/jestExpect.ts',
+                        ),
+                        setup_jest_globals: path.resolve(
+                          packageDir,
+                          './src/setup_jest_globals.ts',
+                        ),
+                      }
+                    : pkg.name === '@pkg-nec/jest-snapshot'
+                      ? {worker: path.resolve(packageDir, './src/worker.ts')}
+                      : {};
 
     const extraEntryPoints =
       // skip expect for now
