@@ -5,27 +5,33 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import {randomUUID} from 'node:crypto';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import execa from 'execa';
 import fs from 'graceful-fs';
+import {
+  prepareNpmPackageEvidenceQuery,
+  queryNpmPackageEvidence,
+} from './pkgNec/npmProvenance.mjs';
 import {verifyReleaseBatch} from './pkgNec/releaseVerification.mjs';
 
 const usage =
-  'Usage: yarn verify:pkg-nec-release <ledger-path> <journal-path> <evidence-json-path> <evidence-markdown-path>';
+  'Usage: yarn verify:pkg-nec-release <ledger-path> <journal-path> <registry-json-path> <registry-markdown-path> <provenance-json-path> <provenance-markdown-path>';
 
 function commandArguments(args) {
   if (
-    args.length !== 4 ||
+    args.length !== 6 ||
     args.some(value => typeof value !== 'string' || value.length === 0)
   ) {
     throw new Error(usage);
   }
   return {
-    evidenceJsonPath: args[2],
-    evidenceMarkdownPath: args[3],
     journalPath: args[1],
     ledgerPath: args[0],
+    provenanceJsonPath: args[4],
+    provenanceMarkdownPath: args[5],
+    registryJsonPath: args[2],
+    registryMarkdownPath: args[3],
   };
 }
 
@@ -52,17 +58,75 @@ export function registryEvidenceMarkdown(evidence) {
   return `${lines.join('\n')}\n`;
 }
 
-export async function queryPublicRegistry(entry, {signal}, runNpm = execa) {
-  return runNpm(
-    'npm',
-    [
-      'view',
-      `${entry.name}@${entry.version}`,
-      '--json',
-      '--registry=https://registry.npmjs.org/',
-    ],
-    {signal},
+export function provenanceEvidenceMarkdown(evidence) {
+  const lines = [
+    '# pkg-nec provenance verification',
+    '',
+    '| Order | Package | Version | Attempts | Elapsed milliseconds | Predicate type | Repository | Workflow | Ref | Source commit | Runner | Bundle digest | Transparency-log IDs | Classification |',
+    '| ---: | --- | --- | ---: | ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+    ...evidence.packages.map(
+      entry =>
+        `| ${markdownTableCell(entry.order)} | ${markdownTableCell(entry.name)} | ${markdownTableCell(entry.version)} | ${markdownTableCell(entry.attempts)} | ${markdownTableCell(entry.elapsedMs)} | ${markdownTableCell(entry.predicateType)} | ${markdownTableCell(entry.repository)} | ${markdownTableCell(entry.workflowPath)} | ${markdownTableCell(entry.sourceRef)} | ${markdownTableCell(entry.sourceCommit)} | ${markdownTableCell(entry.runnerEnvironment)} | ${markdownTableCell(entry.bundleDigest)} | ${markdownTableCell(entry.transparencyLogIds?.join(', '))} | ${markdownTableCell(entry.classification)} |`,
+    ),
+  ];
+  return `${lines.join('\n')}\n`;
+}
+
+function temporaryEvidencePath(destination) {
+  return path.join(
+    path.dirname(destination),
+    `${path.basename(destination)}.${process.pid}.${randomUUID()}.tmp`,
   );
+}
+
+function evidencePersistenceError(failedOutputs) {
+  const error = new Error(
+    `Failed to persist ${failedOutputs.length} evidence output(s)`,
+  );
+  error.code = 'EEVIDENCEPERSIST';
+  error.failedOutputs = [...failedOutputs];
+  return error;
+}
+
+function persistenceFailureDescriptor(error) {
+  return {
+    code: 'EEVIDENCEPERSIST',
+    failedOutputs: [...error.failedOutputs],
+    message: error.message,
+  };
+}
+
+async function persistEvidenceOutputs({outputs, rename, unlink, writeFile}) {
+  const failedOutputs = [];
+  for (const {destination, label, value} of outputs) {
+    const temporaryPath = temporaryEvidencePath(destination);
+    let failed = false;
+    let writeCompleted = false;
+    let shouldCleanTemporary = true;
+    try {
+      await writeFile(temporaryPath, value, {flag: 'wx'});
+      writeCompleted = true;
+      await rename(temporaryPath, destination);
+      shouldCleanTemporary = false;
+    } catch (error) {
+      failed = true;
+      if (!writeCompleted && error?.code === 'EEXIST') {
+        shouldCleanTemporary = false;
+      }
+    } finally {
+      if (shouldCleanTemporary) {
+        try {
+          await unlink(temporaryPath);
+        } catch (error) {
+          if (error?.code !== 'ENOENT') failed = true;
+        }
+      }
+    }
+    if (failed) failedOutputs.push(label);
+  }
+  if (failedOutputs.length > 0) {
+    throw evidencePersistenceError(failedOutputs);
+  }
 }
 
 export async function runVerifyReleaseCommand({
@@ -71,25 +135,70 @@ export async function runVerifyReleaseCommand({
   intervalMs = 5000,
   maxConcurrency = 8,
   now = Date.now,
+  prepareNpmEvidence,
+  queryNpmEvidence = queryNpmPackageEvidence,
   queryTimeoutMs = 10_000,
   readFile = fs.promises.readFile,
-  runNpm = execa,
+  rename = fs.promises.rename,
   sleep,
+  unlink = fs.promises.unlink,
   write = console.log,
   writeFile = fs.promises.writeFile,
 } = {}) {
-  const {evidenceJsonPath, evidenceMarkdownPath, journalPath, ledgerPath} =
-    commandArguments(args);
+  const {
+    journalPath,
+    ledgerPath,
+    provenanceJsonPath,
+    provenanceMarkdownPath,
+    registryJsonPath,
+    registryMarkdownPath,
+  } = commandArguments(args);
   const [ledgerText, journalText] = await Promise.all([
     readFile(ledgerPath, 'utf8'),
     readFile(journalPath, 'utf8'),
   ]);
   const ledger = JSON.parse(ledgerText);
   const journal = JSON.parse(journalText);
-  const query = (entry, options) => queryPublicRegistry(entry, options, runNpm);
+  const batchPreparation =
+    prepareNpmEvidence === undefined &&
+    queryNpmEvidence === queryNpmPackageEvidence
+      ? prepareNpmPackageEvidenceQuery
+      : prepareNpmEvidence;
+  const query = (entry, {signal}) =>
+    queryNpmEvidence({
+      entry,
+      releaseTag: journal.releaseTag,
+      signal,
+      sourceCommit: ledger.sourceCommit,
+    });
   const persistEvidence = async evidence => {
-    await writeFile(evidenceJsonPath, `${JSON.stringify(evidence, null, 2)}\n`);
-    await writeFile(evidenceMarkdownPath, registryEvidenceMarkdown(evidence));
+    await persistEvidenceOutputs({
+      outputs: [
+        {
+          destination: registryJsonPath,
+          label: 'registry-json',
+          value: `${JSON.stringify(evidence.registryEvidence, null, 2)}\n`,
+        },
+        {
+          destination: registryMarkdownPath,
+          label: 'registry-markdown',
+          value: registryEvidenceMarkdown(evidence.registryEvidence),
+        },
+        {
+          destination: provenanceJsonPath,
+          label: 'provenance-json',
+          value: `${JSON.stringify(evidence.provenanceEvidence, null, 2)}\n`,
+        },
+        {
+          destination: provenanceMarkdownPath,
+          label: 'provenance-markdown',
+          value: provenanceEvidenceMarkdown(evidence.provenanceEvidence),
+        },
+      ],
+      rename,
+      unlink,
+      writeFile,
+    });
   };
 
   try {
@@ -100,15 +209,41 @@ export async function runVerifyReleaseCommand({
       ledger,
       maxConcurrency,
       now,
+      ...(batchPreparation
+        ? {
+            prepareQuery: ({deadlineAt, signal, timeoutMs}) =>
+              batchPreparation({
+                deadlineAt,
+                releaseTag: journal.releaseTag,
+                signal,
+                sourceCommit: ledger.sourceCommit,
+                timeoutMs,
+              }),
+          }
+        : {}),
       query,
       queryTimeoutMs,
       ...(sleep === undefined ? {} : {sleep}),
     });
     await persistEvidence(evidence);
-    write(`Verified ${evidence.packages.length} pkg-nec release artifact(s).`);
+    write(
+      `Verified ${evidence.registryEvidence.packages.length} pkg-nec release artifact(s).`,
+    );
     return evidence;
   } catch (error) {
-    if (error?.evidence) await persistEvidence(error.evidence);
+    if (error?.evidence) {
+      try {
+        await persistEvidence(error.evidence);
+      } catch (persistenceError) {
+        try {
+          Object.defineProperty(error, 'persistenceFailure', {
+            configurable: true,
+            enumerable: false,
+            value: persistenceFailureDescriptor(persistenceError),
+          });
+        } catch {}
+      }
+    }
     throw error;
   }
 }

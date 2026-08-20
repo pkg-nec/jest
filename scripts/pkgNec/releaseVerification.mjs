@@ -7,7 +7,6 @@
 
 import {
   classifyRegistryError,
-  exactRegistryResult,
   redactRegistryFailure,
 } from './registryVisibility.mjs';
 import {validateReleaseLedger} from './releasePublisher.mjs';
@@ -157,6 +156,42 @@ function queryAbortScope({batchSignal, timeoutMs}) {
   };
 }
 
+function batchPreparationScope({batchController, timeoutMs}) {
+  const {signal} = batchController;
+  let rejectInterruption;
+  const interruption = new Promise((_resolve, reject) => {
+    rejectInterruption = reject;
+  });
+  const interrupt = () => {
+    const reason =
+      signal.reason instanceof Error
+        ? signal.reason
+        : new Error('Batch verification preparation aborted');
+    rejectInterruption(reason);
+  };
+  if (signal.aborted) interrupt();
+  else signal.addEventListener('abort', interrupt, {once: true});
+
+  const timeoutError = new Error(
+    `Batch verification preparation timed out after ${timeoutMs} milliseconds`,
+  );
+  timeoutError.classification = 'retryable';
+  timeoutError.name = 'TimeoutError';
+  const timer = setTimeout(() => {
+    batchController.abort(timeoutError);
+  }, timeoutMs);
+
+  return {
+    cleanup() {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', interrupt);
+    },
+    settle(preparationPromise) {
+      return Promise.race([preparationPromise, interruption]);
+    },
+  };
+}
+
 function defaultSleep(milliseconds) {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
@@ -178,11 +213,20 @@ function verificationFailure({classification, evidence, message}) {
   return error;
 }
 
-function buildEvidence({journal, ledger, now, startedAt, states}) {
-  const completedAt = now();
+function evidenceHeader({completedAt, journal, ledger, startedAt}) {
   return {
     completedAt: new Date(completedAt).toISOString(),
     elapsedMs: completedAt - startedAt,
+    releaseTag: journal.releaseTag,
+    schemaVersion: 1,
+    sourceCommit: ledger.sourceCommit,
+  };
+}
+
+function buildRegistryEvidence(context) {
+  const {journal, ledger, states} = context;
+  return {
+    ...evidenceHeader(context),
     packages: ledger.packages.map((entry, index) => {
       const state = states[index];
       return {
@@ -198,9 +242,62 @@ function buildEvidence({journal, ledger, now, startedAt, states}) {
         version: entry.version,
       };
     }),
-    releaseTag: journal.releaseTag,
-    schemaVersion: 1,
-    sourceCommit: ledger.sourceCommit,
+  };
+}
+
+function provenanceString(provenance, field) {
+  return typeof provenance?.[field] === 'string' ? provenance[field] : null;
+}
+
+function provenanceLogIds(provenance) {
+  return Array.isArray(provenance?.transparencyLogIds) &&
+    provenance.transparencyLogIds.every(value => typeof value === 'string')
+    ? [...provenance.transparencyLogIds]
+    : [];
+}
+
+function buildProvenanceEvidence(context) {
+  const {journal, ledger, states} = context;
+  return {
+    ...evidenceHeader(context),
+    packages: ledger.packages.map((entry, index) => {
+      const state = states[index];
+      const provenance = state.provenance;
+      return {
+        attempts: state.attempts,
+        buildType: provenanceString(provenance, 'buildType'),
+        bundleDigest: provenanceString(provenance, 'bundleDigest'),
+        classification: state.classification,
+        disposition: journal.packages[index].disposition,
+        elapsedMs: state.elapsedMs,
+        name: entry.name,
+        order: entry.order,
+        predicateType: provenanceString(provenance, 'predicateType'),
+        repository: provenanceString(provenance, 'repository'),
+        runnerEnvironment: provenanceString(provenance, 'runnerEnvironment'),
+        sourceCommit: provenanceString(provenance, 'sourceCommit'),
+        sourceRef: provenanceString(provenance, 'sourceRef'),
+        subjectName: provenanceString(provenance, 'subjectName'),
+        subjectSha512: provenanceString(provenance, 'subjectSha512'),
+        transparencyLogIds: provenanceLogIds(provenance),
+        version: entry.version,
+        workflowPath: provenanceString(provenance, 'workflowPath'),
+      };
+    }),
+  };
+}
+
+function buildEvidence({journal, ledger, now, startedAt, states}) {
+  const context = {
+    completedAt: now(),
+    journal,
+    ledger,
+    startedAt,
+    states,
+  };
+  return {
+    provenanceEvidence: buildProvenanceEvidence(context),
+    registryEvidence: buildRegistryEvidence(context),
   };
 }
 
@@ -217,6 +314,7 @@ export async function verifyReleaseBatch({
   ledger,
   maxConcurrency = maximumBatchConcurrency,
   now = Date.now,
+  prepareQuery,
   query,
   queryTimeoutMs = 10_000,
   sleep = defaultSleep,
@@ -229,6 +327,9 @@ export async function verifyReleaseBatch({
   if (typeof now !== 'function') throw new TypeError('now must be a function');
   if (typeof query !== 'function') {
     throw new TypeError('query must be a function');
+  }
+  if (prepareQuery !== undefined && typeof prepareQuery !== 'function') {
+    throw new TypeError('prepareQuery must be a function');
   }
   if (typeof sleep !== 'function') {
     throw new TypeError('sleep must be a function');
@@ -245,9 +346,60 @@ export async function verifyReleaseBatch({
     classification: 'pending',
     elapsedMs: 0,
     observedIntegrity: null,
+    provenance: null,
   }));
   const batchController = new AbortController();
   let batchFailure = null;
+  let batchQuery = query;
+
+  if (prepareQuery) {
+    const remainingMs = deadlineAt - now();
+    const preparationScope = batchPreparationScope({
+      batchController,
+      timeoutMs: remainingMs,
+    });
+    try {
+      batchQuery = await preparationScope.settle(
+        Promise.resolve().then(() =>
+          prepareQuery({
+            deadlineAt,
+            signal: batchController.signal,
+            timeoutMs: remainingMs,
+          }),
+        ),
+      );
+      if (typeof batchQuery !== 'function') {
+        throw fatalRegistryResult(
+          'Batch preparation did not return a package query',
+        );
+      }
+    } catch (error) {
+      const classification =
+        error?.classification === 'retryable'
+          ? 'retryable'
+          : error?.classification === 'fatal'
+            ? 'fatal'
+            : classifyRegistryError(error);
+      if (!batchController.signal.aborted) {
+        batchController.abort(
+          new Error('Batch verification preparation failed'),
+        );
+      }
+      const elapsedMs = now() - startedAt;
+      for (const state of states) {
+        state.classification = classification;
+        state.elapsedMs = elapsedMs;
+      }
+      const evidence = buildEvidence({journal, ledger, now, startedAt, states});
+      throw verificationFailure({
+        classification,
+        evidence,
+        message: 'Npm evidence trust preparation failed',
+      });
+    } finally {
+      preparationScope.cleanup();
+    }
+  }
 
   while (true) {
     const unresolvedIndexes = states
@@ -291,31 +443,32 @@ export async function verifyReleaseBatch({
       });
       try {
         const result = await abortScope.settle(
-          query(entry, {signal: abortScope.signal}),
+          batchQuery(entry, {signal: abortScope.signal}),
         );
         if (batchFailure) {
           state.classification = 'cancelled';
           state.elapsedMs = now() - startedAt;
           return;
         }
-        const observed = exactRegistryResult(result);
+        const observed = result;
         state.observedIntegrity =
-          typeof observed.integrity === 'string' ? observed.integrity : null;
+          typeof observed?.integrity === 'string' ? observed.integrity : null;
+        state.provenance =
+          observed?.provenance &&
+          typeof observed.provenance === 'object' &&
+          !Array.isArray(observed.provenance)
+            ? observed.provenance
+            : null;
         const completedAt = now();
-        if (completedAt >= deadlineAt) {
-          state.classification = 'retryable';
-          state.elapsedMs = completedAt - startedAt;
-          return;
-        }
         if (
-          observed.name !== entry.name ||
-          observed.version !== entry.version
+          observed?.name !== entry.name ||
+          observed?.version !== entry.version
         ) {
           throw fatalRegistryResult(
             `Registry returned a different package identity for ${entry.name}@${entry.version}`,
           );
         }
-        if (typeof observed.integrity !== 'string') {
+        if (typeof observed?.integrity !== 'string') {
           throw fatalRegistryResult(
             `Registry response omitted integrity for ${entry.name}@${entry.version}`,
           );
@@ -324,6 +477,16 @@ export async function verifyReleaseBatch({
           throw fatalRegistryResult(
             `Registry returned a different package integrity for ${entry.name}@${entry.version}`,
           );
+        }
+        if (state.provenance === null) {
+          throw fatalRegistryResult(
+            `Registry response omitted normalized provenance for ${entry.name}@${entry.version}`,
+          );
+        }
+        if (completedAt >= deadlineAt) {
+          state.classification = 'retryable';
+          state.elapsedMs = completedAt - startedAt;
+          return;
         }
         state.classification = 'verified';
         state.elapsedMs = completedAt - startedAt;
@@ -337,14 +500,16 @@ export async function verifyReleaseBatch({
         const classification =
           error?.classification === 'fatal'
             ? 'fatal'
-            : classifyRegistryError(error);
+            : error?.classification === 'retryable'
+              ? 'retryable'
+              : classifyRegistryError(error);
         state.classification = classification;
         if (classification === 'fatal') {
           const detail = redactRegistryFailure(error) || error?.name || 'Error';
           batchFailure = verificationFailure({
             classification,
             evidence: null,
-            message: `Fatal registry query for ${entry.name}@${entry.version}: ${detail}`,
+            message: `Fatal npm evidence query for ${entry.name}@${entry.version}: ${detail}`,
           });
           batchController.abort(new Error('Batch verification failed'));
         }
@@ -356,7 +521,10 @@ export async function verifyReleaseBatch({
     if (batchFailure) {
       const cancelledAt = now();
       for (const state of states) {
-        if (state.classification === 'pending') {
+        if (
+          state.classification !== 'fatal' &&
+          state.classification !== 'verified'
+        ) {
           state.classification = 'cancelled';
           state.elapsedMs = cancelledAt - startedAt;
         }

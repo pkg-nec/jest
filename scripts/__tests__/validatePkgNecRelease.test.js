@@ -641,15 +641,22 @@ test('defines a least-privilege provenance release workflow with durable evidenc
       '  .pkg-nec-release/release-ledger.json \\\n' +
       '  .pkg-nec-release/publication-journal.json \\\n' +
       '  .pkg-nec-release/registry-evidence.json \\\n' +
-      '  .pkg-nec-release/registry-evidence.md\n',
+      '  .pkg-nec-release/registry-evidence.md \\\n' +
+      '  .pkg-nec-release/provenance-evidence.json \\\n' +
+      '  .pkg-nec-release/provenance-evidence.md\n',
   );
   expect(findStep(verify, 'Upload registry evidence')).toEqual(
     expect.objectContaining({
       if: '${{ always() }}',
       with: expect.objectContaining({
+        'if-no-files-found': 'warn',
         'include-hidden-files': true,
         name: 'pkg-nec-registry-evidence',
-        path: expect.stringContaining('registry-evidence.json'),
+        path:
+          '.pkg-nec-release/registry-evidence.json\n' +
+          '.pkg-nec-release/registry-evidence.md\n' +
+          '.pkg-nec-release/provenance-evidence.json\n' +
+          '.pkg-nec-release/provenance-evidence.md\n',
       }),
     }),
   );
@@ -694,6 +701,24 @@ test('defines a least-privilege provenance release workflow with durable evidenc
   );
   expect(attachEvidenceStep.run).toContain(
     '.pkg-nec-release/release-ledger.md',
+  );
+  const durableAttachmentLoop = attachEvidenceStep.run.match(
+    /for asset in \\\n[\s\S]*?\ndone/u,
+  )?.[0];
+  expect(durableAttachmentLoop).toBe(
+    'for asset in \\\n' +
+      '  .pkg-nec-release/release-ledger.json \\\n' +
+      '  .pkg-nec-release/release-ledger.md \\\n' +
+      '  .pkg-nec-release/publication-journal.json \\\n' +
+      '  .pkg-nec-release/registry-evidence.json \\\n' +
+      '  .pkg-nec-release/registry-evidence.md \\\n' +
+      '  .pkg-nec-release/provenance-evidence.json \\\n' +
+      '  .pkg-nec-release/provenance-evidence.md\n' +
+      'do\n' +
+      '  if [[ -f "$asset" ]]; then\n' +
+      '    assets+=("$asset")\n' +
+      '  fi\n' +
+      'done',
   );
   expect(attachEvidenceStep.run).toContain('if [[ -f "$asset" ]]');
   expect(attachEvidenceStep.run).not.toContain('touch release-ledger.md');

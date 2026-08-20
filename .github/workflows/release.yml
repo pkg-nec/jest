@@ -148,7 +148,9 @@ jobs:
             .pkg-nec-release/release-ledger.json \
             .pkg-nec-release/publication-journal.json \
             .pkg-nec-release/registry-evidence.json \
-            .pkg-nec-release/registry-evidence.md
+            .pkg-nec-release/registry-evidence.md \
+            .pkg-nec-release/provenance-evidence.json \
+            .pkg-nec-release/provenance-evidence.md
       - name: Upload registry evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -159,6 +161,8 @@ jobs:
           path: |
             .pkg-nec-release/registry-evidence.json
             .pkg-nec-release/registry-evidence.md
+            .pkg-nec-release/provenance-evidence.json
+            .pkg-nec-release/provenance-evidence.md
           retention-days: 30
 
   evidence:
@@ -209,7 +213,9 @@ jobs:
             .pkg-nec-release/release-ledger.md \
             .pkg-nec-release/publication-journal.json \
             .pkg-nec-release/registry-evidence.json \
-            .pkg-nec-release/registry-evidence.md
+            .pkg-nec-release/registry-evidence.md \
+            .pkg-nec-release/provenance-evidence.json \
+            .pkg-nec-release/provenance-evidence.md
           do
             if [[ -f "$asset" ]]; then
               assets+=("$asset")
