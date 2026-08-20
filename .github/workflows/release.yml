@@ -90,6 +90,15 @@ jobs:
           yarn publish:pkg-nec-release .pkg-nec-release/release-ledger.json .pkg-nec-release/publication-journal.json '${{ github.event.release.tag_name }}'
 
 
+      - name: Summarize publication progress
+        if: ${{ always() }}
+        run: |
+          if [[ -f .pkg-nec-release/publication-journal.json ]]; then
+            yarn summarize:pkg-nec-publication \
+              .pkg-nec-release/release-ledger.json \
+              .pkg-nec-release/publication-journal.json >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Upload publication journal
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

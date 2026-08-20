@@ -612,6 +612,16 @@ test('defines a least-privilege provenance release workflow with durable evidenc
   ).toBe(
     "yarn publish:pkg-nec-release .pkg-nec-release/release-ledger.json .pkg-nec-release/publication-journal.json '${{ github.event.release.tag_name }}'",
   );
+  expect(findStep(publish, 'Summarize publication progress')).toEqual({
+    if: '${{ always() }}',
+    name: 'Summarize publication progress',
+    run:
+      'if [[ -f .pkg-nec-release/publication-journal.json ]]; then\n' +
+      '  yarn summarize:pkg-nec-publication \\\n' +
+      '    .pkg-nec-release/release-ledger.json \\\n' +
+      '    .pkg-nec-release/publication-journal.json >> "$GITHUB_STEP_SUMMARY"\n' +
+      'fi\n',
+  });
   expect(findStep(publish, 'Upload publication journal')).toEqual(
     expect.objectContaining({
       if: '${{ always() }}',

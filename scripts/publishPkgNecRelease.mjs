@@ -12,6 +12,7 @@ import {isDeepStrictEqual} from 'node:util';
 import {gunzipSync} from 'node:zlib';
 import execa from 'execa';
 import fs from 'graceful-fs';
+import {publicationProgressLine} from './pkgNec/publicationProgress.mjs';
 import {
   exactRegistryResult,
   isRegistryNotFound,
@@ -522,10 +523,12 @@ export async function runPublishReleaseCommand({
     );
     await rename(temporaryJournalPath, journalPath);
   };
+  const onProgress = event => write(publicationProgressLine(event));
   const journal = await publishRelease({
     inspect,
     ledger: preparedLedger,
     now,
+    onProgress,
     persistJournal,
     publish,
     releaseTag,
