@@ -81,17 +81,34 @@ function runPublisherScenario(scenario) {
         try {
           const journal = await publishRelease({
             inspect: async entry => {
-              events.push('inspect:' + entry.name);
+              if (!scenario.recordProgress) {
+                events.push('inspect:' + entry.name);
+              }
               return scenario.inspections?.[entry.name] ?? {kind: 'absent'};
             },
             ledger: scenario.ledger,
             now: () => '2026-08-19T12:34:56.000Z',
             persistJournal: async journal => {
-              events.push(entryJournalEvent(journal));
+              events.push(
+                scenario.recordProgress
+                  ? {count: journal.packages.length, kind: 'persist'}
+                  : entryJournalEvent(journal),
+              );
               persisted.push(structuredClone(journal));
+              if (
+                scenario.rejectPackagePersistence &&
+                journal.packages.length === 1
+              ) {
+                throw new Error('journal persistence failed');
+              }
             },
+            onProgress: scenario.recordProgress
+              ? async event => events.push({event, kind: 'progress'})
+              : undefined,
             publish: async entry => {
-              events.push('publish:' + entry.name);
+              if (!scenario.recordProgress) {
+                events.push('publish:' + entry.name);
+              }
               if (scenario.publishError) {
                 originalPublishError = Object.assign(
                   new Error(scenario.publishError.message),
@@ -122,6 +139,48 @@ function runPublisherScenario(scenario) {
   if (child.status !== 0) throw new Error(child.stderr || child.stdout);
   return JSON.parse(child.stdout.trim());
 }
+
+test('emits progress only after package journal persistence', () => {
+  const result = runPublisherScenario(
+    scenario({
+      ledger: {...ledger, packages: [ledger.packages[0]]},
+      recordProgress: true,
+    }),
+  );
+
+  expect(result.events).toEqual([
+    {count: 0, kind: 'persist'},
+    {count: 1, kind: 'persist'},
+    {
+      event: {
+        completedAt: '2026-08-19T12:34:56.000Z',
+        disposition: 'published',
+        name: '@pkg-nec/a',
+        order: 1,
+        total: 1,
+        version: '1.0.0',
+      },
+      kind: 'progress',
+    },
+  ]);
+  expect(result.journal.packages).toHaveLength(1);
+});
+
+test('does not emit progress when package journal persistence fails', () => {
+  const result = runPublisherScenario(
+    scenario({
+      ledger: {...ledger, packages: [ledger.packages[0]]},
+      recordProgress: true,
+      rejectPackagePersistence: true,
+    }),
+  );
+
+  expect(result.error).toBe('journal persistence failed');
+  expect(result.events).toEqual([
+    {count: 0, kind: 'persist'},
+    {count: 1, kind: 'persist'},
+  ]);
+});
 
 function scenario(overrides = {}) {
   return {ledger, releaseTag: '@pkg-nec/jest-v30.4.3', ...overrides};

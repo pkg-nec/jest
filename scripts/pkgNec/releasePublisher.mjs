@@ -156,6 +156,7 @@ export async function publishRelease({
   inspect,
   ledger,
   now,
+  onProgress = async () => {},
   persistJournal,
   publish,
   releaseTag,
@@ -195,15 +196,25 @@ export async function publishRelease({
       );
     }
 
-    journal.packages.push({
+    const completed = {
       completedAt: new Date(now()).toISOString(),
       disposition,
       integrity: entry.integrity,
       name: entry.name,
       order: entry.order,
       version: entry.version,
+    };
+    const progress = Object.freeze({
+      completedAt: completed.completedAt,
+      disposition: completed.disposition,
+      name: completed.name,
+      order: completed.order,
+      total: ledger.packages.length,
+      version: completed.version,
     });
+    journal.packages.push(completed);
     await persistJournal(journal);
+    await onProgress(progress);
   }
 
   return journal;
