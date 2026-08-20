@@ -6,8 +6,10 @@
  */
 
 const {spawnSync} = require('node:child_process');
-const {pathToFileURL} = require('node:url');
 const {join} = require('node:path');
+const {pathToFileURL} = require('node:url');
+const fs = require('graceful-fs');
+const yaml = require('js-yaml');
 
 const repoRoot = process.cwd();
 const validationModuleUrl = pathToFileURL(
@@ -474,4 +476,223 @@ test('prints one stable error when the standalone command lacks its required env
   expect(command.stderr).toBe(
     'Required environment: GITHUB_EVENT_PATH, GITHUB_REPOSITORY, GITHUB_TOKEN\n',
   );
+});
+
+test('defines a least-privilege provenance release workflow with durable evidence', () => {
+  const workflowPath = join(repoRoot, '.github/workflows/release.yml');
+  const workflowSource = fs.readFileSync(workflowPath, 'utf8');
+  const workflow = yaml.load(workflowSource);
+  const {evidence, publish, validate, verify} = workflow.jobs;
+  const findStep = (job, name) => job.steps.find(step => step.name === name);
+  const actionSteps = Object.values(workflow.jobs).flatMap(job =>
+    job.steps.filter(step => step.uses),
+  );
+  const checkoutSteps = actionSteps.filter(step =>
+    step.uses.startsWith('actions/checkout@'),
+  );
+  const setupNodeSteps = actionSteps.filter(step =>
+    step.uses.startsWith('actions/setup-node@'),
+  );
+
+  expect(workflow.on.release.types).toEqual(['published']);
+  expect(workflow.permissions).toEqual({});
+  expect(workflow.concurrency).toEqual({
+    'cancel-in-progress': false,
+    group: 'npm-release-${{ github.event.release.tag_name }}',
+  });
+  expect(Object.keys(workflow.jobs)).toEqual([
+    'validate',
+    'publish',
+    'verify',
+    'evidence',
+  ]);
+  expect(validate.permissions).toEqual({actions: 'read', contents: 'read'});
+  expect(publish).toEqual(
+    expect.objectContaining({
+      environment: 'npm-publish',
+      needs: 'validate',
+      permissions: {contents: 'read', 'id-token': 'write'},
+    }),
+  );
+  expect(verify).toEqual(
+    expect.objectContaining({
+      needs: 'publish',
+      permissions: {contents: 'read'},
+    }),
+  );
+  expect(evidence).toEqual(
+    expect.objectContaining({
+      if: "${{ always() && needs.validate.result == 'success' }}",
+      needs: ['validate', 'publish', 'verify'],
+      permissions: {contents: 'write'},
+    }),
+  );
+  expect(validate.permissions).not.toHaveProperty('id-token');
+  expect(verify.permissions).not.toHaveProperty('id-token');
+  expect(evidence.permissions).not.toHaveProperty('id-token');
+  expect(
+    Object.entries(workflow.jobs)
+      .filter(([, job]) => job.permissions?.['id-token'] === 'write')
+      .map(([name]) => name),
+  ).toEqual(['publish']);
+  expect(Object.values(workflow.jobs).map(job => job['runs-on'])).toEqual([
+    'ubuntu-latest',
+    'ubuntu-latest',
+    'ubuntu-latest',
+    'ubuntu-latest',
+  ]);
+
+  expect(checkoutSteps).toHaveLength(3);
+  for (const step of checkoutSteps) {
+    expect(step.with).toEqual(
+      expect.objectContaining({
+        'persist-credentials': false,
+        ref: '${{ github.event.release.tag_name }}',
+      }),
+    );
+  }
+  expect(findStep(validate, 'Check out the release tag').with).toEqual(
+    expect.objectContaining({'fetch-depth': 0}),
+  );
+  expect(findStep(validate, 'Fetch main for release validation').run).toBe(
+    'git fetch --no-tags origin main:refs/remotes/origin/main',
+  );
+  expect(setupNodeSteps).toHaveLength(3);
+  for (const step of setupNodeSteps) {
+    expect(step.with).toEqual({
+      'node-version': '24.18.0',
+      'registry-url': 'https://registry.npmjs.org',
+    });
+  }
+  expect(findStep(validate, 'Install dependencies').run.split('\n')).toEqual([
+    'corepack enable',
+    'yarn install --immutable',
+    '',
+  ]);
+  expect(findStep(validate, 'Build and audit package identities').run).toBe(
+    'yarn build:js\nyarn check:pkg-nec-identity\n',
+  );
+  expect(findStep(validate, 'Run focused release tooling tests').run).toBe(
+    'yarn run test:pkg-nec-tooling',
+  );
+  expect(findStep(validate, 'Prepare release candidate').run).toBe(
+    'yarn prepare:pkg-nec-release',
+  );
+  expect(findStep(validate, 'Validate release candidate')).toEqual(
+    expect.objectContaining({
+      env: {GITHUB_TOKEN: '${{ github.token }}'},
+      run: 'yarn validate:pkg-nec-release .pkg-nec-release/release-ledger.json',
+    }),
+  );
+  expect(findStep(validate, 'Upload release candidate')).toEqual(
+    expect.objectContaining({
+      with: {
+        'if-no-files-found': 'error',
+        'include-hidden-files': true,
+        name: 'pkg-nec-release-candidate',
+        path: '.pkg-nec-release/',
+        'retention-days': 30,
+      },
+    }),
+  );
+
+  expect(findStep(publish, 'Install exact npm').run).toBe(
+    'npm install --global npm@11.19.0',
+  );
+  expect(findStep(publish, 'Download release candidate').with).toEqual({
+    name: 'pkg-nec-release-candidate',
+    path: '.pkg-nec-release',
+  });
+  expect(
+    findStep(publish, 'Publish in ledger order with strict resumption').run,
+  ).toBe(
+    "yarn publish:pkg-nec-release .pkg-nec-release/release-ledger.json .pkg-nec-release/publication-journal.json '${{ github.event.release.tag_name }}'",
+  );
+  expect(findStep(publish, 'Upload publication journal')).toEqual(
+    expect.objectContaining({
+      if: '${{ always() }}',
+      with: expect.objectContaining({
+        'include-hidden-files': true,
+        name: 'pkg-nec-publication-evidence',
+        path: '.pkg-nec-release/publication-journal.json',
+      }),
+    }),
+  );
+
+  expect(findStep(verify, 'Install exact npm').run).toBe(
+    'npm install --global npm@11.19.0',
+  );
+  expect(findStep(verify, 'Verify complete registry batch').run).toBe(
+    'yarn verify:pkg-nec-release \\\n' +
+      '  .pkg-nec-release/release-ledger.json \\\n' +
+      '  .pkg-nec-release/publication-journal.json \\\n' +
+      '  .pkg-nec-release/registry-evidence.json \\\n' +
+      '  .pkg-nec-release/registry-evidence.md\n',
+  );
+  expect(findStep(verify, 'Upload registry evidence')).toEqual(
+    expect.objectContaining({
+      if: '${{ always() }}',
+      with: expect.objectContaining({
+        'include-hidden-files': true,
+        name: 'pkg-nec-registry-evidence',
+        path: expect.stringContaining('registry-evidence.json'),
+      }),
+    }),
+  );
+
+  for (const artifactName of [
+    'pkg-nec-release-candidate',
+    'pkg-nec-publication-evidence',
+    'pkg-nec-registry-evidence',
+  ]) {
+    expect(findStep(evidence, `Download ${artifactName}`).with).toEqual({
+      name: artifactName,
+      path: '.pkg-nec-release',
+    });
+    expect(
+      findStep(evidence, `Download ${artifactName}`)['continue-on-error'],
+    ).toBe(true);
+  }
+  expect(findStep(evidence, 'Write workflow summary').run).toEqual(
+    expect.stringContaining('${{ needs.verify.result }}'),
+  );
+  const attachEvidenceStep = findStep(
+    evidence,
+    'Attach durable release evidence',
+  );
+  expect(evidence.permissions).toEqual({contents: 'write'});
+  expect(
+    evidence.steps.filter(step => step.uses?.startsWith('actions/checkout@')),
+  ).toEqual([]);
+  expect(attachEvidenceStep).toEqual(
+    expect.objectContaining({
+      env: {
+        GH_TOKEN: '${{ github.token }}',
+        RELEASE_TAG: '${{ github.event.release.tag_name }}',
+      },
+      run: expect.stringContaining(
+        'gh release upload "$RELEASE_TAG" "${assets[@]}" --repo "${{ github.repository }}" --clobber',
+      ),
+    }),
+  );
+  expect(attachEvidenceStep.env).not.toHaveProperty('GH_REPO');
+  expect(attachEvidenceStep.run).not.toMatch(/\.(?:tgz|tar\.gz)\b/u);
+
+  for (const pin of [
+    'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1',
+    'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0',
+    'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1',
+    'actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0',
+  ]) {
+    expect(workflowSource).toContain(pin);
+  }
+  expect(workflowSource).not.toMatch(
+    /uses:\s+[^@\s]+@(?![0-9a-f]{40}(?:\s|$))/u,
+  );
+  expect(workflowSource).not.toMatch(
+    /NODE_AUTH_TOKEN|GH_REPO|check:pkg-nec-registry|cache:\s*yarn|yarn test(?:\s|$)/mu,
+  );
+  expect(
+    fs.readFileSync(join(repoRoot, 'scripts/publishPkgNecRelease.mjs'), 'utf8'),
+  ).toContain("      '--provenance',");
 });
