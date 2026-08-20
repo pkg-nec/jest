@@ -86,6 +86,14 @@ export function inspectPackedManifest({
       `Packed manifest version changed for ${workspace.newName}: ${manifest.version}`,
     );
   }
+  if (
+    manifest.repository?.url !== 'https://github.com/pkg-nec/jest.git' ||
+    manifest.repository?.directory !== workspaceManifest.repository?.directory
+  ) {
+    throw new Error(
+      `Packed manifest repository changed for ${workspace.newName}: ${manifest.repository?.url}`,
+    );
+  }
   if (manifest.private === true) {
     throw new Error(`Packed manifest is private: ${workspace.newName}`);
   }
