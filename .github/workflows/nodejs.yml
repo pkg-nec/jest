@@ -82,22 +82,6 @@ jobs:
         run: yarn --immutable
       - name: Check pkg-nec package identities
         run: yarn check:pkg-nec-identity
-      - name: Build TypeScript
-        run: yarn build:ts
-      - name: Build JavaScript
-        run: yarn build:js
-      - name: Test pkg-nec tooling
-        run: yarn test:pkg-nec-tooling
-      - name: Validate pkg-nec release preparation
-        run: yarn validate:pkg-nec-release-plan '${{ github.event.pull_request.base.sha || github.sha }}'
-      - name: Run typecheck examples
-        run: yarn typecheck:examples
-      - name: Run typecheck tests
-        run: yarn typecheck:tests
-      - name: Verify Yarn PnP compatibility
-        run: yarn verify-pnp
-      - name: Run eslint
-        run: yarn lint
       - name: Run prettier
         run: yarn lint:prettier:ci
       - name: Check changelog
@@ -108,6 +92,22 @@ jobs:
         run: yarn constraints
       - name: 'Check for duplicate dependencies (fix w/ "yarn dedupe")'
         run: yarn dedupe --check
+      - name: Run eslint
+        run: yarn lint
+      - name: Build TypeScript
+        run: yarn build:ts
+      - name: Run typecheck examples
+        run: yarn typecheck:examples
+      - name: Run typecheck tests
+        run: yarn typecheck:tests
+      - name: Build JavaScript
+        run: yarn build:js
+      - name: Test pkg-nec tooling
+        run: yarn test:pkg-nec-tooling
+      - name: Validate pkg-nec release preparation
+        run: yarn validate:pkg-nec-release-plan '${{ github.event.pull_request.base.sha || github.sha }}'
+      - name: Verify Yarn PnP compatibility
+        run: yarn verify-pnp
 
   test-ubuntu:
     uses: ./.github/workflows/test.yml
