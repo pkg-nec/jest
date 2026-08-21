@@ -18,13 +18,18 @@ import {
   validateReleaseFiles,
 } from './pkgNec/releaseArtifactPolicy.mjs';
 import {
-  buildRuntimeReleaseGraph,
-  topologicalReleaseOrder,
+  componentReleaseOrder,
+  induceReleaseGraph,
 } from './pkgNec/releaseGraph.mjs';
+import {
+  releasePlanPathFromTag,
+  validateReleasePlan,
+} from './pkgNec/releasePlanSchema.mjs';
 import {
   localTarArguments,
   repackReleaseArtifact,
 } from './pkgNec/repackReleaseArtifact.mjs';
+import {buildWorkspaceReleaseGraph} from './pkgNec/selectiveReleaseGraph.mjs';
 import {createPackageInventory} from './pkgNecPackageIdentity.mjs';
 
 const dependencyFields = [
@@ -69,6 +74,7 @@ function expectSameKeys({actual, expected, field, workspace}) {
 
 export function inspectPackedManifest({
   expectedRepositoryDirectory,
+  expectedVersions,
   expectedVersion,
   inventory,
   manifest,
@@ -129,14 +135,20 @@ export function inspectPackedManifest({
           `${workspace.newName} has an unknown workspace dependency: ${name}`,
         );
       }
+      const targetVersion = expectedVersions?.get(name) ?? target.version;
+      if (typeof targetVersion !== 'string') {
+        throw new TypeError(
+          `${workspace.newName} has no expected workspace version for ${name}`,
+        );
+      }
       const protocol = sourceValue.slice('workspace:'.length);
       const allowed =
         protocol === '*'
-          ? new Set([target.version, `=${target.version}`])
+          ? new Set([targetVersion, `=${targetVersion}`])
           : protocol === '^'
-            ? new Set([`^${target.version}`])
+            ? new Set([`^${targetVersion}`])
             : protocol === '~'
-              ? new Set([`~${target.version}`])
+              ? new Set([`~${targetVersion}`])
               : new Set([protocol]);
       if (!allowed.has(packed[name])) {
         throw new Error(`${workspace.newName} changed ${field}.${name}`);
@@ -159,6 +171,7 @@ export function createReleaseLedger({
   nodeVersion,
   order,
   packageManager,
+  releasePlan,
   sourceCommit,
 }) {
   const artifactNames = new Set();
@@ -191,7 +204,8 @@ export function createReleaseLedger({
     nodeVersion,
     packageManager,
     packages,
-    schemaVersion: 1,
+    releasePlan,
+    schemaVersion: 2,
     sourceCommit,
   };
 }
@@ -306,6 +320,62 @@ function resolveStagingDirectory(repoRoot, stagingDirectory) {
   return resolved;
 }
 
+function releaseTagArgument(args) {
+  if (
+    !Array.isArray(args) ||
+    args.length !== 1 ||
+    typeof args[0] !== 'string' ||
+    args[0].length === 0
+  ) {
+    throw new Error('Usage: yarn prepare:pkg-nec-release <release-tag>');
+  }
+  return args[0];
+}
+
+function resolveCommittedPlan(repoRoot, planPath) {
+  const root = path.resolve(repoRoot);
+  const candidate = path.resolve(root, ...planPath.split('/'));
+  if (!isWithinDirectory(root, candidate)) {
+    throw new Error('Release plan path resolves outside the repository');
+  }
+  const status = fs.lstatSync(candidate);
+  if (!status.isFile() || status.isSymbolicLink()) {
+    throw new Error('Release plan path must be a regular repository file');
+  }
+  const realRoot = fs.realpathSync(root);
+  const realCandidate = fs.realpathSync(candidate);
+  if (!isWithinDirectory(realRoot, realCandidate)) {
+    throw new Error('Release plan resolves outside the real repository');
+  }
+  return candidate;
+}
+
+function copiedPlanBasename(planPath) {
+  const basename = path.posix.basename(planPath);
+  if (
+    basename.length === 0 ||
+    basename === '.' ||
+    basename === '..' ||
+    planPath !== `docs/releases/${basename}` ||
+    !/^[a-z0-9._-]+-plan\.json$/u.test(basename)
+  ) {
+    throw new Error('Release plan path is not basename-safe');
+  }
+  return basename;
+}
+
+function repositoryDirectory(repoRoot, directory) {
+  return path.relative(repoRoot, directory).split(path.sep).join('/');
+}
+
+function manifestRelativePath(repoRoot, manifestPath) {
+  return path.relative(repoRoot, manifestPath).split(path.sep).join('/');
+}
+
+function sha256Digest(bytes) {
+  return `sha256-${createHash('sha256').update(bytes).digest('hex')}`;
+}
+
 async function defaultRunCommand(command, args, options) {
   await execa(command, args, {...options, stdio: 'inherit'});
 }
@@ -313,6 +383,116 @@ async function defaultRunCommand(command, args, options) {
 async function defaultReadSourceCommit(root) {
   const {stdout} = await execa('git', ['rev-parse', 'HEAD'], {cwd: root});
   return stdout.trim();
+}
+
+async function defaultRunGit(args, {cwd}) {
+  const {stdout} = await execa('git', args, {
+    cwd,
+    env: {...process.env, GIT_NO_REPLACE_OBJECTS: '1'},
+    stripFinalNewline: false,
+  });
+  return stdout;
+}
+
+function gitOutput(result) {
+  return String(result?.stdout ?? result).trim();
+}
+
+function fullCommit(value, label) {
+  const commit = typeof value === 'string' ? value.trim() : '';
+  if (!/^[0-9a-f]{40}$/u.test(commit)) {
+    throw new Error(`${label} must be a full Git commit`);
+  }
+  return commit;
+}
+
+async function bindReleaseSource({
+  env,
+  planPath,
+  readSourceCommit,
+  releaseTag,
+  repoRoot,
+  runGit,
+}) {
+  const eventCommit = fullCommit(env.GITHUB_SHA, 'Release event GITHUB_SHA');
+  const tagCommit = fullCommit(
+    gitOutput(
+      await runGit(['rev-list', '-n', '1', releaseTag], {cwd: repoRoot}),
+    ),
+    'Release tag commit',
+  );
+  const checkoutCommit = fullCommit(
+    await readSourceCommit(repoRoot),
+    'Release checkout HEAD',
+  );
+  if (eventCommit !== tagCommit || tagCommit !== checkoutCommit) {
+    throw new Error('Release event, tag, and checkout commits must match');
+  }
+  try {
+    await runGit(
+      ['merge-base', '--is-ancestor', checkoutCommit, 'origin/main'],
+      {cwd: repoRoot},
+    );
+  } catch {
+    throw new Error('Release source commit is not on origin/main');
+  }
+
+  const history = gitOutput(
+    await runGit(['rev-list', '--parents', '-n', '1', checkoutCommit], {
+      cwd: repoRoot,
+    }),
+  ).split(/\s+/u);
+  if (
+    history[0] !== checkoutCommit ||
+    history.some(commit => !/^[0-9a-f]{40}$/u.test(commit))
+  ) {
+    throw new Error('Release source has invalid first-parent history');
+  }
+  const firstParent = history[1];
+  if (firstParent) {
+    const priorPlan = gitOutput(
+      await runGit(['ls-tree', '--name-only', firstParent, '--', planPath], {
+        cwd: repoRoot,
+      }),
+    );
+    if (priorPlan !== '') {
+      throw new Error(
+        'Release plan must be introduced by the release source commit',
+      );
+    }
+  }
+  return checkoutCommit;
+}
+
+async function assertReleaseSourceStable({
+  readSourceCommit,
+  releaseTag,
+  repoRoot,
+  runGit,
+  sourceCommit,
+}) {
+  const tagCommit = fullCommit(
+    gitOutput(
+      await runGit(['rev-list', '-n', '1', releaseTag], {cwd: repoRoot}),
+    ),
+    'Release tag commit',
+  );
+  const checkoutCommit = fullCommit(
+    await readSourceCommit(repoRoot),
+    'Release checkout HEAD',
+  );
+  if (tagCommit !== sourceCommit || checkoutCommit !== sourceCommit) {
+    throw new Error('Release source commit changed during preparation');
+  }
+}
+
+async function defaultReadCommittedFile(root, sourceCommit, repositoryPath) {
+  const {stdout} = await execa(
+    'git',
+    ['show', `${sourceCommit}:${repositoryPath}`],
+    {cwd: root, encoding: null, stripFinalNewline: false},
+  );
+  return stdout;
 }
 
 async function defaultInspectTarball(tarballPath) {
@@ -379,23 +559,61 @@ async function promoteReleaseDirectory({
 }
 
 export async function runPrepareReleaseCommand({
+  args = process.argv.slice(2),
   audit = auditRepository,
-  buildGraph = buildRuntimeReleaseGraph,
+  buildGraph = buildWorkspaceReleaseGraph,
+  env = process.env,
   inspectTarball = defaultInspectTarball,
   inventory,
   makeStagingDirectory = defaultMakeStagingDirectory,
-  orderGraph = topologicalReleaseOrder,
+  orderGraph = componentReleaseOrder,
   outputDirectory,
   policy = defaultPolicy,
+  readCommittedFile = defaultReadCommittedFile,
   readSourceCommit = defaultReadSourceCommit,
   repackTarball = repackReleaseArtifact,
   repoRoot = defaultRepoRoot,
   runCommand = defaultRunCommand,
+  runGit = defaultRunGit,
   write = console.log,
   writeFile = fs.promises.writeFile,
 } = {}) {
   const root = path.resolve(repoRoot);
   const releaseDirectory = resolveReleaseDirectory(root, outputDirectory);
+  const releaseTag = releaseTagArgument(args);
+  const derivedPlanPath = releasePlanPathFromTag(releaseTag);
+  const sourceCommit = await bindReleaseSource({
+    env,
+    planPath: derivedPlanPath,
+    readSourceCommit,
+    releaseTag,
+    repoRoot: root,
+    runGit,
+  });
+  const committedPlanPath = resolveCommittedPlan(root, derivedPlanPath);
+  const planBytes = await fs.promises.readFile(committedPlanPath);
+  const committedPlanBytes = await readCommittedFile(
+    root,
+    sourceCommit,
+    derivedPlanPath,
+  );
+  if (!planBytes.equals(Buffer.from(committedPlanBytes))) {
+    throw new Error('Checked-out release plan differs from the source commit');
+  }
+  let plan;
+  try {
+    plan = validateReleasePlan(JSON.parse(planBytes.toString('utf8')));
+  } catch (error) {
+    throw new Error(`Invalid committed release plan: ${error.message}`);
+  }
+  if (plan.anchor.tag !== releaseTag || plan.planPath !== derivedPlanPath) {
+    throw new Error('Release tag does not match the committed release plan');
+  }
+  const planBasename = copiedPlanBasename(plan.planPath);
+  const releasePlan = {
+    digest: sha256Digest(planBytes),
+    path: plan.planPath,
+  };
   const packageInventory =
     inventory ?? createPackageInventory({policy, repoRoot: root});
   const findings = audit({
@@ -408,9 +626,59 @@ export async function runPrepareReleaseCommand({
     );
   }
 
-  const graph = buildGraph(packageInventory);
-  const order = orderGraph(graph);
+  const workspaceManifests = new Map();
+  for (const [name, workspace] of packageInventory.byNewName) {
+    if (workspace.publishable !== true) continue;
+    const manifestPath = manifestRelativePath(root, workspace.manifestPath);
+    const currentBytes = await fs.promises.readFile(workspace.manifestPath);
+    const committedBytes = await readCommittedFile(
+      root,
+      sourceCommit,
+      manifestPath,
+    );
+    if (!currentBytes.equals(Buffer.from(committedBytes))) {
+      throw new Error(
+        `Checked-out manifest differs from the source commit: ${name}`,
+      );
+    }
+    const manifest = JSON.parse(currentBytes.toString('utf8'));
+    if (manifest.version !== workspace.version) {
+      throw new Error(`Inventory version does not match manifest: ${name}`);
+    }
+    workspaceManifests.set(name, manifest);
+  }
 
+  const expectedVersions = new Map(
+    [...packageInventory.byNewName]
+      .filter(([, workspace]) => workspace.publishable === true)
+      .map(([name, workspace]) => [name, workspace.version]),
+  );
+  const order = plan.packages.map(item => item.name);
+  for (const item of plan.packages) {
+    const workspace = packageInventory.byNewName.get(item.name);
+    if (!workspace || workspace.publishable !== true) {
+      throw new Error(`Release workspace missing or private: ${item.name}`);
+    }
+    if (workspace.version !== item.toVersion) {
+      throw new Error(
+        `Release plan version does not match ${item.name} manifest`,
+      );
+    }
+    if (repositoryDirectory(root, workspace.directory) !== item.path) {
+      throw new Error(
+        `Release plan path does not match ${item.name} workspace`,
+      );
+    }
+    expectedVersions.set(item.name, item.toVersion);
+  }
+  const graph = induceReleaseGraph({
+    graph: buildGraph(packageInventory),
+    selectedNames: order,
+  });
+  const calculatedOrder = orderGraph(graph);
+  if (!isDeepStrictEqual(calculatedOrder, order)) {
+    throw new Error('Release plan package order does not match prerequisites');
+  }
   const stagingDirectory = resolveStagingDirectory(
     root,
     await makeStagingDirectory(root),
@@ -439,9 +707,7 @@ export async function runPrepareReleaseCommand({
       const stagedFinalTarballPath = path.join(stagingDirectory, tarballName);
       let rawFailure;
       try {
-        const workspaceManifest = JSON.parse(
-          fs.readFileSync(workspace.manifestPath, 'utf8'),
-        );
+        const workspaceManifest = workspaceManifests.get(name);
         await runCommand(
           'yarn',
           ['workspace', name, 'pack', '--out', rawTarballPath],
@@ -450,6 +716,7 @@ export async function runPrepareReleaseCommand({
 
         const rawPacked = await inspectTarball(rawTarballPath);
         inspectPackedManifest({
+          expectedVersions,
           inventory: packageInventory,
           manifest: rawPacked.manifest,
           workspace,
@@ -489,7 +756,9 @@ export async function runPrepareReleaseCommand({
           files: releaseFiles,
           integrity: `sha512-${createHash('sha512').update(bytes).digest('base64')}`,
           name,
-          prerequisites: [...(graph.get(name) ?? [])],
+          prerequisites: [...(graph.get(name) ?? [])].sort((left, right) =>
+            left.localeCompare(right),
+          ),
           tarball: finalTarballPath,
           version: workspace.version,
         });
@@ -515,8 +784,10 @@ export async function runPrepareReleaseCommand({
       nodeVersion: process.version,
       order,
       packageManager: rootManifest.packageManager,
-      sourceCommit: await readSourceCommit(root),
+      releasePlan,
+      sourceCommit,
     });
+    await writeFile(path.join(stagingDirectory, planBasename), planBytes);
     await writeFile(
       path.join(stagingDirectory, 'release-ledger.json'),
       `${JSON.stringify(ledger, null, 2)}\n`,
@@ -525,6 +796,19 @@ export async function runPrepareReleaseCommand({
       path.join(stagingDirectory, 'release-ledger.md'),
       releaseMarkdown(ledger),
     );
+    const copiedPlanBytes = await fs.promises.readFile(
+      path.join(stagingDirectory, planBasename),
+    );
+    if (sha256Digest(copiedPlanBytes) !== ledger.releasePlan.digest) {
+      throw new Error('Copied release plan digest does not match the ledger');
+    }
+    await assertReleaseSourceStable({
+      readSourceCommit,
+      releaseTag,
+      repoRoot: root,
+      runGit,
+      sourceCommit,
+    });
     await promoteReleaseDirectory({
       releaseDirectory,
       repoRoot: root,

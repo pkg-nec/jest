@@ -502,6 +502,62 @@ test('applies patch defaults and direct or dependent SemVer overrides', () => {
   ]);
 });
 
+test('plans the complete closure when one member of a workspace cycle changes', () => {
+  const result = runPlanner({
+    changes: classification({
+      packages: [
+        ['@pkg-nec/create-jest', ['packages/create-jest/src/index.ts']],
+      ],
+    }),
+    definitions: [
+      {
+        manifest: {
+          devDependencies: {'@pkg-nec/jest-phabricator': 'workspace:*'},
+        },
+        name: '@pkg-nec/create-jest',
+      },
+      {
+        manifest: {
+          devDependencies: {'@pkg-nec/create-jest': 'workspace:*'},
+        },
+        name: '@pkg-nec/jest-phabricator',
+      },
+    ],
+  });
+
+  expect(result.kind).toBe('release');
+  expect(result.plan.packages).toEqual([
+    {
+      bump: 'patch',
+      fromVersion: '1.2.3',
+      name: '@pkg-nec/create-jest',
+      order: 1,
+      path: 'packages/create-jest',
+      reasons: [
+        {
+          files: ['packages/create-jest/src/index.ts'],
+          kind: 'changed',
+        },
+      ],
+      toVersion: '1.2.4',
+    },
+    {
+      bump: 'patch',
+      fromVersion: '1.2.3',
+      name: '@pkg-nec/jest-phabricator',
+      order: 2,
+      path: 'packages/jest-phabricator',
+      reasons: [
+        {
+          kind: 'dependent',
+          paths: [['@pkg-nec/create-jest', '@pkg-nec/jest-phabricator']],
+        },
+      ],
+      toVersion: '1.2.4',
+    },
+  ]);
+});
+
 test.each([
   [
     'duplicate',

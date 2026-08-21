@@ -50,6 +50,12 @@ const graphModuleUrl = pathToFileURL(
 const releaseModuleUrl = pathToFileURL(
   join(repoRoot, 'scripts/preparePkgNecRelease.mjs'),
 ).href;
+const publisherModuleUrl = pathToFileURL(
+  join(repoRoot, 'scripts/pkgNec/releasePublisher.mjs'),
+).href;
+const validationModuleUrl = pathToFileURL(
+  join(repoRoot, 'scripts/pkgNec/releaseValidation.mjs'),
+).href;
 const buildUtilsModuleUrl = pathToFileURL(
   join(repoRoot, 'scripts/buildUtils.mjs'),
 ).href;
@@ -98,6 +104,46 @@ async function writeManifest(repo, directory, manifest) {
     join(manifestDirectory, 'package.json'),
     `${JSON.stringify(manifest, null, 2)}\n`,
   );
+}
+
+async function writeReleasePlanFixture(repo, {anchor, packages}) {
+  const tag = `${anchor.name}-v${anchor.toVersion}`;
+  const planPath = `docs/releases/${tag
+    .replace('@', '')
+    .replace('/', '-')}-plan.json`;
+  const changedPackages = [...packages]
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .map(item => ({files: [`${item.path}/index.js`], name: item.name}));
+  const plan = {
+    anchor: {name: anchor.name, tag, version: anchor.toVersion},
+    changedFiles: {
+      packages: changedPackages,
+      root: {allPackages: [], ambiguous: [], noImpact: []},
+    },
+    packages: packages.map((item, index) => ({
+      bump: item.bump,
+      fromVersion: item.fromVersion,
+      name: item.name,
+      order: index + 1,
+      path: item.path,
+      reasons: [{files: [`${item.path}/index.js`], kind: 'changed'}],
+      toVersion: item.toVersion,
+    })),
+    planPath,
+    preparedFrom: '3333333333333333333333333333333333333333',
+    previousRelease: {
+      commit: '1111111111111111111111111111111111111111',
+      tag: `${anchor.name}-v${anchor.fromVersion}`,
+    },
+    rootImpact: {applied: 'not-needed', requested: null},
+    schemaVersion: 1,
+  };
+  await mkdir(join(repo, 'docs', 'releases'), {recursive: true});
+  await writeFile(
+    join(repo, ...planPath.split('/')),
+    `${JSON.stringify(plan, null, 2)}\n`,
+  );
+  return tag;
 }
 
 function buildGraph(repo, expectedPackageCount) {
@@ -198,6 +244,45 @@ describe('pkg-nec runtime release graph', () => {
     `);
 
     expect(result).toEqual(['@pkg-nec/b', '@pkg-nec/a', '@pkg-nec/c']);
+  });
+
+  test('orders strongly connected components without recursion or insertion-order dependence', () => {
+    const result = runModuleProgram(`
+      import {componentReleaseOrder} from ${JSON.stringify(graphModuleUrl)};
+
+      const entries = [
+        ['@pkg-nec/z', new Set(['@pkg-nec/n'])],
+        ['@pkg-nec/self', new Set(['@pkg-nec/self'])],
+        ['@pkg-nec/root', new Set()],
+        ['@pkg-nec/n', new Set(['@pkg-nec/m'])],
+        ['@pkg-nec/m', new Set(['@pkg-nec/n', '@pkg-nec/b'])],
+        ['@pkg-nec/b', new Set(['@pkg-nec/a'])],
+        ['@pkg-nec/a', new Set(['@pkg-nec/b', '@pkg-nec/root'])],
+      ];
+      const permuted = new Map(
+        [...entries]
+          .reverse()
+          .map(([name, dependencies]) => [
+            name,
+            new Set([...dependencies].reverse()),
+          ]),
+      );
+      console.log(JSON.stringify({
+        forward: componentReleaseOrder(new Map(entries)),
+        reversed: componentReleaseOrder(permuted),
+      }));
+    `);
+    const expected = [
+      '@pkg-nec/root',
+      '@pkg-nec/a',
+      '@pkg-nec/b',
+      '@pkg-nec/m',
+      '@pkg-nec/n',
+      '@pkg-nec/self',
+      '@pkg-nec/z',
+    ];
+
+    expect(result).toEqual({forward: expected, reversed: expected});
   });
 
   test('builds consumer-to-dependency runtime edges and ignores dev-only cycles', async () => {
@@ -559,6 +644,10 @@ describe('pkg-nec release preparation', () => {
         nodeVersion: 'v22.23.1',
         order,
         packageManager: 'yarn@4.18.0',
+        releasePlan: {
+          digest: 'sha256-${'a'.repeat(64)}',
+          path: 'docs/releases/pkg-nec-jest-v30.4.2-plan.json',
+        },
         sourceCommit: '0123456789abcdef',
       })));
     `);
@@ -567,7 +656,11 @@ describe('pkg-nec release preparation', () => {
       generatedAt: '2026-08-18T00:00:00.000Z',
       nodeVersion: 'v22.23.1',
       packageManager: 'yarn@4.18.0',
-      schemaVersion: 1,
+      releasePlan: {
+        digest: `sha256-${'a'.repeat(64)}`,
+        path: 'docs/releases/pkg-nec-jest-v30.4.2-plan.json',
+      },
+      schemaVersion: 2,
       sourceCommit: '0123456789abcdef',
     });
     expect(result.packages).toEqual([
@@ -656,10 +749,501 @@ describe('pkg-nec release preparation', () => {
     );
   });
 
+  test('prepares, validates, and publishes a cyclic schema-2 plan in component order', async () => {
+    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-selective-'));
+
+    try {
+      const result = runModuleProgram(`
+        import path from 'node:path';
+        import fs from 'graceful-fs';
+        import {createHash} from 'node:crypto';
+        import {runPrepareReleaseCommand} from ${JSON.stringify(releaseModuleUrl)};
+        import {publishRelease} from ${JSON.stringify(publisherModuleUrl)};
+        import {validateReleaseMetadata} from ${JSON.stringify(validationModuleUrl)};
+
+        const repoRoot = ${JSON.stringify(temporaryRepo)};
+        const releaseTag = '@pkg-nec/create-jest-v1.1.0';
+        const planPath = 'docs/releases/pkg-nec-create-jest-v1.1.0-plan.json';
+        const stagingDirectory = path.join(
+          repoRoot,
+          '.pkg-nec-release-stage-selective',
+        );
+        const sourceCommit = '2222222222222222222222222222222222222222';
+        const packageInputs = [
+          ['@pkg-nec/create-jest', 'packages/create-jest', '1.1.0'],
+          ['@pkg-nec/jest-phabricator', 'packages/jest-phabricator', '2.0.1'],
+          ['@pkg-nec/jest-test-globals', 'packages/jest-test-globals', '3.0.0'],
+        ];
+        const packages = packageInputs.map(([newName, directory, version]) => ({
+          directory: path.join(repoRoot, directory),
+          manifestPath: path.join(repoRoot, directory, 'package.json'),
+          newName,
+          oldName: newName,
+          publishable: true,
+          version,
+        }));
+        const inventory = {
+          byNewName: new Map(packages.map(item => [item.newName, item])),
+          byOldName: new Map(packages.map(item => [item.oldName, item])),
+          packages,
+          root: null,
+        };
+        fs.writeFileSync(
+          path.join(repoRoot, 'package.json'),
+          JSON.stringify({packageManager: 'yarn@4.18.0'}),
+        );
+        fs.writeFileSync(path.join(repoRoot, 'LICENSE'), 'license');
+        for (const workspace of packages) {
+          fs.mkdirSync(workspace.directory, {recursive: true});
+          const manifest = {
+            name: workspace.newName,
+            publishConfig: {access: 'public'},
+            repository: {
+              directory: path.relative(repoRoot, workspace.directory).replaceAll(path.sep, '/'),
+              url: 'https://github.com/pkg-nec/jest.git',
+            },
+            version: workspace.version,
+          };
+          if (workspace.newName === '@pkg-nec/create-jest') {
+            manifest.devDependencies = {
+              '@pkg-nec/jest-phabricator': 'workspace:*',
+            };
+          }
+          if (workspace.newName === '@pkg-nec/jest-phabricator') {
+            manifest.dependencies = {
+              '@pkg-nec/create-jest': 'workspace:*',
+              '@pkg-nec/jest-test-globals': 'workspace:*',
+            };
+          }
+          fs.writeFileSync(workspace.manifestPath, JSON.stringify(manifest));
+        }
+        const plan = {
+          anchor: {name: '@pkg-nec/create-jest', tag: releaseTag, version: '1.1.0'},
+          changedFiles: {
+            packages: [{name: '@pkg-nec/create-jest', files: ['packages/create-jest/index.js']}],
+            root: {allPackages: [], ambiguous: [], noImpact: []},
+          },
+          packages: [
+            {
+              bump: 'minor',
+              fromVersion: '1.0.0',
+              name: '@pkg-nec/create-jest',
+              order: 1,
+              path: 'packages/create-jest',
+              reasons: [{files: ['packages/create-jest/index.js'], kind: 'changed'}],
+              toVersion: '1.1.0',
+            },
+            {
+              bump: 'patch',
+              fromVersion: '2.0.0',
+              name: '@pkg-nec/jest-phabricator',
+              order: 2,
+              path: 'packages/jest-phabricator',
+              reasons: [{kind: 'dependent', paths: [['@pkg-nec/create-jest', '@pkg-nec/jest-phabricator']]}],
+              toVersion: '2.0.1',
+            },
+          ],
+          planPath,
+          preparedFrom: '3333333333333333333333333333333333333333',
+          previousRelease: {
+            commit: '1111111111111111111111111111111111111111',
+            tag: '@pkg-nec/create-jest-v1.0.0',
+          },
+          rootImpact: {applied: 'not-needed', requested: null},
+          schemaVersion: 1,
+        };
+        const planBytes = JSON.stringify(plan, null, 2) + '\\n';
+        fs.mkdirSync(path.dirname(path.join(repoRoot, planPath)), {recursive: true});
+        fs.writeFileSync(path.join(repoRoot, planPath), planBytes);
+        const graph = new Map([
+          ['@pkg-nec/create-jest', new Set(['@pkg-nec/jest-phabricator'])],
+          ['@pkg-nec/jest-phabricator', new Set(['@pkg-nec/create-jest', '@pkg-nec/jest-test-globals'])],
+          ['@pkg-nec/jest-test-globals', new Set()],
+        ]);
+        const packCalls = [];
+        const ledger = await runPrepareReleaseCommand({
+          args: [releaseTag],
+          audit: () => [],
+          buildGraph: () => graph,
+          inspectTarball: async tarballPath => {
+            const name = tarballPath.includes('pkg-nec-create-jest-')
+              ? '@pkg-nec/create-jest'
+              : tarballPath.includes('pkg-nec-jest-phabricator-')
+                ? '@pkg-nec/jest-phabricator'
+                : '@pkg-nec/jest-test-globals';
+            const workspace = inventory.byNewName.get(name);
+            const manifest = JSON.parse(fs.readFileSync(workspace.manifestPath, 'utf8'));
+            if (name === '@pkg-nec/create-jest') {
+              manifest.devDependencies = {
+                '@pkg-nec/jest-phabricator': '2.0.1',
+              };
+            }
+            if (name === '@pkg-nec/jest-phabricator') {
+              manifest.dependencies = {
+                '@pkg-nec/create-jest': '1.1.0',
+                '@pkg-nec/jest-test-globals': '3.0.0',
+              };
+            }
+            return {
+              files: [
+                ...(tarballPath.endsWith('.raw-packed.tgz') ? [] : ['package/LICENSE']),
+                'package/package.json',
+              ],
+              manifest,
+            };
+          },
+          env: {GITHUB_SHA: sourceCommit},
+          inventory,
+          makeStagingDirectory: async () => {
+            fs.mkdirSync(stagingDirectory);
+            return stagingDirectory;
+          },
+          readCommittedFile: async (_root, _commit, file) =>
+            fs.promises.readFile(path.join(repoRoot, ...file.split('/'))),
+          readSourceCommit: async () => sourceCommit,
+          repackTarball: async ({finalTarballPath}) => {
+            fs.writeFileSync(finalTarballPath, 'final');
+          },
+          repoRoot,
+          runCommand: async (_command, args) => {
+            packCalls.push(args[1]);
+            fs.writeFileSync(args[4], 'raw');
+          },
+          runGit: async args => {
+            if (args[0] === 'rev-list' && args[1] === '--parents') {
+              return sourceCommit + ' ' + 'f'.repeat(40);
+            }
+            return args[0] === 'rev-list' ? sourceCommit : '';
+          },
+          write: () => {},
+        });
+        const validation = validateReleaseMetadata({
+          event: {
+            release: {
+              body: [
+                'Source commit: ' + sourceCommit,
+                '- \`@pkg-nec/create-jest@1.1.0\`',
+                '- \`@pkg-nec/jest-phabricator@2.0.1\`',
+              ].join('\\n'),
+              draft: false,
+              name: releaseTag,
+              prerelease: false,
+              tag_name: releaseTag,
+            },
+          },
+          inventory,
+          ledger,
+          plan,
+          releaseGraph: graph,
+          tagCommit: sourceCommit,
+        });
+        const published = [];
+        const journal = await publishRelease({
+          inspect: async () => ({kind: 'absent'}),
+          ledger,
+          now: () => '2026-08-21T00:00:00.000Z',
+          persistJournal: async () => {},
+          publish: async entry => published.push(entry.name),
+          releaseTag,
+          verifyConflict: async () => {
+            throw new Error('unexpected conflict verification');
+          },
+        });
+        const copiedPlanPath = path.join(
+          repoRoot,
+          '.pkg-nec-release',
+          path.posix.basename(planPath),
+        );
+        const copiedPlan = fs.existsSync(copiedPlanPath)
+          ? fs.readFileSync(copiedPlanPath, 'utf8')
+          : null;
+        console.log(JSON.stringify({
+          copiedPlan,
+          ledger,
+          journal,
+          packCalls,
+          planDigest: 'sha256-' + createHash('sha256').update(planBytes).digest('hex'),
+          published,
+          releaseFiles: fs.readdirSync(path.join(repoRoot, '.pkg-nec-release')).sort(),
+          validation,
+        }));
+      `);
+
+      expect(result.packCalls).toEqual([
+        '@pkg-nec/create-jest',
+        '@pkg-nec/jest-phabricator',
+      ]);
+      expect(result.ledger).toMatchObject({
+        releasePlan: {
+          digest: result.planDigest,
+          path: 'docs/releases/pkg-nec-create-jest-v1.1.0-plan.json',
+        },
+        schemaVersion: 2,
+        sourceCommit: '2222222222222222222222222222222222222222',
+      });
+      expect(result.ledger.packages).toEqual([
+        expect.objectContaining({
+          name: '@pkg-nec/create-jest',
+          order: 1,
+          prerequisites: ['@pkg-nec/jest-phabricator'],
+          version: '1.1.0',
+        }),
+        expect.objectContaining({
+          name: '@pkg-nec/jest-phabricator',
+          order: 2,
+          prerequisites: ['@pkg-nec/create-jest'],
+          version: '2.0.1',
+        }),
+      ]);
+      expect(result.validation.packageCount).toBe(2);
+      expect(result.published).toEqual([
+        '@pkg-nec/create-jest',
+        '@pkg-nec/jest-phabricator',
+      ]);
+      expect(result.journal.packages.map(item => item.name)).toEqual(
+        result.published,
+      );
+      expect(result.copiedPlan).toContain('"preparedFrom"');
+      expect(result.releaseFiles).not.toContain(
+        'pkg-nec-jest-test-globals-3.0.0.tgz',
+      );
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+
+  // Mutation caught: trusting checked-out HEAD without binding it to both the
+  // release-event SHA and the resolved release tag, or allowing an older plan.
+  test('binds preparation to the plan-introduction commit on main first-parent history', async () => {
+    const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-binding-'));
+
+    try {
+      const releaseTag = await writeReleasePlanFixture(temporaryRepo, {
+        anchor: {
+          fromVersion: '0.9.0',
+          name: '@pkg-nec/create-jest',
+          toVersion: '1.0.0',
+        },
+        packages: [
+          {
+            bump: 'major',
+            fromVersion: '0.9.0',
+            name: '@pkg-nec/create-jest',
+            path: 'packages/create-jest',
+            toVersion: '1.0.0',
+          },
+        ],
+      });
+      const result = runModuleProgram(`
+        import path from 'node:path';
+        import fs from 'graceful-fs';
+        import {runPrepareReleaseCommand} from ${JSON.stringify(releaseModuleUrl)};
+
+        const repoRoot = ${JSON.stringify(temporaryRepo)};
+        const releaseTag = ${JSON.stringify(releaseTag)};
+        const planPath = 'docs/releases/pkg-nec-create-jest-v1.0.0-plan.json';
+        const sourceCommit = '1111111111111111111111111111111111111111';
+        const firstParent = '2222222222222222222222222222222222222222';
+        const featureParent = '3333333333333333333333333333333333333333';
+        const otherCommit = '4444444444444444444444444444444444444444';
+
+        async function runCase({
+          eventCommit = sourceCommit,
+          headCommit = sourceCommit,
+          parents = [firstParent],
+          planInFirstParent = false,
+          tagCommit = sourceCommit,
+        } = {}) {
+          const gitCalls = [];
+          let message = 'accepted';
+          try {
+            await runPrepareReleaseCommand({
+              args: [releaseTag],
+              audit: () => {throw new Error('binding accepted');},
+              env: {GITHUB_SHA: eventCommit},
+              inventory: {
+                byNewName: new Map(),
+                byOldName: new Map(),
+                packages: [],
+                root: null,
+              },
+              readCommittedFile: async (_root, _commit, file) =>
+                fs.promises.readFile(path.join(repoRoot, ...file.split('/'))),
+              readSourceCommit: async () => headCommit,
+              repoRoot,
+              runGit: async args => {
+                gitCalls.push(args);
+                if (args[0] === 'rev-list' && args[1] === '-n') {
+                  return tagCommit;
+                }
+                if (args[0] === 'rev-list' && args[1] === '--parents') {
+                  return [sourceCommit, ...parents].join(' ');
+                }
+                if (args[0] === 'ls-tree') {
+                  return planInFirstParent ? planPath + '\\n' : '';
+                }
+                return '';
+              },
+            });
+          } catch (error) {
+            message = error.message;
+          }
+          return {gitCalls, message};
+        }
+
+        async function runRetarget() {
+          const packageName = '@pkg-nec/create-jest';
+          const workspace = {
+            directory: path.join(repoRoot, 'packages/create-jest'),
+            manifestPath: path.join(repoRoot, 'packages/create-jest/package.json'),
+            newName: packageName,
+            oldName: packageName,
+            publishable: true,
+            version: '1.0.0',
+          };
+          fs.mkdirSync(workspace.directory, {recursive: true});
+          const manifest = {
+            name: packageName,
+            publishConfig: {access: 'public'},
+            repository: {
+              directory: 'packages/create-jest',
+              url: 'https://github.com/pkg-nec/jest.git',
+            },
+            version: '1.0.0',
+          };
+          fs.writeFileSync(workspace.manifestPath, JSON.stringify(manifest));
+          fs.writeFileSync(
+            path.join(repoRoot, 'package.json'),
+            JSON.stringify({packageManager: 'yarn@4.18.0'}),
+          );
+          fs.writeFileSync(path.join(repoRoot, 'LICENSE'), 'license');
+          const stagingDirectory = path.join(
+            repoRoot,
+            '.pkg-nec-release-stage-retarget',
+          );
+          let tagReads = 0;
+          let message = 'accepted';
+          try {
+            await runPrepareReleaseCommand({
+              args: [releaseTag],
+              audit: () => [],
+              buildGraph: () => new Map([[packageName, new Set()]]),
+              env: {GITHUB_SHA: sourceCommit},
+              inspectTarball: async tarballPath => ({
+                files: tarballPath.includes('.raw-')
+                  ? ['package/package.json']
+                  : ['package/LICENSE', 'package/package.json'],
+                manifest,
+              }),
+              inventory: {
+                byNewName: new Map([[packageName, workspace]]),
+                byOldName: new Map([[packageName, workspace]]),
+                packages: [workspace],
+                root: null,
+              },
+              makeStagingDirectory: async () => {
+                fs.mkdirSync(stagingDirectory);
+                return stagingDirectory;
+              },
+              readCommittedFile: async (_root, _commit, file) =>
+                fs.promises.readFile(path.join(repoRoot, ...file.split('/'))),
+              readSourceCommit: async () => sourceCommit,
+              repackTarball: async ({finalTarballPath}) => {
+                fs.writeFileSync(finalTarballPath, 'final');
+              },
+              repoRoot,
+              runCommand: async (_command, args) => {
+                fs.writeFileSync(args[4], 'raw');
+              },
+              runGit: async args => {
+                if (args[0] === 'rev-list' && args[1] === '-n') {
+                  tagReads += 1;
+                  return tagReads === 1 ? sourceCommit : otherCommit;
+                }
+                if (args[0] === 'rev-list' && args[1] === '--parents') {
+                  return sourceCommit + ' ' + firstParent;
+                }
+                return '';
+              },
+              write: () => {},
+            });
+          } catch (error) {
+            message = error.message;
+          }
+          return {message, tagReads};
+        }
+
+        console.log(JSON.stringify({
+          checkoutMismatch: await runCase({headCommit: otherCommit}),
+          eventMalformed: await runCase({eventCommit: 'not-a-commit'}),
+          eventMismatch: await runCase({eventCommit: otherCommit}),
+          exact: await runCase(),
+          laterCommit: await runCase({planInFirstParent: true}),
+          merge: await runCase({parents: [firstParent, featureParent]}),
+          retarget: await runRetarget(),
+          tagMismatch: await runCase({tagCommit: otherCommit}),
+        }));
+      `);
+
+      expect(result.eventMalformed.message).toBe(
+        'Release event GITHUB_SHA must be a full Git commit',
+      );
+      for (const key of ['checkoutMismatch', 'eventMismatch', 'tagMismatch']) {
+        expect(result[key].message).toBe(
+          'Release event, tag, and checkout commits must match',
+        );
+      }
+      expect(result.laterCommit.message).toBe(
+        'Release plan must be introduced by the release source commit',
+      );
+      expect(result.exact.message).toBe('binding accepted');
+      expect(result.merge.message).toBe('binding accepted');
+      expect(result.retarget).toEqual({
+        message: 'Release source commit changed during preparation',
+        tagReads: 2,
+      });
+      expect(result.merge.gitCalls).toContainEqual([
+        'ls-tree',
+        '--name-only',
+        '2222222222222222222222222222222222222222',
+        '--',
+        'docs/releases/pkg-nec-create-jest-v1.0.0-plan.json',
+      ]);
+      expect(result.merge.gitCalls).not.toContainEqual(
+        expect.arrayContaining(['3333333333333333333333333333333333333333']),
+      );
+    } finally {
+      await rm(temporaryRepo, {force: true, recursive: true});
+    }
+  });
+
   test('packs fixtures with exact Yarn arguments and writes reviewed ledgers safely', async () => {
     const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-pack-'));
 
     try {
+      const releaseTag = await writeReleasePlanFixture(temporaryRepo, {
+        anchor: {
+          fromVersion: '30.4.1',
+          name: '@pkg-nec/jest',
+          toVersion: '30.4.2',
+        },
+        packages: [
+          {
+            bump: 'patch',
+            fromVersion: '30.4.1',
+            name: '@pkg-nec/jest-core',
+            path: 'packages/jest-core',
+            toVersion: '30.4.2',
+          },
+          {
+            bump: 'patch',
+            fromVersion: '30.4.1',
+            name: '@pkg-nec/jest',
+            path: 'packages/jest',
+            toVersion: '30.4.2',
+          },
+        ],
+      });
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
@@ -752,6 +1336,7 @@ describe('pkg-nec release preparation', () => {
         const calls = [];
         const repackCalls = [];
         const ledger = await runPrepareReleaseCommand({
+          args: [${JSON.stringify(releaseTag)}],
           audit: () => [],
           buildGraph: () => graph,
           inspectTarball: async tarballPath => {
@@ -785,15 +1370,18 @@ describe('pkg-nec release preparation', () => {
                     url: 'https://github.com/pkg-nec/jest.git',
                   },
                   version: '30.4.2',
-                },
+              },
             };
           },
+          env: {GITHUB_SHA: '0123456789abcdef0123456789abcdef01234567'},
           inventory,
           makeStagingDirectory: async () => {
             fs.mkdirSync(stagingDirectory);
             return stagingDirectory;
           },
-          readSourceCommit: async () => '0123456789abcdef',
+          readCommittedFile: async (_root, _commit, file) =>
+            fs.promises.readFile(path.join(repoRoot, ...file.split('/'))),
+          readSourceCommit: async () => '0123456789abcdef0123456789abcdef01234567',
           repoRoot,
           repackTarball: async ({
             finalTarballPath,
@@ -827,6 +1415,14 @@ describe('pkg-nec release preparation', () => {
               : path.join(workspaceDirectory, args[4]);
             fs.mkdirSync(path.dirname(packOutput), {recursive: true});
             fs.writeFileSync(packOutput, contents);
+          },
+          runGit: async args => {
+            if (args[0] === 'rev-list' && args[1] === '--parents') {
+              return '0123456789abcdef0123456789abcdef01234567 ' + 'f'.repeat(40);
+            }
+            return args[0] === 'rev-list'
+              ? '0123456789abcdef0123456789abcdef01234567'
+              : '';
           },
           write: () => {},
         });
@@ -894,8 +1490,8 @@ describe('pkg-nec release preparation', () => {
       expect(result.ledger).toMatchObject({
         nodeVersion: process.version,
         packageManager: 'yarn@4.18.0',
-        schemaVersion: 1,
-        sourceCommit: '0123456789abcdef',
+        schemaVersion: 2,
+        sourceCommit: '0123456789abcdef0123456789abcdef01234567',
       });
       expect(result.ledger.packages[0].tarball).toBe(
         '.pkg-nec-release/pkg-nec-jest-core-30.4.2.tgz',
@@ -925,6 +1521,22 @@ describe('pkg-nec release preparation', () => {
     const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-manifest-'));
 
     try {
+      const releaseTag = await writeReleasePlanFixture(temporaryRepo, {
+        anchor: {
+          fromVersion: '0.9.0',
+          name: '@pkg-nec/jest-core',
+          toVersion: '1.0.0',
+        },
+        packages: [
+          {
+            bump: 'major',
+            fromVersion: '0.9.0',
+            name: '@pkg-nec/jest-core',
+            path: 'packages/jest-core',
+            toVersion: '1.0.0',
+          },
+        ],
+      });
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
@@ -963,8 +1575,10 @@ describe('pkg-nec release preparation', () => {
         let message;
         try {
           await runPrepareReleaseCommand({
+            args: [${JSON.stringify(releaseTag)}],
             audit: () => [],
             buildGraph: () => new Map([[packageName, new Set()]]),
+            env: {GITHUB_SHA: '0123456789abcdef0123456789abcdef01234567'},
             inspectTarball: async tarballPath => ({
               files: tarballPath.includes('.raw-')
                 ? ['package/package.json']
@@ -988,10 +1602,21 @@ describe('pkg-nec release preparation', () => {
               return stagingDirectory;
             },
             orderGraph: graph => [...graph.keys()],
+            readCommittedFile: async (_root, _commit, file) =>
+              fs.promises.readFile(path.join(repoRoot, ...file.split('/'))),
+            readSourceCommit: async () => '0123456789abcdef0123456789abcdef01234567',
             repackTarball: async ({finalTarballPath}) => {
               fs.writeFileSync(finalTarballPath, 'final');
             },
             repoRoot,
+            runGit: async args => {
+              if (args[0] === 'rev-list' && args[1] === '--parents') {
+                return '0123456789abcdef0123456789abcdef01234567 ' + 'f'.repeat(40);
+              }
+              return args[0] === 'rev-list'
+                ? '0123456789abcdef0123456789abcdef01234567'
+                : '';
+            },
             runCommand: async (_command, args) => {
               fs.writeFileSync(args[4], 'raw');
             },
@@ -1019,6 +1644,22 @@ describe('pkg-nec release preparation', () => {
     const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-repack-fail-'));
 
     try {
+      const releaseTag = await writeReleasePlanFixture(temporaryRepo, {
+        anchor: {
+          fromVersion: '0.9.0',
+          name: '@pkg-nec/jest-core',
+          toVersion: '1.0.0',
+        },
+        packages: [
+          {
+            bump: 'major',
+            fromVersion: '0.9.0',
+            name: '@pkg-nec/jest-core',
+            path: 'packages/jest-core',
+            toVersion: '1.0.0',
+          },
+        ],
+      });
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
@@ -1060,8 +1701,10 @@ describe('pkg-nec release preparation', () => {
         let message;
         try {
           await runPrepareReleaseCommand({
+            args: [${JSON.stringify(releaseTag)}],
             audit: () => [],
             buildGraph: () => new Map([[packageName, new Set()]]),
+            env: {GITHUB_SHA: '0123456789abcdef0123456789abcdef01234567'},
             inspectTarball: async () => ({
               files: ['package/package.json'],
               manifest: {
@@ -1080,10 +1723,21 @@ describe('pkg-nec release preparation', () => {
               return stagingDirectory;
             },
             orderGraph: graph => [...graph.keys()],
+            readCommittedFile: async (_root, _commit, file) =>
+              fs.promises.readFile(path.join(repoRoot, ...file.split('/'))),
+            readSourceCommit: async () => '0123456789abcdef0123456789abcdef01234567',
             repackTarball: async () => {
               throw new Error('repack failed');
             },
             repoRoot,
+            runGit: async args => {
+              if (args[0] === 'rev-list' && args[1] === '--parents') {
+                return '0123456789abcdef0123456789abcdef01234567 ' + 'f'.repeat(40);
+              }
+              return args[0] === 'rev-list'
+                ? '0123456789abcdef0123456789abcdef01234567'
+                : '';
+            },
             runCommand: async (_command, args) => {
               fs.writeFileSync(args[4], 'raw');
             },
@@ -1117,6 +1771,22 @@ describe('pkg-nec release preparation', () => {
     );
 
     try {
+      const releaseTag = await writeReleasePlanFixture(temporaryRepo, {
+        anchor: {
+          fromVersion: '0.9.0',
+          name: '@pkg-nec/jest-core',
+          toVersion: '1.0.0',
+        },
+        packages: [
+          {
+            bump: 'major',
+            fromVersion: '0.9.0',
+            name: '@pkg-nec/jest-core',
+            path: 'packages/jest-core',
+            toVersion: '1.0.0',
+          },
+        ],
+      });
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
@@ -1162,8 +1832,10 @@ describe('pkg-nec release preparation', () => {
         let message;
         try {
           await runPrepareReleaseCommand({
+            args: [${JSON.stringify(releaseTag)}],
             audit: () => [],
             buildGraph: () => new Map([[packageName, new Set()]]),
+            env: {GITHUB_SHA: '0123456789abcdef0123456789abcdef01234567'},
             inspectTarball: async () => ({
               files: ['package/package.json'],
               manifest: {
@@ -1179,10 +1851,21 @@ describe('pkg-nec release preparation', () => {
             inventory,
             makeStagingDirectory: async () => stagingDirectory,
             orderGraph: graph => [...graph.keys()],
+            readCommittedFile: async (_root, _commit, file) =>
+              fs.promises.readFile(path.join(repoRoot, ...file.split('/'))),
+            readSourceCommit: async () => '0123456789abcdef0123456789abcdef01234567',
             repackTarball: async () => {
               throw new Error('repack failed');
             },
             repoRoot,
+            runGit: async args => {
+              if (args[0] === 'rev-list' && args[1] === '--parents') {
+                return '0123456789abcdef0123456789abcdef01234567 ' + 'f'.repeat(40);
+              }
+              return args[0] === 'rev-list'
+                ? '0123456789abcdef0123456789abcdef01234567'
+                : '';
+            },
             runCommand: async (_command, args) => {
               fs.writeFileSync(args[4], 'raw');
             },
@@ -1208,6 +1891,22 @@ describe('pkg-nec release preparation', () => {
     );
 
     try {
+      const releaseTag = await writeReleasePlanFixture(temporaryRepo, {
+        anchor: {
+          fromVersion: '0.9.0',
+          name: '@pkg-nec/create-jest',
+          toVersion: '1.0.0',
+        },
+        packages: [
+          {
+            bump: 'major',
+            fromVersion: '0.9.0',
+            name: '@pkg-nec/create-jest',
+            path: 'packages/create-jest',
+            toVersion: '1.0.0',
+          },
+        ],
+      });
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
@@ -1222,6 +1921,29 @@ describe('pkg-nec release preparation', () => {
         fs.writeFileSync(
           path.join(repoRoot, 'package.json'),
           JSON.stringify({packageManager: 'yarn@4.18.0'}),
+        );
+        fs.writeFileSync(path.join(repoRoot, 'LICENSE'), 'license');
+        const packageName = '@pkg-nec/create-jest';
+        const workspace = {
+          directory: path.join(repoRoot, 'packages/create-jest'),
+          manifestPath: path.join(repoRoot, 'packages/create-jest/package.json'),
+          newName: packageName,
+          oldName: packageName,
+          publishable: true,
+          version: '1.0.0',
+        };
+        fs.mkdirSync(workspace.directory, {recursive: true});
+        fs.writeFileSync(
+          workspace.manifestPath,
+          JSON.stringify({
+            name: packageName,
+            publishConfig: {access: 'public'},
+            repository: {
+              directory: 'packages/create-jest',
+              url: 'https://github.com/pkg-nec/jest.git',
+            },
+            version: '1.0.0',
+          }),
         );
         fs.mkdirSync(outputDirectory);
         fs.writeFileSync(path.join(outputDirectory, 'previous.txt'), 'previous');
@@ -1243,21 +1965,45 @@ describe('pkg-nec release preparation', () => {
         let diagnostics;
         try {
           await runPrepareReleaseCommand({
+            args: [${JSON.stringify(releaseTag)}],
             audit: () => [],
-            buildGraph: () => new Map(),
+            buildGraph: () => new Map([[packageName, new Set()]]),
+            env: {GITHUB_SHA: '0123456789abcdef0123456789abcdef01234567'},
+            inspectTarball: async tarballPath => ({
+              files: tarballPath.includes('.raw-')
+                ? ['package/package.json']
+                : ['package/LICENSE', 'package/package.json'],
+              manifest: JSON.parse(fs.readFileSync(workspace.manifestPath, 'utf8')),
+            }),
             inventory: {
-              byNewName: new Map(),
-              byOldName: new Map(),
-              packages: [],
+              byNewName: new Map([[packageName, workspace]]),
+              byOldName: new Map([[packageName, workspace]]),
+              packages: [workspace],
               root: null,
             },
             makeStagingDirectory: async () => {
               fs.mkdirSync(stagingDirectory);
               return stagingDirectory;
             },
-            orderGraph: () => [],
-            readSourceCommit: async () => '0123456789abcdef',
+            orderGraph: graph => [...graph.keys()],
+            readCommittedFile: async (_root, _commit, file) =>
+              fs.promises.readFile(path.join(repoRoot, ...file.split('/'))),
+            readSourceCommit: async () => '0123456789abcdef0123456789abcdef01234567',
+            repackTarball: async ({finalTarballPath}) => {
+              fs.writeFileSync(finalTarballPath, 'final');
+            },
             repoRoot,
+            runGit: async args => {
+              if (args[0] === 'rev-list' && args[1] === '--parents') {
+                return '0123456789abcdef0123456789abcdef01234567 ' + 'f'.repeat(40);
+              }
+              return args[0] === 'rev-list'
+                ? '0123456789abcdef0123456789abcdef01234567'
+                : '';
+            },
+            runCommand: async (_command, args) => {
+              fs.writeFileSync(args[4], 'raw');
+            },
             write: () => {},
           });
         } catch (error) {
@@ -1404,6 +2150,22 @@ describe('pkg-nec release preparation', () => {
     );
 
     try {
+      const releaseTag = await writeReleasePlanFixture(temporaryRepo, {
+        anchor: {
+          fromVersion: '0.9.0',
+          name: '@pkg-nec/create-jest',
+          toVersion: '1.0.0',
+        },
+        packages: [
+          {
+            bump: 'major',
+            fromVersion: '0.9.0',
+            name: '@pkg-nec/create-jest',
+            path: 'packages/create-jest',
+            toVersion: '1.0.0',
+          },
+        ],
+      });
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
@@ -1412,20 +2174,48 @@ describe('pkg-nec release preparation', () => {
         const repoRoot = ${JSON.stringify(temporaryRepo)};
         const outsideDirectory = ${JSON.stringify(outsideDirectory)};
         const marker = path.join(outsideDirectory, 'keep.txt');
+        const packageName = '@pkg-nec/create-jest';
+        const workspace = {
+          directory: path.join(repoRoot, 'packages/create-jest'),
+          manifestPath: path.join(repoRoot, 'packages/create-jest/package.json'),
+          newName: packageName,
+          oldName: packageName,
+          publishable: true,
+          version: '1.0.0',
+        };
+        fs.mkdirSync(workspace.directory, {recursive: true});
+        fs.writeFileSync(
+          workspace.manifestPath,
+          JSON.stringify({name: packageName, version: '1.0.0'}),
+        );
         fs.writeFileSync(marker, 'keep');
         let message;
         try {
           await runPrepareReleaseCommand({
+            args: [${JSON.stringify(releaseTag)}],
             audit: () => [],
-            buildGraph: () => new Map(),
+            buildGraph: () => new Map([[packageName, new Set()]]),
+            env: {GITHUB_SHA: '0123456789abcdef0123456789abcdef01234567'},
             inventory: {
-              byNewName: new Map(),
-              byOldName: new Map(),
-              packages: [],
+              byNewName: new Map([[packageName, workspace]]),
+              byOldName: new Map([[packageName, workspace]]),
+              packages: [workspace],
               root: null,
             },
             makeStagingDirectory: async () => outsideDirectory,
+            orderGraph: graph => [...graph.keys()],
+            readCommittedFile: async (_root, _commit, file) =>
+              fs.promises.readFile(path.join(repoRoot, ...file.split('/'))),
+            readSourceCommit: async () => '0123456789abcdef0123456789abcdef01234567',
             repoRoot,
+            runGit: async args => {
+              if (args[0] === 'rev-list' && args[1] === '--parents') {
+                return '0123456789abcdef0123456789abcdef01234567 ' + 'f'.repeat(40);
+              }
+              return args[0] === 'rev-list'
+                ? '0123456789abcdef0123456789abcdef01234567'
+                : '';
+            },
             write: () => {},
           });
         } catch (error) {
@@ -1451,6 +2241,29 @@ describe('pkg-nec release preparation', () => {
     const temporaryRepo = await mkdtemp(join(tmpdir(), 'pkg-nec-stage-'));
 
     try {
+      const releaseTag = await writeReleasePlanFixture(temporaryRepo, {
+        anchor: {
+          fromVersion: '30.4.1',
+          name: '@pkg-nec/jest',
+          toVersion: '30.4.2',
+        },
+        packages: [
+          {
+            bump: 'patch',
+            fromVersion: '30.4.1',
+            name: '@pkg-nec/jest-core',
+            path: 'packages/jest-core',
+            toVersion: '30.4.2',
+          },
+          {
+            bump: 'patch',
+            fromVersion: '30.4.1',
+            name: '@pkg-nec/jest',
+            path: 'packages/jest',
+            toVersion: '30.4.2',
+          },
+        ],
+      });
       const result = runModuleProgram(`
         import path from 'node:path';
         import fs from 'graceful-fs';
@@ -1541,8 +2354,10 @@ describe('pkg-nec release preparation', () => {
           let message;
           try {
             await runPrepareReleaseCommand({
+              args: [${JSON.stringify(releaseTag)}],
               audit: () => [],
               buildGraph: () => graph,
+              env: {GITHUB_SHA: '0123456789abcdef0123456789abcdef01234567'},
               inspectTarball: async tarballPath => ({
                 files: [
                   ...(tarballPath.includes('.raw-') ? [] : ['package/LICENSE']),
@@ -1574,7 +2389,9 @@ describe('pkg-nec release preparation', () => {
                 fs.mkdirSync(stagingDirectory);
                 return stagingDirectory;
               },
-              readSourceCommit: async () => '0123456789abcdef',
+              readCommittedFile: async (_root, _commit, file) =>
+                fs.promises.readFile(path.join(repoRoot, ...file.split('/'))),
+              readSourceCommit: async () => '0123456789abcdef0123456789abcdef01234567',
               repoRoot,
               repackTarball: async ({finalTarballPath}) => {
                 fs.writeFileSync(finalTarballPath, 'final');
@@ -1585,6 +2402,14 @@ describe('pkg-nec release preparation', () => {
                   throw new Error('mid-pack failure');
                 }
                 fs.writeFileSync(args[4], 'archive-' + packCalls);
+              },
+              runGit: async args => {
+                if (args[0] === 'rev-list' && args[1] === '--parents') {
+                  return '0123456789abcdef0123456789abcdef01234567 ' + 'f'.repeat(40);
+                }
+                return args[0] === 'rev-list'
+                  ? '0123456789abcdef0123456789abcdef01234567'
+                  : '';
               },
               write: () => {},
               writeFile: async (filePath, contents) => {

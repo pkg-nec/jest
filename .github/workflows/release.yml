@@ -17,6 +17,15 @@ jobs:
       actions: read
       contents: read
     steps:
+      - name: Reject unstable release event
+        env:
+          RELEASE_DRAFT: ${{ github.event.release.draft }}
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          if [[ "$RELEASE_DRAFT" != "false" || "$RELEASE_PRERELEASE" != "false" ]]; then
+            echo "Only stable GitHub Releases may publish pkg-nec packages" >&2
+            exit 1
+          fi
       - name: Check out the release tag
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -41,7 +50,9 @@ jobs:
       - name: Run focused release tooling tests
         run: yarn run test:pkg-nec-tooling
       - name: Prepare release candidate
-        run: yarn prepare:pkg-nec-release
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: yarn prepare:pkg-nec-release "$RELEASE_TAG"
       - name: Validate release candidate
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -86,8 +97,10 @@ jobs:
           name: pkg-nec-release-candidate
           path: .pkg-nec-release
       - name: Publish in ledger order with strict resumption
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: >-
-          yarn publish:pkg-nec-release .pkg-nec-release/release-ledger.json .pkg-nec-release/publication-journal.json '${{ github.event.release.tag_name }}'
+          yarn publish:pkg-nec-release .pkg-nec-release/release-ledger.json .pkg-nec-release/publication-journal.json "$RELEASE_TAG"
 
 
       - name: Summarize publication progress
@@ -191,23 +204,49 @@ jobs:
           name: pkg-nec-registry-evidence
           path: .pkg-nec-release
       - name: Write workflow summary
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           mkdir -p .pkg-nec-release
-          cat > .pkg-nec-release/workflow-summary.md <<'SUMMARY'
-          # pkg-nec release workflow evidence
-
-          - Release tag: `${{ github.event.release.tag_name }}`
+          {
+            printf '# pkg-nec release workflow evidence\n\n'
+            printf -- '- Release tag: `%s`\n' "$RELEASE_TAG"
+            cat <<'SUMMARY'
           - Source workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           - Validate job: `${{ needs.validate.result }}`
           - Publish job: `${{ needs.publish.result }}`
           - Verify job: `${{ needs.verify.result }}`
           SUMMARY
+          } > .pkg-nec-release/workflow-summary.md
       - name: Attach durable release evidence
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           assets=(.pkg-nec-release/workflow-summary.md)
+          if [[ -f .pkg-nec-release/release-ledger.json ]]; then
+            plan_path="$(jq -er '.releasePlan.path | select(type == "string")' .pkg-nec-release/release-ledger.json)"
+            plan_digest="$(jq -er '.releasePlan.digest | select(test("^sha256-[0-9a-f]{64}$"))' .pkg-nec-release/release-ledger.json)"
+            plan_basename="${plan_path##*/}"
+            if ! [[ "$plan_path" == "docs/releases/$plan_basename" ]] ||
+              [[ -z "$plan_basename" || "$plan_basename" == "." || "$plan_basename" == ".." ]] ||
+              [[ "$plan_basename" == *[!a-zA-Z0-9._-]* ]]
+            then
+              echo "Invalid release plan asset path" >&2
+              exit 1
+            fi
+            plan_asset=".pkg-nec-release/$plan_basename"
+            if [[ ! -f "$plan_asset" ]]; then
+              echo "Missing copied release plan asset" >&2
+              exit 1
+            fi
+            actual_plan_digest="sha256-$(sha256sum "$plan_asset" | awk '{print $1}')"
+            if [[ "$actual_plan_digest" != "$plan_digest" ]]; then
+              echo "Copied release plan digest mismatch" >&2
+              exit 1
+            fi
+            assets+=("$plan_asset")
+          fi
           for asset in \
             .pkg-nec-release/release-ledger.json \
             .pkg-nec-release/release-ledger.md \

@@ -6,8 +6,13 @@
  */
 
 import semver from 'semver';
+import {
+  componentReleaseOrder,
+  stronglyConnectedReleaseComponents,
+} from './releaseGraph.mjs';
+import {releasePlanPathFromTag} from './releasePlanSchema.mjs';
 
-const ledgerFields = new Set([
+const schemaOneLedgerFields = new Set([
   'generatedAt',
   'nodeVersion',
   'packageManager',
@@ -15,6 +20,11 @@ const ledgerFields = new Set([
   'schemaVersion',
   'sourceCommit',
 ]);
+const schemaTwoLedgerFields = new Set([
+  ...schemaOneLedgerFields,
+  'releasePlan',
+]);
+const releasePlanFields = new Set(['digest', 'path']);
 const packageFields = new Set([
   'files',
   'integrity',
@@ -64,8 +74,43 @@ function validStringArray(value) {
   );
 }
 
+function validateLedgerReleasePlan({releasePlan, releaseTag}) {
+  if (
+    !releasePlan ||
+    typeof releasePlan !== 'object' ||
+    Array.isArray(releasePlan)
+  ) {
+    throw new TypeError('Invalid release ledger releasePlan');
+  }
+  const extraField = unexpectedField(releasePlan, releasePlanFields);
+  if (extraField) {
+    throw new Error(`Unexpected release plan field: ${extraField}`);
+  }
+  const missingField = [...releasePlanFields].find(
+    field => !(field in releasePlan),
+  );
+  if (missingField) {
+    throw new Error(`Missing release plan field: ${missingField}`);
+  }
+  if (!/^sha256-[0-9a-f]{64}$/u.test(releasePlan.digest)) {
+    throw new Error('Invalid release plan digest');
+  }
+  let expectedPath;
+  try {
+    expectedPath = releasePlanPathFromTag(releaseTag);
+  } catch {
+    throw new Error('Invalid release plan path');
+  }
+  if (releasePlan.path !== expectedPath) {
+    throw new Error('Invalid release plan path');
+  }
+}
+
 export function validateReleaseLedger({ledger, releaseTag}) {
-  if (ledger?.schemaVersion !== 1) {
+  if (ledger?.schemaVersion !== 1 && ledger?.schemaVersion !== 2) {
+    throw new Error('Unsupported release ledger schema');
+  }
+  if (ledger.schemaVersion === 2 && !('releasePlan' in ledger)) {
     throw new Error('Unsupported release ledger schema');
   }
   if (!Array.isArray(ledger.packages)) {
@@ -77,9 +122,20 @@ export function validateReleaseLedger({ledger, releaseTag}) {
   if (!/^[0-9a-f]{40}$/iu.test(ledger.sourceCommit)) {
     throw new Error('Release ledger source commit must be a full Git commit');
   }
+  const ledgerFields =
+    ledger.schemaVersion === 2 ? schemaTwoLedgerFields : schemaOneLedgerFields;
   const extraLedgerField = unexpectedField(ledger, ledgerFields);
   if (extraLedgerField) {
     throw new Error(`Unexpected release ledger field: ${extraLedgerField}`);
+  }
+  if (ledger.schemaVersion === 2) {
+    const missingLedgerField = [...ledgerFields].find(
+      field => !(field in ledger),
+    );
+    if (missingLedgerField) {
+      throw new Error(`Missing release ledger field: ${missingLedgerField}`);
+    }
+    validateLedgerReleasePlan({releasePlan: ledger.releasePlan, releaseTag});
   }
   for (const metadataField of [
     'generatedAt',
@@ -141,11 +197,62 @@ export function validateReleaseLedger({ledger, releaseTag}) {
       throw new Error(`Invalid release ledger integrity for ${entry.name}`);
     }
   }
+  const orderByName = new Map(
+    ledger.packages.map(entry => [entry.name, entry.order]),
+  );
   for (const entry of ledger.packages) {
     for (const prerequisite of entry.prerequisites) {
       if (!names.has(prerequisite)) {
         throw new Error(
           `Unknown release prerequisite ${prerequisite} for ${entry.name}`,
+        );
+      }
+    }
+  }
+  if (ledger.schemaVersion === 2) {
+    const graph = new Map(
+      ledger.packages.map(entry => [entry.name, new Set(entry.prerequisites)]),
+    );
+    const components = stronglyConnectedReleaseComponents(graph);
+    const componentByName = new Map();
+    for (const [index, component] of components.entries()) {
+      for (const name of component) componentByName.set(name, index);
+    }
+    const actualOrder = ledger.packages.map(entry => entry.name);
+    for (const entry of ledger.packages) {
+      for (const prerequisite of entry.prerequisites) {
+        if (
+          componentByName.get(prerequisite) !==
+            componentByName.get(entry.name) &&
+          orderByName.get(prerequisite) >= entry.order
+        ) {
+          throw new Error(
+            `Release prerequisite ${prerequisite} must precede ${entry.name}`,
+          );
+        }
+      }
+    }
+    for (const component of components) {
+      const members = actualOrder.filter(name => component.includes(name));
+      if (members.some((name, index) => name !== component[index])) {
+        throw new Error(
+          'Release ledger component packages must be in lexical order',
+        );
+      }
+    }
+    const expectedOrder = componentReleaseOrder(graph);
+    if (expectedOrder.some((name, index) => name !== actualOrder[index])) {
+      throw new Error(
+        'Release ledger packages must follow component release order',
+      );
+    }
+    return;
+  }
+  for (const entry of ledger.packages) {
+    for (const prerequisite of entry.prerequisites) {
+      if (orderByName.get(prerequisite) >= entry.order) {
+        throw new Error(
+          `Release prerequisite ${prerequisite} must precede ${entry.name}`,
         );
       }
     }

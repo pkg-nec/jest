@@ -6,6 +6,7 @@
  */
 
 import fs from 'graceful-fs';
+import {componentReleaseOrder} from './releaseGraph.mjs';
 
 const dependencyFields = [
   'dependencies',
@@ -150,28 +151,13 @@ export function selectedReleaseOrder({graph, selectedNames}) {
     }
   }
 
-  const emitted = new Set();
-  const order = [];
-  while (order.length < selected.size) {
-    const next = [...selected]
-      .filter(
-        name =>
-          !emitted.has(name) &&
-          [...graph.get(name)].every(
-            dependency => !selected.has(dependency) || emitted.has(dependency),
-          ),
-      )
-      .sort(compare)[0];
-    if (next === undefined) {
-      const remaining = [...selected]
-        .filter(name => !emitted.has(name))
-        .sort(compare);
-      throw new Error(
-        `Detected workspace cycle among: ${remaining.join(', ')}`,
-      );
-    }
-    emitted.add(next);
-    order.push(next);
-  }
-  return order;
+  const inducedGraph = new Map(
+    [...selected].map(name => [
+      name,
+      new Set(
+        [...graph.get(name)].filter(dependency => selected.has(dependency)),
+      ),
+    ]),
+  );
+  return componentReleaseOrder(inducedGraph);
 }

@@ -42,12 +42,19 @@ function stateEntry(name, order, version) {
   };
 }
 const ledger = {
+  generatedAt: '2026-08-19T12:34:56.000Z',
+  nodeVersion: 'v22.23.1',
+  packageManager: 'yarn@4.18.0',
   packages: [
     stateEntry('@pkg-nec/a', 1, '1.0.0'),
     stateEntry('@pkg-nec/b', 2, '2.0.0'),
     stateEntry('@pkg-nec/c', 3, '3.0.0'),
   ],
-  schemaVersion: 1,
+  releasePlan: {
+    digest: `sha256-${'a'.repeat(64)}`,
+    path: 'docs/releases/pkg-nec-jest-v30.4.3-plan.json',
+  },
+  schemaVersion: 2,
   sourceCommit: '0123456789abcdef0123456789abcdef01234567',
 };
 
@@ -237,7 +244,7 @@ function runDeferredProgressScenario({rejectProgress = false} = {}) {
           publish: async entry => {
             events.push({kind: 'publish', name: entry.name});
           },
-          releaseTag: '@pkg-nec/a-v1.0.0',
+          releaseTag: '@pkg-nec/jest-v30.4.3',
           verifyConflict: async () => {
             throw new Error('unexpected conflict verification');
           },
@@ -311,6 +318,36 @@ test('propagates deferred progress rejection after persistence and stops publica
 function scenario(overrides = {}) {
   return {ledger, releaseTag: '@pkg-nec/jest-v30.4.3', ...overrides};
 }
+
+test('rejects a schema-2 consumer interleaved inside its prerequisite component', () => {
+  const result = runPublisherScenario(
+    scenario({
+      ledger: {
+        ...ledger,
+        packages: [
+          {
+            ...stateEntry('@pkg-nec/a', 1, '1.0.0'),
+            prerequisites: ['@pkg-nec/b'],
+          },
+          {
+            ...stateEntry('@pkg-nec/c', 2, '3.0.0'),
+            prerequisites: ['@pkg-nec/a'],
+          },
+          {
+            ...stateEntry('@pkg-nec/b', 3, '2.0.0'),
+            prerequisites: ['@pkg-nec/a'],
+          },
+        ],
+      },
+    }),
+  );
+
+  expect(result.error).toBe(
+    'Release ledger packages must follow component release order',
+  );
+  expect(result.events).toEqual([]);
+  expect(result.persisted).toEqual([]);
+});
 
 function writeTarChecksum(header) {
   header.fill(0x20, 148, 156);
@@ -388,7 +425,10 @@ function runCommandFixture({
     const sourceManifest = sourceMutate(
       {
         dependencies: definition.dependencies,
+        devDependencies: definition.devDependencies,
         name: definition.name,
+        optionalDependencies: definition.optionalDependencies,
+        peerDependencies: definition.peerDependencies,
         publishConfig: {access: 'public'},
         repository,
         version: definition.version,
@@ -427,9 +467,25 @@ function runCommandFixture({
         .digest('base64')}`,
       name: definition.name,
       order: index + 1,
-      prerequisites: Object.keys(definition.dependencies).filter(name =>
-        packages.some(item => item.name === name || item.oldName === name),
-      ),
+      prerequisites: [
+        ...new Set(
+          [
+            'dependencies',
+            'devDependencies',
+            'optionalDependencies',
+            'peerDependencies',
+          ].flatMap(field =>
+            Object.entries(definition[field] ?? {})
+              .filter(([, value]) => String(value).startsWith('workspace:'))
+              .map(([name]) => name)
+              .filter(name =>
+                packages.some(
+                  item => item.name === name || item.oldName === name,
+                ),
+              ),
+          ),
+        ),
+      ].sort((left, right) => left.localeCompare(right)),
       tarball: tarballRelative,
       version: definition.version,
     });
@@ -844,7 +900,7 @@ test('propagates a publish failure and stops before the next ledger entry', () =
 
 test('rejects invalid ledgers before invoking any adapter', () => {
   const invalidLedgers = [
-    [{...ledger, schemaVersion: 2}, 'Unsupported release ledger schema'],
+    [{...ledger, schemaVersion: 3}, 'Unsupported release ledger schema'],
     [{...ledger, packages: {}}, 'Release ledger packages must be an array'],
     [
       {...ledger, sourceCommit: '0123456789abcdef'},
@@ -935,12 +991,36 @@ test('rejects invalid ledgers before invoking any adapter', () => {
     expect(result.events).toEqual([]);
   }
 
+  const invalidReleasePlans = [
+    [{...ledger, releasePlan: undefined}, 'Unsupported release ledger schema'],
+    [
+      {...ledger, releasePlan: {...ledger.releasePlan, extra: true}},
+      'Unexpected release plan field: extra',
+    ],
+    [
+      {...ledger, releasePlan: {...ledger.releasePlan, digest: 'sha256-bad'}},
+      'Invalid release plan digest',
+    ],
+    [
+      {
+        ...ledger,
+        releasePlan: {...ledger.releasePlan, path: '../hostile-plan.json'},
+      },
+      'Invalid release plan path',
+    ],
+  ];
+  for (const [invalidLedger, message] of invalidReleasePlans) {
+    const result = runPublisherScenario(scenario({ledger: invalidLedger}));
+    expect(result.error).toBe(message);
+    expect(result.events).toEqual([]);
+  }
+
   const result = runPublisherScenario(scenario({releaseTag: ''}));
   expect(result.error).toBe('Release tag is required');
   expect(result.events).toEqual([]);
 });
 
-test('accepts legitimate schema-v1 release metadata fields', () => {
+test('accepts a two-package schema-v2 ledger with release-plan metadata', () => {
   const result = runPublisherScenario(
     scenario({
       ledger: {
@@ -948,12 +1028,13 @@ test('accepts legitimate schema-v1 release metadata fields', () => {
         generatedAt: '2026-08-19T12:34:56.000Z',
         nodeVersion: 'v22.23.1',
         packageManager: 'yarn@4.18.0',
+        packages: ledger.packages.slice(0, 2),
       },
     }),
   );
 
   expect(result.error).toBeUndefined();
-  expect(result.journal.packages).toHaveLength(3);
+  expect(result.journal.packages).toHaveLength(2);
 });
 
 test('npm adapters use the exact public registry arguments and redact failures', () => {
@@ -1135,6 +1216,340 @@ test('publisher preflights tag, packed metadata, bytes, and order before side ef
   }
 });
 
+// Mutation caught: applying schema-2's four-field workspace graph to a
+// historical schema-1 ledger whose preparation recorded runtime edges only.
+test('publisher preserves dependencies-only graph semantics for schema-1 ledgers', () => {
+  const packages = [
+    {
+      dependencies: {},
+      directory: 'packages/a',
+      name: '@pkg-nec/a',
+      oldName: '@jest/a',
+      version: '1.0.0',
+    },
+    {
+      dependencies: {'@pkg-nec/a': '1.0.0'},
+      devDependencies: {'@pkg-nec/z': 'workspace:*'},
+      directory: 'packages/b',
+      name: '@pkg-nec/b',
+      oldName: '@jest/b',
+      version: '2.0.0',
+    },
+    {
+      dependencies: {},
+      directory: 'packages/z',
+      name: '@pkg-nec/z',
+      oldName: '@jest/z',
+      version: '3.0.0',
+    },
+  ];
+  const legacyLedger = value => ({
+    ...value,
+    packages: value.packages.map(entry =>
+      entry.name === '@pkg-nec/b'
+        ? {...entry, prerequisites: ['@pkg-nec/a']}
+        : entry,
+    ),
+  });
+  const packedMutate = manifest => {
+    if (manifest.devDependencies?.['@pkg-nec/z'] === 'workspace:*') {
+      manifest.devDependencies['@pkg-nec/z'] = '3.0.0';
+    }
+    return manifest;
+  };
+
+  const accepted = runCommandFixture({
+    ledgerMutate: legacyLedger,
+    packages,
+    packedMutate,
+  });
+  expect(accepted.error).toBeUndefined();
+  expect(accepted.journal.packages.map(item => item.name)).toEqual([
+    '@pkg-nec/a',
+    '@pkg-nec/b',
+    '@pkg-nec/z',
+  ]);
+  expect(accepted.events).toEqual(
+    expect.arrayContaining([
+      'npm-publish:@pkg-nec/a',
+      'npm-publish:@pkg-nec/b',
+      'npm-publish:@pkg-nec/z',
+    ]),
+  );
+
+  const missingRuntimeEdge = runCommandFixture({
+    ledgerMutate: value => {
+      const ledger = legacyLedger(value);
+      ledger.packages[1] = {...ledger.packages[1], prerequisites: []};
+      return ledger;
+    },
+    packages,
+    packedMutate,
+  });
+  expect(missingRuntimeEdge.error).toBe(
+    'Release prerequisites changed for @pkg-nec/b',
+  );
+
+  const wrongRuntimeOrder = runCommandFixture({
+    ledgerMutate: value => {
+      const ledger = legacyLedger(value);
+      ledger.packages = [
+        ledger.packages[1],
+        ledger.packages[0],
+        ledger.packages[2],
+      ].map((entry, index) => ({...entry, order: index + 1}));
+      return ledger;
+    },
+    packages,
+    packedMutate,
+  });
+  expect(wrongRuntimeOrder.error).toBe(
+    'Release prerequisite @pkg-nec/a must precede @pkg-nec/b',
+  );
+  for (const result of [missingRuntimeEdge, wrongRuntimeOrder]) {
+    expect(result.events).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^(?:npm-|rename:|write-file:)/u),
+      ]),
+    );
+  }
+});
+
+// Mutation caught: reconstructing publication prerequisites from only
+// dependencies while preparation uses all four workspace dependency fields.
+test('publisher accepts a four-field selected graph and rejects missing edges or order', () => {
+  const packages = [
+    {
+      dependencies: {},
+      directory: 'packages/a',
+      name: '@pkg-nec/a',
+      oldName: '@jest/a',
+      version: '1.0.0',
+    },
+    {
+      dependencies: {},
+      directory: 'packages/b',
+      name: '@pkg-nec/b',
+      oldName: '@jest/b',
+      version: '2.0.0',
+    },
+    {
+      dependencies: {},
+      directory: 'packages/c',
+      name: '@pkg-nec/c',
+      oldName: '@jest/c',
+      version: '3.0.0',
+    },
+    {
+      dependencies: {},
+      devDependencies: {'@pkg-nec/a': 'workspace:*'},
+      directory: 'packages/d',
+      name: '@pkg-nec/d',
+      oldName: '@jest/d',
+      optionalDependencies: {'@pkg-nec/c': 'workspace:^'},
+      peerDependencies: {'@pkg-nec/b': 'workspace:~'},
+      version: '4.0.0',
+    },
+    {
+      dependencies: {'@pkg-nec/d': 'workspace:*'},
+      directory: 'packages/e',
+      name: '@pkg-nec/e',
+      oldName: '@jest/e',
+      version: '5.0.0',
+    },
+  ];
+  const versions = new Map(packages.map(item => [item.name, item.version]));
+  const packedMutate = manifest => {
+    for (const field of [
+      'dependencies',
+      'devDependencies',
+      'optionalDependencies',
+      'peerDependencies',
+    ]) {
+      for (const [name, value] of Object.entries(manifest[field] ?? {})) {
+        if (String(value).startsWith('workspace:')) {
+          const protocol = String(value).slice('workspace:'.length);
+          manifest[field][name] =
+            protocol === '*'
+              ? versions.get(name)
+              : `${protocol}${versions.get(name)}`;
+        }
+      }
+    }
+    return manifest;
+  };
+  const selectiveLedger = value => ({
+    generatedAt: '2026-08-21T00:00:00.000Z',
+    nodeVersion: 'v24.18.0',
+    packageManager: 'yarn@4.18.0',
+    packages: value.packages.slice(0, 4),
+    releasePlan: {
+      digest: `sha256-${'a'.repeat(64)}`,
+      path: 'docs/releases/pkg-nec-a-v1.0.0-plan.json',
+    },
+    schemaVersion: 2,
+    sourceCommit: value.sourceCommit,
+  });
+
+  const accepted = runCommandFixture({
+    ledgerMutate: selectiveLedger,
+    packages,
+    packedMutate,
+  });
+  expect(accepted.error).toBeUndefined();
+  expect(accepted.events).toEqual(
+    expect.arrayContaining([
+      'npm-view:@pkg-nec/a',
+      'npm-publish:@pkg-nec/a',
+      'npm-view:@pkg-nec/b',
+      'npm-publish:@pkg-nec/b',
+      'npm-view:@pkg-nec/c',
+      'npm-publish:@pkg-nec/c',
+      'npm-view:@pkg-nec/d',
+      'npm-publish:@pkg-nec/d',
+    ]),
+  );
+  expect(accepted.events).not.toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(/^npm-(?:view|publish):@pkg-nec\/e$/u),
+    ]),
+  );
+  expect(accepted.journal.packages.map(item => item.name)).toEqual([
+    '@pkg-nec/a',
+    '@pkg-nec/b',
+    '@pkg-nec/c',
+    '@pkg-nec/d',
+  ]);
+
+  const missingEdge = runCommandFixture({
+    ledgerMutate: value => {
+      const ledger = selectiveLedger(value);
+      ledger.packages[3] = {
+        ...ledger.packages[3],
+        prerequisites: ['@pkg-nec/a', '@pkg-nec/b'],
+      };
+      return ledger;
+    },
+    packages,
+    packedMutate,
+  });
+  expect(missingEdge.error).toBe(
+    'Release prerequisites changed for @pkg-nec/d',
+  );
+
+  const wrongOrder = runCommandFixture({
+    ledgerMutate: value => {
+      const ledger = selectiveLedger(value);
+      ledger.packages = [
+        ledger.packages[0],
+        ledger.packages[1],
+        ledger.packages[3],
+        ledger.packages[2],
+      ].map((entry, index) => ({...entry, order: index + 1}));
+      return ledger;
+    },
+    packages,
+    packedMutate,
+  });
+  expect(wrongOrder.error).toBe(
+    'Release prerequisite @pkg-nec/c must precede @pkg-nec/d',
+  );
+  for (const result of [missingEdge, wrongOrder]) {
+    expect(result.events).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^(?:npm-|rename:|write-file:)/u),
+      ]),
+    );
+  }
+});
+
+test('publisher preflight accepts cyclic schema-2 prerequisites in component order', () => {
+  const packages = [
+    {
+      dependencies: {},
+      devDependencies: {'@pkg-nec/b': 'workspace:*'},
+      directory: 'packages/a',
+      name: '@pkg-nec/a',
+      oldName: '@jest/a',
+      version: '1.0.0',
+    },
+    {
+      dependencies: {},
+      directory: 'packages/b',
+      name: '@pkg-nec/b',
+      oldName: '@jest/b',
+      peerDependencies: {'@pkg-nec/a': 'workspace:*'},
+      version: '2.0.0',
+    },
+    {
+      dependencies: {},
+      directory: 'packages/c',
+      name: '@pkg-nec/c',
+      oldName: '@jest/c',
+      optionalDependencies: {'@pkg-nec/b': 'workspace:*'},
+      version: '3.0.0',
+    },
+    {
+      dependencies: {},
+      devDependencies: {'@pkg-nec/z': 'workspace:*'},
+      directory: 'packages/z',
+      name: '@pkg-nec/z',
+      oldName: '@jest/z',
+      version: '4.0.0',
+    },
+  ];
+  const versions = new Map(packages.map(item => [item.name, item.version]));
+  const packedMutate = manifest => {
+    for (const field of [
+      'dependencies',
+      'devDependencies',
+      'optionalDependencies',
+      'peerDependencies',
+    ]) {
+      for (const [name, value] of Object.entries(manifest[field] ?? {})) {
+        if (String(value).startsWith('workspace:')) {
+          manifest[field][name] = versions.get(name);
+        }
+      }
+    }
+    return manifest;
+  };
+  const ledgerMutate = value => ({
+    generatedAt: '2026-08-21T00:00:00.000Z',
+    nodeVersion: 'v24.18.0',
+    packageManager: 'yarn@4.18.0',
+    packages: value.packages,
+    releasePlan: {
+      digest: `sha256-${'a'.repeat(64)}`,
+      path: 'docs/releases/pkg-nec-a-v1.0.0-plan.json',
+    },
+    schemaVersion: 2,
+    sourceCommit: value.sourceCommit,
+  });
+
+  const result = runCommandFixture({
+    ledgerMutate,
+    packages,
+    packedMutate,
+  });
+
+  expect(result.error).toBeUndefined();
+  expect(result.journal.packages.map(item => item.name)).toEqual([
+    '@pkg-nec/a',
+    '@pkg-nec/b',
+    '@pkg-nec/c',
+    '@pkg-nec/z',
+  ]);
+  expect(result.events).toEqual(
+    expect.arrayContaining([
+      'npm-publish:@pkg-nec/a',
+      'npm-publish:@pkg-nec/b',
+      'npm-publish:@pkg-nec/c',
+      'npm-publish:@pkg-nec/z',
+    ]),
+  );
+});
+
 // Mutation caught: emitting package progress or final aggregate output after a
 // completed journal write has failed to promote.
 test('publisher writes no terminal output when package journal promotion fails', () => {
@@ -1229,7 +1644,7 @@ test('publisher rejects transported packed metadata mutations before journaling 
   const wrongOrder = runCommandFixture({
     packages: [
       {
-        dependencies: {'@pkg-nec/b': '2.0.0'},
+        dependencies: {'@pkg-nec/b': 'workspace:*'},
         directory: 'packages/a',
         name: '@pkg-nec/a',
         oldName: '@jest/a',
@@ -1245,7 +1660,7 @@ test('publisher rejects transported packed metadata mutations before journaling 
     ],
   });
   expect(wrongOrder.error).toBe(
-    'Release ledger is not in dependency-first order',
+    'Release prerequisite @pkg-nec/b must precede @pkg-nec/a',
   );
   expect(wrongOrder.events).not.toEqual(
     expect.arrayContaining([
