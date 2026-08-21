@@ -29,11 +29,11 @@ const githubHostedBuilderIdentity =
   'https://github.com/actions/runner/github-hosted';
 const requiredCertificateOids = [
   {
-    id: [1, 3, 6, 1, 4, 1, 57264, 1, 11],
+    id: [1, 3, 6, 1, 4, 1, 57_264, 1, 11],
     value: Buffer.from('0c0d6769746875622d686f73746564', 'hex'),
   },
   {
-    id: [1, 3, 6, 1, 4, 1, 57264, 1, 22],
+    id: [1, 3, 6, 1, 4, 1, 57_264, 1, 22],
     value: Buffer.from('0c067075626c6963', 'hex'),
   },
 ];

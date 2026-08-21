@@ -275,8 +275,8 @@ function runValidation(
       metadata,
       releaseTag,
       sourceCommit,
-      verifyError,
       verifiedSigner,
+      verifyError,
     },
   );
 }
