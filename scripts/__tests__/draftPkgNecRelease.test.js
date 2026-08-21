@@ -52,6 +52,17 @@ function plan() {
 }
 
 function completedRelease() {
+  return {
+    assets: releaseAssetFixtures().map(({name, url}) => ({name, url})),
+    draft: false,
+    html_url: `https://github.com/pkg-nec/jest/releases/tag/${baselineTag}`,
+    prerelease: false,
+    published_at: '2026-08-20T00:00:00.000Z',
+    tag_name: baselineTag,
+  };
+}
+
+function releaseAssetFixtures() {
   const packages = [{name: '@pkg-nec/jest', order: 1, version: '30.4.3'}];
   const evidence = {
     packages,
@@ -60,32 +71,33 @@ function completedRelease() {
     sourceCommit: baselineCommit,
   };
   const runUrl = 'https://github.com/pkg-nec/jest/actions/runs/100';
-  return {
-    assets: [
-      {
-        content:
-          '# pkg-nec release workflow evidence\n\n' +
-          `- Release tag: \`${baselineTag}\`\n` +
-          `- Source workflow run: ${runUrl}\n` +
-          '- Validate job: `success`\n' +
-          '- Publish job: `success`\n' +
-          '- Verify job: `success`\n',
-        name: 'workflow-summary.md',
-      },
-      {
-        content: {packages, schemaVersion: 1, sourceCommit: baselineCommit},
-        name: 'release-ledger.json',
-      },
-      {content: evidence, name: 'publication-journal.json'},
-      {content: evidence, name: 'registry-evidence.json'},
-      {content: evidence, name: 'provenance-evidence.json'},
-    ],
-    draft: false,
-    html_url: `https://github.com/pkg-nec/jest/releases/tag/${baselineTag}`,
-    prerelease: false,
-    published_at: '2026-08-20T00:00:00.000Z',
-    tag_name: baselineTag,
-  };
+  const contents = [
+    {
+      content:
+        '# pkg-nec release workflow evidence\n\n' +
+        `- Release tag: \`${baselineTag}\`\n` +
+        `- Source workflow run: ${runUrl}\n` +
+        '- Validate job: `success`\n' +
+        '- Publish job: `success`\n' +
+        '- Verify job: `success`\n',
+      name: 'workflow-summary.md',
+    },
+    {
+      content: JSON.stringify({
+        packages,
+        schemaVersion: 1,
+        sourceCommit: baselineCommit,
+      }),
+      name: 'release-ledger.json',
+    },
+    {content: JSON.stringify(evidence), name: 'publication-journal.json'},
+    {content: JSON.stringify(evidence), name: 'registry-evidence.json'},
+    {content: JSON.stringify(evidence), name: 'provenance-evidence.json'},
+  ];
+  return contents.map((asset, index) => ({
+    ...asset,
+    url: `https://api.github.com/repos/pkg-nec/jest/releases/assets/${index + 1}`,
+  }));
 }
 
 function releaseRun() {
@@ -116,6 +128,13 @@ const releaseEndpoint = 'repos/pkg-nec/jest/releases?per_page=100';
 const releaseRunsEndpoint =
   'repos/pkg-nec/jest/actions/workflows/release.yml/runs?per_page=100';
 const nodeRunsEndpoint = `repos/pkg-nec/jest/actions/workflows/nodejs.yml/runs?event=push&branch=main&head_sha=${introductionCommit}&status=completed&per_page=100`;
+const releaseAssetEvents = [
+  'gh api release asset workflow-summary.md',
+  'gh api release asset release-ledger.json',
+  'gh api release asset publication-journal.json',
+  'gh api release asset registry-evidence.json',
+  'gh api release asset provenance-evidence.json',
+];
 
 const keyOrder = [
   'git status --porcelain',
@@ -125,6 +144,7 @@ const keyOrder = [
   'gh auth status',
   'gh repo view --json nameWithOwner',
   'gh api releases',
+  ...releaseAssetEvents,
   'git log introduction commit',
   'git show introduction plan',
   'git merge-base --is-ancestor introduction origin/main',
@@ -145,6 +165,7 @@ const preCreationFailurePoints = [
   'gh repo view --json nameWithOwner',
   'gh api releases',
   'gh api release runs',
+  ...releaseAssetEvents,
   'git list release tags',
   'git resolve baseline tag',
   'git list tracked plans',
@@ -177,6 +198,7 @@ function runScenario({
     planPath,
     planTag,
     planText,
+    releaseAssetFixtures: releaseAssetFixtures(),
     releaseEndpoint,
     releaseRunsEndpoint,
     tagCommit,
@@ -267,6 +289,16 @@ function runScenario({
           if (command === 'api --paginate --slurp ' + settings.releaseRunsEndpoint) {
             record('gh api release runs');
             return JSON.stringify([{workflow_runs: [releaseRun]}]);
+          }
+          const releaseAsset = settings.releaseAssetFixtures.find(
+            asset =>
+              command ===
+              'api ' + asset.url +
+                ' --header Accept: application/octet-stream',
+          );
+          if (releaseAsset) {
+            record('gh api release asset ' + releaseAsset.name);
+            return releaseAsset.content;
           }
           if (command === 'api --paginate --slurp ' + settings.nodeRunsEndpoint) {
             record('gh api exact Node runs');

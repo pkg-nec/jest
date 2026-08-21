@@ -5,13 +5,54 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-let renderDraftRelease;
-let validateReleasePlan;
+const {spawnSync} = require('node:child_process');
+const path = require('node:path');
+const {pathToFileURL} = require('node:url');
 
-beforeAll(async () => {
-  ({renderDraftRelease} = await import('../pkgNec/draftReleaseNotes.mjs'));
-  ({validateReleasePlan} = await import('../pkgNec/releasePlanSchema.mjs'));
-});
+const rendererUrl = pathToFileURL(
+  path.join(process.cwd(), 'scripts/pkgNec/draftReleaseNotes.mjs'),
+).href;
+const schemaUrl = pathToFileURL(
+  path.join(process.cwd(), 'scripts/pkgNec/releasePlanSchema.mjs'),
+).href;
+
+function runModule({operation, plan, sourceCommit}) {
+  const child = spawnSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '--eval',
+      `
+        import {renderDraftRelease} from ${JSON.stringify(rendererUrl)};
+        import {validateReleasePlan} from ${JSON.stringify(schemaUrl)};
+        try {
+          const value = ${JSON.stringify(operation)} === 'render'
+            ? renderDraftRelease({
+                plan: ${JSON.stringify(plan)},
+                sourceCommit: ${JSON.stringify(sourceCommit)},
+              })
+            : validateReleasePlan(${JSON.stringify(plan)});
+          console.log(JSON.stringify({ok: true, value}));
+        } catch (error) {
+          console.log(JSON.stringify({error: error.message, ok: false}));
+        }
+      `,
+    ],
+    {cwd: process.cwd(), encoding: 'utf8'},
+  );
+  if (child.status !== 0) throw new Error(child.stderr || child.stdout);
+  const result = JSON.parse(child.stdout.trim());
+  if (!result.ok) throw new Error(result.error);
+  return result.value;
+}
+
+function renderDraftRelease({plan, sourceCommit}) {
+  return runModule({operation: 'render', plan, sourceCommit});
+}
+
+function validateReleasePlan(plan) {
+  return runModule({operation: 'validate', plan});
+}
 
 const sourceCommit = 'abcdef0123456789abcdef0123456789abcdef01';
 
@@ -104,7 +145,7 @@ test('renders deterministic draft metadata in plan order', () => {
   expect(result.notes).not.toMatch(
     /timestamp|draft URL|local path|preparedFrom|yarn\.lock/u,
   );
-  expect((result.notes.match(/## Packages/g) ?? []).length).toBe(1);
+  expect(result.notes.match(/## Packages/g) ?? []).toHaveLength(1);
 });
 
 test('uses not provided for a null root request and counts validator root files', () => {
