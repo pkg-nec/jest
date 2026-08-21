@@ -1,0 +1,38 @@
+{
+  "noImpactPaths": [
+    ".prettierignore",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "GOVERNANCE.md",
+    "PROJECT_CHARTER.md",
+    "README.md",
+    "SECURITY.md"
+  ],
+  "noImpactPrefixes": [
+    ".github/",
+    "benchmarks/",
+    "docs/",
+    "e2e/",
+    "examples/",
+    "scripts/__tests__/",
+    "website/"
+  ],
+  "allPackagePaths": [
+    "LICENSE",
+    "babel.config.js",
+    "eslint.config.mjs",
+    "scripts/babel-plugin-jest-native-globals.js",
+    "scripts/build.mjs",
+    "scripts/buildTs.mjs",
+    "scripts/buildUtils.mjs",
+    "scripts/bundleTs.mjs",
+    "scripts/preparePkgNecRelease.mjs",
+    "scripts/pkgNec/releaseArtifactPolicy.mjs",
+    "scripts/pkgNec/repackReleaseArtifact.mjs",
+    "scripts/removeBuildDeclarations.mjs",
+    "scripts/writeBundledDeclarations.mjs",
+    "tsconfig.json",
+    "yarn.config.cjs"
+  ],
+  "allPackagePrefixes": []
+}

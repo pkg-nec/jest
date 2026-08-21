@@ -221,14 +221,23 @@ By contributing to Jest, you agree that your contributions will be licensed unde
 
 ## Publishing a new release
 
-This release workflow is intentionally strict for the one-time complete 55-package provenance release. Follow the [release preparation, trusted-publisher, publishing, verification, and evidence runbook](./docs/pkg-nec-maintenance.md#release-preparation) before creating the GitHub Release.
+Maintainers must follow the complete [selective release preparation, trusted-publisher, publication, verification, evidence, and recovery runbook](./docs/pkg-nec-maintenance.md#release-preparation). Release planning is separate from ordinary development pull requests and starts from a clean commit that exactly matches freshly fetched `origin/main`.
 
-Before the Release is created, ensure successful Node CI for the exact source commit, all 55 npm trusted-publisher bindings and the protected `npm-publish` environment are configured, and the Release tag and Release name both exactly equal `@pkg-nec/jest-v30.4.3`. The body must contain the full source commit SHA and all 55 generated `@pkg-nec/package@version` lines.
-
-In Git Bash, start a fresh shell session with `corepack enable` and `yarn install`, then prepare the complete candidate from that exact source commit:
+Run Node, npm, Corepack, and Yarn commands in Git Bash. Begin each fresh session with `corepack enable` and `yarn install`, then preview before applying the same choices:
 
 ```sh
-yarn prepare:pkg-nec-release
+git switch main
+git pull --ff-only origin main
+yarn plan:pkg-nec-release --bump '@pkg-nec/jest-reporters=minor' --root-impact=none
+yarn plan:pkg-nec-release --bump '@pkg-nec/jest-reporters=minor' --root-impact=none --apply
 ```
 
-Publish the matching GitHub Release to trigger validation. After `validate` succeeds, an authorized reviewer approves the protected `npm-publish` deployment for the `publish` job; only then does the workflow publish prepared artifacts in ledger order. It validates exact integrity for any resumption, verifies the complete batch under one 480-second deadline, and attaches durable evidence to the Release. Do not manually publish, hand-edit a partial ledger, or use this strict workflow for a partial later release; first land the reviewed selective-release enhancement described in the maintenance runbook.
+The example minor override and root decision are not defaults; use the reviewed choices for the actual changes. Any file below a public package directly selects it, every transitive public `workspace:` dependent is included, and every selected package defaults to patch unless an explicit patch, minor, or major override applies. Ambiguous root changes require `--root-impact=all|none`; a known all-package input cannot be overridden, and an unnecessary root flag is informational. After every supplied bump override passes validation, a non-release result prints `no releasable package changes` and writes nothing; an invalid or unselected override fails instead.
+
+The dedicated release-preparation pull request may contain only one generated permanent plan, the `version` fields of exactly its selected package manifests, and the one-time `lerna.json` transition to `"independent"`. Introduce that entire set in exactly one non-merge commit; CI rejects split plan/version/fixup histories even when their aggregate diff is valid, so squash generated changes before review or merge. This preserves a valid plan-introduction source with merge, squash, or rebase merging. The pull request may not contain source, documentation, dependency-range, lockfile, or workflow changes. Node CI independently recalculates the plan and rejects hand-edited or stale output. Existing `docs/releases/*-plan.json` files are permanent: modifying, deleting, renaming, changing the mode/type, or changing the path case of one fails CI even in an ordinary pull request. If `main` advances, follow the runbook's state-specific recovery: clean only the uncommitted generated paths before rebasing, or preserve a committed stale branch and create a fresh branch at `origin/main`. Regenerate only after the worktree is clean and `HEAD` exactly equals current `origin/main`.
+
+After merge, the release source is the full commit on `main` that first introduced the immutable plan and bumped versions. Until draft automation lands in a later change, create the draft GitHub Release manually: use `plan.anchor.tag` for both the exact tag and Release title, target the tag at that plan-introduction commit, and make the body contain the full source commit plus exactly one code-spanned `<name>@<toVersion>` token for every and only `plan.packages`. Confirm successful Node CI for that exact commit, keep the Release in draft while reviewing it, then have a maintainer publish it as a stable Release with `draft=false` and `prerelease=false`. Do not target `plan.preparedFrom` or a later commit.
+
+Publishing the stable GitHub Release triggers validation. The workflow rejects a draft or prerelease before candidate preparation, network validation, or npm publication because a prerelease cannot become a completed baseline. After `validate` succeeds, an authorized reviewer approves the protected `npm-publish` deployment; only that OIDC-enabled job may publish with the configured npm trusted-publisher identities and provenance. The workflow rebuilds the repository, packs and publishes only planned packages in dependency order, verifies their exact integrity and provenance, and attaches the plan, ledger, journal, and available evidence.
+
+If publication is partial, preserve the plan, versions, tag, Release, candidate, and journal, resolve the cause, and re-run the same workflow for the same tag. Do not create a replacement tag or Release, edit generated release contracts, publish manually, or use an abort or emergency flow. Unresolved state requires manual investigation and blocks the next plan.

@@ -21,12 +21,15 @@ import {
 } from './pkgNec/registryVisibility.mjs';
 import {
   buildRuntimeReleaseGraph,
+  componentReleaseOrder,
+  induceReleaseGraph,
   topologicalReleaseOrder,
 } from './pkgNec/releaseGraph.mjs';
 import {
   publishRelease,
   validateReleaseLedger,
 } from './pkgNec/releasePublisher.mjs';
+import {buildWorkspaceReleaseGraph} from './pkgNec/selectiveReleaseGraph.mjs';
 import {createPackageInventory} from './pkgNecPackageIdentity.mjs';
 import {inspectPackedManifest} from './preparePkgNecRelease.mjs';
 
@@ -421,10 +424,25 @@ export async function runPublishReleaseCommand({
 
   const packageInventory =
     inventory ?? createPackageInventory({policy, repoRoot: root});
-  const graph = buildRuntimeReleaseGraph(packageInventory);
-  const expectedOrder = topologicalReleaseOrder(graph);
-  const actualOrder = ledger.packages.map(entry => entry.name);
-  if (!isDeepStrictEqual(actualOrder, expectedOrder)) {
+  const selectedNames = ledger.packages.map(entry => entry.name);
+  for (const name of selectedNames) {
+    const workspace = packageInventory.byNewName.get(name);
+    if (!workspace || workspace.publishable === false) {
+      throw new Error(`Release workspace missing or private: ${name}`);
+    }
+  }
+  const graph =
+    ledger.schemaVersion === 1
+      ? buildRuntimeReleaseGraph(packageInventory)
+      : induceReleaseGraph({
+          graph: buildWorkspaceReleaseGraph(packageInventory),
+          selectedNames,
+        });
+  const expectedOrder =
+    ledger.schemaVersion === 1
+      ? topologicalReleaseOrder(graph)
+      : componentReleaseOrder(graph);
+  if (!isDeepStrictEqual(selectedNames, expectedOrder)) {
     throw new Error('Release ledger is not in dependency-first order');
   }
 
@@ -439,11 +457,11 @@ export async function runPublishReleaseCommand({
     if (!workspace || workspace.publishable === false) {
       throw new Error(`Release workspace missing or private: ${entry.name}`);
     }
-    if (
-      !isDeepStrictEqual(entry.prerequisites, [
-        ...(graph.get(entry.name) ?? []),
-      ])
-    ) {
+    const expectedPrerequisites = [...(graph.get(entry.name) ?? [])];
+    if (ledger.schemaVersion === 2) {
+      expectedPrerequisites.sort((left, right) => left.localeCompare(right));
+    }
+    if (!isDeepStrictEqual(entry.prerequisites, expectedPrerequisites)) {
       throw new Error(`Release prerequisites changed for ${entry.name}`);
     }
 

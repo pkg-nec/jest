@@ -23,6 +23,13 @@ function integrity(byte) {
   return `sha512-${Buffer.alloc(64, byte).toString('base64')}`;
 }
 
+function npmSubjectName({name, version}) {
+  const [scope, packageName] = name.split('/');
+  return `pkg:npm/${encodeURIComponent(scope)}/${encodeURIComponent(
+    packageName,
+  )}@${encodeURIComponent(version)}`;
+}
+
 function normalizedProvenance(entry) {
   return {
     buildType:
@@ -33,7 +40,7 @@ function normalizedProvenance(entry) {
     runnerEnvironment: 'github-hosted',
     sourceCommit,
     sourceRef: `refs/tags/${releaseTag}`,
-    subjectName: `pkg:npm/%40pkg-nec/package-${entry.order}@${entry.version}`,
+    subjectName: npmSubjectName(entry),
     subjectSha512: Buffer.from(
       entry.integrity.slice('sha512-'.length),
       'base64',
@@ -44,13 +51,17 @@ function normalizedProvenance(entry) {
 }
 
 function releaseFixture(count = 1) {
-  const packages = Array.from({length: count}, (_, index) => ({
+  const names = Array.from(
+    {length: count},
+    (_, index) => `@pkg-nec/package-${index + 1}`,
+  ).sort((left, right) => left.localeCompare(right));
+  const packages = names.map((name, index) => ({
     files: ['package.json'],
     integrity: integrity(index + 1),
-    name: `@pkg-nec/package-${index + 1}`,
+    name,
     order: index + 1,
     prerequisites: [],
-    tarball: `.pkg-nec-release/package-${index + 1}.tgz`,
+    tarball: `.pkg-nec-release/${name.slice('@pkg-nec/'.length)}.tgz`,
     version: `1.0.${index}`,
   }));
   return {
@@ -67,7 +78,18 @@ function releaseFixture(count = 1) {
       schemaVersion: 1,
       sourceCommit,
     },
-    ledger: {packages, schemaVersion: 1, sourceCommit},
+    ledger: {
+      generatedAt: '2026-08-19T12:34:56.000Z',
+      nodeVersion: 'v22.23.1',
+      packageManager: 'yarn@4.18.0',
+      packages,
+      releasePlan: {
+        digest: `sha256-${'a'.repeat(64)}`,
+        path: 'docs/releases/pkg-nec-jest-v30.4.3-plan.json',
+      },
+      schemaVersion: 2,
+      sourceCommit,
+    },
     provenance: packages.map(normalizedProvenance),
   };
 }
