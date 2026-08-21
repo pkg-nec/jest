@@ -49,6 +49,25 @@ function plan() {
   };
 }
 
+function secondPlan() {
+  const candidate = plan();
+  candidate.anchor = {
+    ...candidate.anchor,
+    tag: '@pkg-nec/jest-v30.5.1',
+    version: '30.5.1',
+  };
+  candidate.packages = [
+    {
+      ...candidate.packages[0],
+      bump: 'patch',
+      fromVersion: '30.5.0',
+      toVersion: '30.5.1',
+    },
+  ];
+  candidate.planPath = 'docs/releases/pkg-nec-jest-v30.5.1-plan.json';
+  return candidate;
+}
+
 function completedRelease() {
   const packages = [{name: '@pkg-nec/jest', order: 1, version: '30.4.3'}];
   const evidence = {
@@ -113,6 +132,12 @@ function successfulNodeRun(overrides = {}) {
     status: 'completed',
     ...overrides,
   };
+}
+
+function nodeRunMissing(field) {
+  const run = successfulNodeRun();
+  delete run[field];
+  return run;
 }
 
 function input(overrides = {}) {
@@ -201,16 +226,7 @@ test.each([
         {path: planPath, plan: plan()},
         {
           path: 'docs/releases/pkg-nec-jest-v30.5.1-plan.json',
-          plan: {
-            ...plan(),
-            anchor: {
-              ...plan().anchor,
-              tag: '@pkg-nec/jest-v30.5.1',
-              version: '30.5.1',
-            },
-            packages: [{...plan().packages[0], toVersion: '30.5.1'}],
-            planPath: 'docs/releases/pkg-nec-jest-v30.5.1-plan.json',
-          },
+          plan: secondPlan(),
         },
       ],
     },
@@ -391,6 +407,19 @@ test.each([
   expect(message).toMatch(new RegExp(_label, 'iu'));
 });
 
+test.each([
+  ['workflow path', 'path'],
+  ['event', 'event'],
+  ['branch', 'head_branch'],
+  ['status', 'status'],
+  ['conclusion', 'conclusion'],
+])('rejects a Node CI run with a missing %s', (_label, field) => {
+  const message = errorFor({nodeRuns: [nodeRunMissing(field)]});
+
+  expect(message).toMatch(/Node CI run.*runs\/200/u);
+  expect(message).toMatch(new RegExp(_label, 'iu'));
+});
+
 test('rejects a successful Node CI run belonging to a later commit', () => {
   const message = errorFor({
     nodeRuns: [successfulNodeRun({head_sha: laterCommit})],
@@ -409,6 +438,19 @@ test.each([
           commit: introductionCommit,
           name: planTag,
           relationToBaseline: 'descendant',
+        },
+      ],
+    },
+  ],
+  [
+    'remote tag',
+    {
+      tags: [
+        {
+          commit: introductionCommit,
+          name: planTag,
+          relationToBaseline: 'descendant',
+          remote: true,
         },
       ],
     },
@@ -453,15 +495,56 @@ test('rejects plan package versions that differ from main', () => {
   expect(message).toContain('@pkg-nec/jest');
   expect(message).toContain('30.4.9');
   expect(message).toContain('30.5.0');
+  expect(message).toContain(planPath);
 });
 
-test('rejects a plan with mismatched tag, path, or anchor', () => {
+test.each([
+  [
+    'tag',
+    candidate => {
+      candidate.anchor = {
+        ...candidate.anchor,
+        tag: '@pkg-nec/jest-v30.5.1',
+      };
+    },
+  ],
+  [
+    'path',
+    candidate => {
+      candidate.planPath = 'docs/releases/aliased-plan.json';
+    },
+  ],
+  [
+    'anchor',
+    candidate => {
+      candidate.anchor = {...candidate.anchor, name: '@pkg-nec/expect'};
+    },
+  ],
+])('rejects a plan with a mismatched %s', (_label, mutate) => {
   const candidate = plan();
-  candidate.planPath = 'docs/releases/aliased-plan.json';
+  mutate(candidate);
   const message = errorFor({
     localPlans: [{path: candidate.planPath, plan: candidate}],
   });
 
   expect(message).toMatch(/invalid-local-plan/u);
   expect(message).toContain(candidate.planPath);
+});
+
+test('redacts tokens and response bodies from preflight errors', () => {
+  const token = 'token-that-must-not-appear';
+  const responseBody = '{"body":"must-not-appear"}';
+  const message = errorFor({
+    nodeRuns: [
+      successfulNodeRun({
+        path: '.github/workflows/other.yml',
+        responseBody,
+        token,
+      }),
+    ],
+  });
+
+  expect(message).toContain(nodeRunUrl);
+  expect(message).not.toContain(token);
+  expect(message).not.toContain(responseBody);
 });

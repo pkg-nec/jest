@@ -5,11 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import {validateReleasePlan} from './releasePlanSchema.mjs';
 import {
   findUnresolvedReleaseState,
   selectPublishedBaseline,
 } from './releaseState.mjs';
-import {validateReleasePlan} from './releasePlanSchema.mjs';
 
 function fullCommit(value) {
   return typeof value === 'string' && /^[0-9a-f]{40}$/u.test(value);
@@ -143,7 +143,7 @@ function assertMainPackageVersions({mainPackages, plan}) {
     const mainVersion = versions.get(entry.name);
     if (mainVersion !== entry.toVersion) {
       throw new Error(
-        `Plan package version differs from main for ${entry.name}: planned ${entry.toVersion}, main ${display(
+        `Plan ${plan.planPath} package version differs from main for ${entry.name}: planned ${entry.toVersion}, main ${display(
           mainVersion,
           'missing',
         )}`,
@@ -241,7 +241,7 @@ export function resolveDraftReleaseState({
   }
 
   const releaseRuns = releases.flatMap(release => release?.releaseRuns ?? []);
-  const baseline = selectPublishedBaseline({releases, releaseRuns});
+  const baseline = selectPublishedBaseline({releaseRuns, releases});
   const unresolved = findUnresolvedReleaseState({
     localPlans,
     releaseRuns,
