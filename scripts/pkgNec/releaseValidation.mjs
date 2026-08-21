@@ -61,6 +61,63 @@ export function validatePatchTransitions({currentPackages, previousPackages}) {
   return changed.sort((left, right) => left.localeCompare(right));
 }
 
+export function validatePlannedTransitions({
+  inventory,
+  plan,
+  previousPackages,
+}) {
+  const currentPackages = new Map(
+    [...inventory.byNewName]
+      .filter(([, identity]) => identity.publishable === true)
+      .map(([name, identity]) => [name, identity.version]),
+  );
+  if (
+    currentPackages.size !== previousPackages.size ||
+    [...previousPackages.keys()].some(name => !currentPackages.has(name))
+  ) {
+    throw new Error('Current and previous public package sets differ');
+  }
+
+  const selected = new Set();
+  const changed = [];
+  for (const item of plan.packages) {
+    if (selected.has(item.name)) {
+      throw new Error(`Duplicate planned package: ${item.name}`);
+    }
+    selected.add(item.name);
+    const previousVersion = previousPackages.get(item.name);
+    if (previousVersion === undefined) {
+      throw new Error(`Planned package is not in the baseline: ${item.name}`);
+    }
+    const workspace = inventory.byNewName.get(item.name);
+    if (workspace?.publishable !== true) {
+      throw new Error(`Planned package is not publishable: ${item.name}`);
+    }
+    if (item.fromVersion !== previousVersion) {
+      throw new Error(
+        `${item.name} plan fromVersion ${item.fromVersion} does not match baseline ${previousVersion}`,
+      );
+    }
+    if (item.toVersion !== workspace.version) {
+      throw new Error(
+        `${item.name} plan toVersion ${item.toVersion} does not match current ${workspace.version}`,
+      );
+    }
+    changed.push(item.name);
+  }
+
+  for (const [name, previousVersion] of previousPackages) {
+    if (selected.has(name)) continue;
+    const currentVersion = currentPackages.get(name);
+    if (currentVersion !== previousVersion) {
+      throw new Error(
+        `Unselected package ${name} changed from ${previousVersion} to ${currentVersion}`,
+      );
+    }
+  }
+  return changed;
+}
+
 function releaseEvent(event) {
   if (!event?.release || typeof event.release !== 'object') {
     throw new TypeError('GitHub release event is missing release metadata');

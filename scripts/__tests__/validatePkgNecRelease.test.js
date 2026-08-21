@@ -142,6 +142,130 @@ test('parses release tags, selects the anchor, and validates patch-only transiti
   });
 });
 
+test('validates planned selected transitions and unchanged unselected packages', () => {
+  const result = runValidationProgram(`
+    import {validatePlannedTransitions} from ${JSON.stringify(validationModuleUrl)};
+
+    const baseInput = {
+      inventory: {
+        byNewName: new Map([
+          [
+            '@pkg-nec/create-jest',
+            {
+              newName: '@pkg-nec/create-jest',
+              publishable: true,
+              version: '1.3.0',
+            },
+          ],
+          [
+            '@pkg-nec/jest-phabricator',
+            {
+              newName: '@pkg-nec/jest-phabricator',
+              publishable: true,
+              version: '2.0.0',
+            },
+          ],
+          [
+            '@pkg-nec/private-helper',
+            {
+              newName: '@pkg-nec/private-helper',
+              publishable: false,
+              version: '9.9.9',
+            },
+          ],
+        ]),
+      },
+      plan: {
+        packages: [
+          {
+            fromVersion: '1.2.3',
+            name: '@pkg-nec/create-jest',
+            toVersion: '1.3.0',
+          },
+        ],
+      },
+      previousPackages: new Map([
+        ['@pkg-nec/create-jest', '1.2.3'],
+        ['@pkg-nec/jest-phabricator', '2.0.0'],
+      ]),
+    };
+    const evaluate = input => {
+      try {
+        return {result: validatePlannedTransitions(input)};
+      } catch (error) {
+        return {error: error.message};
+      }
+    };
+
+    console.log(JSON.stringify({
+      baselineMismatch: evaluate({
+        ...baseInput,
+        plan: {
+          packages: [
+            {
+              fromVersion: '1.2.2',
+              name: '@pkg-nec/create-jest',
+              toVersion: '1.3.0',
+            },
+          ],
+        },
+      }),
+      currentMismatch: evaluate({
+        ...baseInput,
+        inventory: {
+          byNewName: new Map([
+            ...baseInput.inventory.byNewName,
+            [
+              '@pkg-nec/create-jest',
+              {
+                newName: '@pkg-nec/create-jest',
+                publishable: true,
+                version: '1.3.1',
+              },
+            ],
+          ]),
+        },
+      }),
+      success: evaluate(baseInput),
+      unselectedMismatch: evaluate({
+        ...baseInput,
+        inventory: {
+          byNewName: new Map([
+            ...baseInput.inventory.byNewName,
+            [
+              '@pkg-nec/jest-phabricator',
+              {
+                newName: '@pkg-nec/jest-phabricator',
+                publishable: true,
+                version: '2.0.1',
+              },
+            ],
+          ]),
+        },
+      }),
+    }));
+  `);
+
+  expect(result).toEqual({
+    baselineMismatch: {
+      error: expect.stringMatching(
+        /@pkg-nec\/create-jest.*fromVersion.*1\.2\.3/iu,
+      ),
+    },
+    currentMismatch: {
+      error: expect.stringMatching(
+        /@pkg-nec\/create-jest.*toVersion.*1\.3\.1/iu,
+      ),
+    },
+    success: {result: ['@pkg-nec/create-jest']},
+    unselectedMismatch: {
+      error: expect.stringMatching(
+        /unselected package @pkg-nec\/jest-phabricator.*2\.0\.0.*2\.0\.1/iu,
+      ),
+    },
+  });
+});
+
 test('validates a complete 55-package release event against the packed ledger', () => {
   expect(validateFixture(releaseFixture())).toEqual({
     result: {
