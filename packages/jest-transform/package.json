@@ -19,7 +19,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@babel/core": "^7.27.4",
+    "@babel/core": "^8.0.0",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@pkg-nec/jest-haste-map": "workspace:*",
     "@pkg-nec/jest-regex-util": "workspace:*",
