@@ -849,6 +849,33 @@ describe('npm provenance normalization', () => {
       });
     },
   );
+
+  // Mutation: accept an unknown predicate when its statement omits `_type`.
+  test('rejects an unknown predicate with no statement type as fatal', () => {
+    const predicateType = 'https://example.invalid/unknown-predicate';
+    const statement = makeStatement({predicate: {}, predicateType});
+    delete statement._type;
+    const bundle = makeBundle(statement);
+    const result = runNpmProvenanceProgram(
+      `
+        const outcome = await attempt(() =>
+          provenanceApi.normalizeAttestationBundle(input.item),
+        );
+        output({
+          classification: provenanceApi.classifyProvenanceError(outcome.error),
+          outcome,
+        });
+      `,
+      {item: {bundle, predicateType}},
+    );
+
+    expect(result).toEqual({
+      classification: 'fatal',
+      outcome: {
+        error: expect.objectContaining({code: 'EMALFORMEDATTESTATION'}),
+      },
+    });
+  });
 });
 
 describe('exact npm package provenance query', () => {

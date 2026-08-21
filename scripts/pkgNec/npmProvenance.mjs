@@ -427,8 +427,10 @@ export function normalizeAttestationBundle(item) {
   }
   const statement = decodeStatement(bundle.dsseEnvelope?.payload);
   const subject = statement?.subject?.[0];
+  const expectedStatementType = statementTypeByPredicate.get(predicateType);
   if (
-    statement?._type !== statementTypeByPredicate.get(predicateType) ||
+    expectedStatementType === undefined ||
+    statement?._type !== expectedStatementType ||
     statement?.predicateType !== predicateType ||
     typeof subject?.name !== 'string' ||
     typeof subject?.digest?.sha512 !== 'string' ||
