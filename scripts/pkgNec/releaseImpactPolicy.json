@@ -26,7 +26,6 @@
     "scripts/buildTs.mjs",
     "scripts/buildUtils.mjs",
     "scripts/bundleTs.mjs",
-    "scripts/preparePkgNecRelease.mjs",
     "scripts/pkgNec/releaseArtifactPolicy.mjs",
     "scripts/pkgNec/repackReleaseArtifact.mjs",
     "scripts/removeBuildDeclarations.mjs",

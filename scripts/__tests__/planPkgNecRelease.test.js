@@ -1142,6 +1142,20 @@ test.each(artifactBuildInputs)(
   },
 );
 
+test('allows reviewed preparation orchestration changes to have no package impact', () => {
+  const result = runCommand({
+    args: ['--root-impact=none'],
+    changedFiles: ['scripts/preparePkgNecRelease.mjs'],
+  });
+
+  expect(result.value).toEqual({
+    apply: false,
+    kind: 'no-changes',
+    message: 'no releasable package changes',
+  });
+  expect(result.output).toEqual(['no releasable package changes\n']);
+});
+
 test('accepts only the planned options and prints canonical JSON plus a package table', () => {
   const result = runCommand({
     args: [
