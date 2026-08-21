@@ -606,6 +606,38 @@ test('prints one stable error when the standalone command lacks its required env
   );
 });
 
+test('runs the network-free release-plan validator immediately after the tooling suite', () => {
+  const workflow = yaml.load(
+    fs.readFileSync(join(repoRoot, '.github/workflows/nodejs.yml'), 'utf8'),
+  );
+  const steps = workflow.jobs['static-checks'].steps;
+  const checkout = steps.find(step =>
+    step.uses?.startsWith('actions/checkout@'),
+  );
+  const toolingIndex = steps.findIndex(
+    step => step.name === 'Test pkg-nec tooling',
+  );
+  const validation = steps[toolingIndex + 1];
+  const scripts = JSON.parse(
+    fs.readFileSync(join(repoRoot, 'package.json'), 'utf8'),
+  ).scripts;
+
+  expect(checkout.with).toEqual({
+    'fetch-depth': 0,
+    'persist-credentials': false,
+  });
+  expect(validation).toEqual({
+    name: 'Validate pkg-nec release preparation',
+    run: "yarn validate:pkg-nec-release-plan '${{ github.event.pull_request.base.sha || github.sha }}'",
+  });
+  expect(scripts['validate:pkg-nec-release-plan']).toBe(
+    'node ./scripts/validatePkgNecReleasePlan.mjs',
+  );
+  expect(scripts['test:pkg-nec-tooling']).toBe(
+    'yarn jest scripts/__tests__ --runInBand --color',
+  );
+});
+
 test('defines a least-privilege provenance release workflow with durable evidence', () => {
   const workflowPath = join(repoRoot, '.github/workflows/release.yml');
   const workflowSource = fs.readFileSync(workflowPath, 'utf8');
