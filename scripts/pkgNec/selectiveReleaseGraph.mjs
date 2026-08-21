@@ -26,7 +26,10 @@ function resolveWorkspace(name, inventory) {
   return inventory.byOldName.get(name) ?? inventory.byNewName.get(name);
 }
 
-export function buildWorkspaceReleaseGraph(inventory) {
+export function buildWorkspaceReleaseGraph(
+  inventory,
+  {readFile = file => fs.readFileSync(file, 'utf8')} = {},
+) {
   const packages = inventory.packages
     .filter(identity => identity.publishable !== false)
     .sort((left, right) => compare(left.newName, right.newName));
@@ -35,7 +38,7 @@ export function buildWorkspaceReleaseGraph(inventory) {
   );
 
   for (const identity of packages) {
-    const manifest = JSON.parse(fs.readFileSync(identity.manifestPath, 'utf8'));
+    const manifest = JSON.parse(readFile(identity.manifestPath));
     const dependencies = graph.get(identity.newName);
 
     for (const field of dependencyFields) {

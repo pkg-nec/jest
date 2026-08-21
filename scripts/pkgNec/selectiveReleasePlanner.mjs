@@ -160,6 +160,7 @@ export function createSelectiveReleasePlan({
   currentInventory,
   preparedFrom,
   previousRelease,
+  readManifest,
   rootImpactRequest = null,
 }) {
   if (![null, 'all', 'none'].includes(rootImpactRequest)) {
@@ -233,7 +234,9 @@ export function createSelectiveReleasePlan({
     return noChanges();
   }
 
-  const graph = buildWorkspaceReleaseGraph(currentInventory);
+  const graph = buildWorkspaceReleaseGraph(currentInventory, {
+    readFile: readManifest,
+  });
   const closure = selectDependentClosure({
     directNames: [...directNames],
     graph,
