@@ -274,7 +274,7 @@ After review and green CI, merge the release-preparation pull request. Synchroni
 
 The plan is immutable once merged into the release lineage. Correct a plan only by regenerating it before merge; never edit a merged plan in place or reuse its tag for different bytes.
 
-## Release identity and manual GitHub Release creation
+## Release identity and automated draft GitHub Release creation
 
 Every release has one calculated anchor. If selected, `@pkg-nec/jest` is the anchor. Otherwise, the planner uses the first selected entry from this fixed fallback order:
 
@@ -287,25 +287,19 @@ Every release has one calculated anchor. If selected, `@pkg-nec/jest` is the anc
 
 The anchor's `toVersion` determines both `plan.anchor.tag` and `plan.planPath`. Do not bump `@pkg-nec/jest` only to name a release.
 
-Draft-Release automation is not present yet; this pull request does not provide a `yarn draft:pkg-nec-release` command. Until automation lands, create and review the draft manually in GitHub using only the committed plan:
+After the release-preparation pull request is merged and its plan-introduction commit has passed Node CI, create the draft from a synchronized `main` checkout:
 
-1. Confirm that Node CI from a `push` to `main` succeeded for the exact plan-introduction commit.
-2. Choose `plan.anchor.tag` as the exact new tag, target it at the full plan-introduction commit, and use the same `plan.anchor.tag` as the exact Release title/name. Do not target `preparedFrom` or a later `main` commit, and do not mark the Release as a prerelease.
-3. Build the body from the committed plan. Include the full plan-introduction commit and exactly one Markdown-code-spanned `<name>@<toVersion>` token for each entry in `plan.packages`, with no duplicate or extra complete package token:
+```bash
+git switch main
+git pull --ff-only origin main
+yarn draft:pkg-nec-release
+```
 
-   ```markdown
-   Source commit: `<full-plan-introduction-commit>`
+The command intentionally refuses to operate until the repository has exactly one unresolved committed release plan. This automation change does not create that plan or a real draft Release; it can act only after the release-preparation pull request has introduced the committed plan. The command resolves the plan's full plan-introduction commit, then immediately creates `plan.anchor.tag` at that commit and creates a draft GitHub Release with the same title. The tag always targets the plan-introduction commit; do not target `preparedFrom` or a later `main` commit. Later commits on `main` belong to the next release.
 
-   ## Published package versions
+The command generates the required source-commit and planned-package metadata. A maintainer may edit only narrative Release notes while the Release remains a draft: do not alter the tag, target commit, title, source commit, or planned package/version set. Saving or editing a draft does not publish npm packages. Publishing the reviewed Release as stable (`draft=false`, `prerelease=false`) starts `.github/workflows/release.yml` and therefore npm publication.
 
-   - `@pkg-nec/package-a@1.2.4`
-   - `@pkg-nec/package-b@2.0.0`
-   ```
-
-   Replace the example rows with every and only planned package, preferably in plan order. Narrative prose is allowed, but it must not add another valid code-spanned `@pkg-nec/name@semver` token.
-
-4. Save the Release as a draft, then independently recheck the tag, exact target commit, Release title, full source commit in the body, package/version set, and that prerelease remains false against the committed plan.
-5. Keep it as a draft until a maintainer deliberately publishes the reviewed Release as stable, with `draft=false` and `prerelease=false`. Publishing triggers `.github/workflows/release.yml`; saving or editing the draft does not publish npm packages.
+Before creation, correct local or remote preflight failures and rerun the command only after the repository state is understood. The command refuses existing tag or draft state rather than overwriting it. If a failure happens after remote creation begins, stop creating replacements and investigate the partial remote state (tag, draft Release, plan, and workflow state) before deciding how to proceed. Do not delete or rewrite remote state merely to make the command succeed.
 
 The workflow's first validation step rejects any draft or prerelease event before candidate preparation, release metadata or network validation, and npm publication. A prerelease cannot become a completed baseline, so never publish this Release as a prerelease and attempt to promote it later. The validator then requires the release event commit, resolved tag, checkout `HEAD`, ledger source commit, and plan-introduction commit to be the same full commit on `origin/main`. It also requires the committed plan bytes and digest, exact tag-derived plan path, exact Release title, exact package set, planned order and prerequisites, manifest transitions, and a successful Node CI run for that commit.
 
@@ -342,6 +336,6 @@ Registry integrity and provenance are separate requirements. Every selected pack
 
 The planner refuses a new plan when it finds a tracked plan without a matching completed publication, an invalid or publication-mismatched plan, a later draft or prerelease, an unmatched non-historical tag, an incomplete published Release, a failed or in-progress release workflow, or any package version change not explained by a completed Release. It reports the available plan path, tag, versions, draft URL, and workflow URL and requires manual investigation. Do not delete or rewrite remote state merely to make planning pass.
 
-Merging the atomic release preparation commits the repository to completing that exact planned release. Create and publish the stable GitHub Release at the exact plan-introduction commit through the manual draft/publish steps above. If publication or verification does not complete, keep the plan, versions, tag, Release, candidate, and journal, resolve the reported cause, and re-run the same Release workflow for the same tag. Existing package versions resume only when their exact ledger integrity matches; they are recorded as `verified-existing`, and the remaining planned packages continue in order.
+Merging the atomic release preparation commits the repository to completing that exact planned release. Create the draft and publish the stable GitHub Release at the exact plan-introduction commit through the automated draft/publish steps above. If publication or verification does not complete, keep the plan, versions, tag, Release, candidate, and journal, resolve the reported cause, and retry the same published Release workflow for the same tag. Existing package versions resume only when their exact ledger integrity matches; they are recorded as `verified-existing`, and the remaining planned packages continue in order.
 
 If completion cannot proceed, manual investigation is required and later release preparation remains blocked while the state is unresolved. There is no supported abort, rollback, plan deletion, replacement plan/tag/Release, or emergency workflow. Never edit the plan/candidate/ledger/journal, manually publish tarballs, or substitute a manual publication for missing provenance. A permanent integrity or provenance inconsistency remains unresolved and blocks later release planning. The GitHub Release attachments and workflow logs are the durable review record; local `.pkg-nec-release/` output is disposable and must never be committed.

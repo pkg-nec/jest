@@ -1244,8 +1244,16 @@ test('defines a least-privilege provenance release workflow with durable evidenc
   const setupNodeSteps = actionSteps.filter(step =>
     step.uses.startsWith('actions/setup-node@'),
   );
+  const scripts = JSON.parse(
+    fs.readFileSync(join(repoRoot, 'package.json'), 'utf8'),
+  ).scripts;
 
   expect(workflow.on.release.types).toEqual(['published']);
+  expect(workflow.on.release.types).not.toContain('created');
+  expect(scripts['draft:pkg-nec-release']).toBe(
+    'node ./scripts/draftPkgNecRelease.mjs',
+  );
+  expect(scripts['draft:pkg-nec-release']).not.toContain('publish');
   expect(workflow.permissions).toEqual({});
   expect(workflow.concurrency).toEqual({
     'cancel-in-progress': false,
