@@ -182,6 +182,8 @@ function runScenario({
   args = [],
   createOutput = draftUrl,
   failAt,
+  releases = [completedRelease()],
+  releaseRuns = [releaseRun()],
   tagCommit = introductionCommit,
 } = {}) {
   const planText = `${JSON.stringify(plan(), null, 2)}\n`;
@@ -200,7 +202,15 @@ function runScenario({
     planText,
     releaseAssetFixtures: releaseAssetFixtures(),
     releaseEndpoint,
+    releaseRuns,
     releaseRunsEndpoint,
+    releaseTagCommits: Object.fromEntries(
+      releases.map(release => [
+        release.tag_name,
+        release.tagCommit ?? baselineCommit,
+      ]),
+    ),
+    releases,
     tagCommit,
   };
   const child = spawnSync(
@@ -211,8 +221,6 @@ function runScenario({
       `
         import {runDraftReleaseCommand} from ${JSON.stringify(commandUrl)};
         const settings = ${JSON.stringify(settings)};
-        const completedRelease = ${JSON.stringify(completedRelease())};
-        const releaseRun = ${JSON.stringify(releaseRun())};
         const nodeRun = ${JSON.stringify(nodeRun())};
         const events = [];
         const writes = [];
@@ -245,6 +253,13 @@ function runScenario({
           if (command === 'rev-list -n 1 refs/tags/' + settings.baselineTag) {
             record('git resolve baseline tag');
             return settings.baselineCommit + '\\n';
+          }
+          if (command.startsWith('rev-list -n 1 refs/tags/')) {
+            const tag = command.slice('rev-list -n 1 refs/tags/'.length);
+            if (settings.releaseTagCommits[tag]) {
+              record('git resolve release tag ' + tag);
+              return settings.releaseTagCommits[tag] + '\\n';
+            }
           }
           if (command === 'ls-files -z -- docs/releases/*-plan.json') {
             record('git list tracked plans');
@@ -284,11 +299,11 @@ function runScenario({
           }
           if (command === 'api --paginate --slurp ' + settings.releaseEndpoint) {
             record('gh api releases');
-            return JSON.stringify([[completedRelease]]);
+            return JSON.stringify([settings.releases]);
           }
           if (command === 'api --paginate --slurp ' + settings.releaseRunsEndpoint) {
             record('gh api release runs');
-            return JSON.stringify([{workflow_runs: [releaseRun]}]);
+            return JSON.stringify([{workflow_runs: settings.releaseRuns}]);
           }
           const releaseAsset = settings.releaseAssetFixtures.find(
             asset =>
@@ -388,6 +403,73 @@ test('performs every preflight before one draft mutation and verifies its tag', 
   });
 });
 
+test.each([
+  ['failed', 'failure', 'completed'],
+  ['active', null, 'in_progress'],
+])(
+  'blocks creation for an orphaned %s plan-tag release run',
+  (_label, conclusion, status) => {
+    const runUrl = `https://github.com/pkg-nec/jest/actions/runs/${
+      conclusion === null ? '402' : '401'
+    }`;
+    const token = 'workflow-token-that-must-not-appear';
+    const responseBody = '{"secret":"workflow-body"}';
+    const scenario = runScenario({
+      releaseRuns: [
+        releaseRun(),
+        {
+          conclusion,
+          event: 'release',
+          head_branch: planTag,
+          head_sha: introductionCommit,
+          html_url: runUrl,
+          path: '.github/workflows/release.yml',
+          responseBody,
+          status,
+          token,
+        },
+      ],
+    });
+
+    expect(scenario.ok).toBe(false);
+    expect(scenario.error).toContain(planPath);
+    expect(scenario.error).toContain(planTag);
+    expect(scenario.error).toContain(runUrl);
+    expect(scenario.error).not.toContain(token);
+    expect(scenario.error).not.toContain(responseBody);
+    expect(scenario.events).not.toContain('gh release create --draft');
+  },
+);
+
+test('reports sanitized plan, tag, and draft identities at the early unresolved gate', () => {
+  const unresolvedDraftUrl =
+    'https://github.com/pkg-nec/jest/releases/tag/untagged-def';
+  const token = 'draft-token-that-must-not-appear';
+  const responseBody = '{"secret":"draft-body"}';
+  const scenario = runScenario({
+    releases: [
+      completedRelease(),
+      {
+        draft: true,
+        html_url: unresolvedDraftUrl,
+        prerelease: false,
+        responseBody,
+        tagCommit: baselineCommit,
+        tag_name: planTag,
+        token,
+      },
+    ],
+  });
+
+  expect(scenario.ok).toBe(false);
+  expect(scenario.error).toContain(planPath);
+  expect(scenario.error).toContain(planTag);
+  expect(scenario.error).toContain(unresolvedDraftUrl);
+  expect(scenario.error).not.toContain(token);
+  expect(scenario.error).not.toContain(responseBody);
+  expect(scenario.events).not.toContain('gh release create --draft');
+});
+
 test.each(preCreationFailurePoints)(
   'does not create a draft when %s fails',
   failAt => {
@@ -413,6 +495,20 @@ test.each([['tag fetch', 'git fetch created tag', introductionCommit]])(
     );
   },
 );
+
+test('reports unknown partial remote state when draft creation rejects', () => {
+  const scenario = runScenario({failAt: 'gh release create --draft'});
+
+  expect(scenario.ok).toBe(false);
+  expect(scenario.error).toContain('manual investigation');
+  expect(scenario.error).toContain(planTag);
+  expect(scenario.error).toContain(introductionCommit);
+  expect(scenario.error).toContain('draft URL unknown');
+  expect(scenario.error).toContain('observed commit unknown');
+  expect(scenario.events.join('\n')).not.toMatch(
+    /release delete|push --delete|tag --delete|tag -d/u,
+  );
+});
 
 test('reports the observed commit and never rolls back a mismatched tag', () => {
   const scenario = runScenario({tagCommit: observedCommit});

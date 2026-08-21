@@ -26,7 +26,7 @@ function bytes(value, name) {
   throw new TypeError(`${name} must be bytes`);
 }
 
-function unresolvedSummary(unresolved) {
+export function summarizeUnresolvedReleaseState(unresolved) {
   return unresolved
     .map(item => {
       const identities = [
@@ -73,7 +73,7 @@ function exactLocalPlan({localPlans, unresolved}) {
   if (unresolved.length !== 1 || local.length !== 1) {
     throw new Error(
       `Expected exactly one unresolved local release plan; found ${
-        unresolvedSummary(unresolved) || 'none'
+        summarizeUnresolvedReleaseState(unresolved) || 'none'
       }`,
     );
   }
@@ -214,6 +214,7 @@ export function resolveDraftReleaseState({
   nodeRuns,
   originMain,
   planState,
+  releaseRuns,
   releases,
   tags,
 }) {
@@ -225,6 +226,7 @@ export function resolveDraftReleaseState({
   }
   if (
     !Array.isArray(localPlans) ||
+    !Array.isArray(releaseRuns) ||
     !Array.isArray(releases) ||
     !Array.isArray(tags)
   ) {
@@ -240,7 +242,6 @@ export function resolveDraftReleaseState({
     });
   }
 
-  const releaseRuns = releases.flatMap(release => release?.releaseRuns ?? []);
   const baseline = selectPublishedBaseline({releaseRuns, releases});
   const unresolved = findUnresolvedReleaseState({
     localPlans,

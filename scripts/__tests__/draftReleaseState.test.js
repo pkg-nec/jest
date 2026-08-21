@@ -143,6 +143,11 @@ function nodeRunMissing(field) {
 function input(overrides = {}) {
   const candidate = plan();
   const planBytes = Buffer.from(`${JSON.stringify(candidate)}\n`);
+  const baseline = completedRelease();
+  const releases = overrides.releases ?? [baseline];
+  const releaseRuns =
+    overrides.releaseRuns ??
+    releases.flatMap(release => release.releaseRuns ?? []);
   return {
     head: introductionCommit,
     localPlans: [{path: planPath, plan: candidate}],
@@ -155,7 +160,8 @@ function input(overrides = {}) {
       introductionCommit,
       isAncestor: true,
     },
-    releases: [completedRelease()],
+    releaseRuns,
+    releases,
     tags: [],
     ...overrides,
   };
@@ -211,6 +217,28 @@ test('resolves one immutable unreleased plan with exact Node CI', () => {
     planIntroductionCommit: introductionCommit,
     tag: planTag,
   });
+});
+
+test('rejects an orphaned failed release run from the complete run collection', () => {
+  const runUrl = 'https://github.com/pkg-nec/jest/actions/runs/304';
+  const message = errorFor({
+    releaseRuns: [
+      ...completedRelease().releaseRuns,
+      {
+        conclusion: 'failure',
+        event: 'release',
+        head_branch: planTag,
+        head_sha: introductionCommit,
+        html_url: runUrl,
+        path: '.github/workflows/release.yml',
+        status: 'completed',
+      },
+    ],
+  });
+
+  expect(message).toMatch(/failed-run/u);
+  expect(message).toContain(planTag);
+  expect(message).toContain(runUrl);
 });
 
 test.each([

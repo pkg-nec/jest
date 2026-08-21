@@ -10,7 +10,10 @@ import {fileURLToPath} from 'node:url';
 import execa from 'execa';
 import fs from 'graceful-fs';
 import {renderDraftRelease} from './pkgNec/draftReleaseNotes.mjs';
-import {resolveDraftReleaseState} from './pkgNec/draftReleaseState.mjs';
+import {
+  resolveDraftReleaseState,
+  summarizeUnresolvedReleaseState,
+} from './pkgNec/draftReleaseState.mjs';
 import {releasePlanPathFromTag} from './pkgNec/releasePlanSchema.mjs';
 import {
   findUnresolvedReleaseState,
@@ -335,6 +338,7 @@ export async function runDraftReleaseCommand({
   }
   const unresolved = findUnresolvedReleaseState({
     localPlans,
+    releaseRuns,
     releases: hydratedReleases,
     tags: [...tagsByName.values()],
   });
@@ -342,7 +346,7 @@ export async function runDraftReleaseCommand({
   if (unresolved.length !== 1 || unresolvedPlans.length !== 1) {
     throw new Error(
       `Expected exactly one unresolved local release plan; found ${
-        unresolved.map(item => item.kind).join(', ') || 'none'
+        summarizeUnresolvedReleaseState(unresolved) || 'none'
       }`,
     );
   }
@@ -424,6 +428,7 @@ export async function runDraftReleaseCommand({
       introductionCommit: planIntroductionCommit,
       isAncestor,
     },
+    releaseRuns,
     releases: hydratedReleases,
     tags: [...tagsByName.values()],
   });
@@ -439,24 +444,23 @@ export async function runDraftReleaseCommand({
   );
   await writeFile(notesPath, notes, 'utf8');
 
-  const createResult = await invokeGh([
-    'release',
-    'create',
-    resolved.plan.anchor.tag,
-    '--draft',
-    '--target',
-    resolved.planIntroductionCommit,
-    '--title',
-    resolved.plan.anchor.tag,
-    '--notes-file',
-    notesPath,
-    '--repo',
-    repository,
-  ]);
-
   let createdDraftUrl = null;
   let observedCommit = null;
   try {
+    const createResult = await invokeGh([
+      'release',
+      'create',
+      resolved.plan.anchor.tag,
+      '--draft',
+      '--target',
+      resolved.planIntroductionCommit,
+      '--title',
+      resolved.plan.anchor.tag,
+      '--notes-file',
+      notesPath,
+      '--repo',
+      repository,
+    ]);
     createdDraftUrl = validDraftUrl(createResult);
     await invokeGit([
       'fetch',
