@@ -21,6 +21,11 @@ const artifactBuildInputs = [
   'scripts/removeBuildDeclarations.mjs',
   'scripts/writeBundledDeclarations.mjs',
 ];
+const draftToolingPaths = [
+  'scripts/draftPkgNecRelease.mjs',
+  'scripts/pkgNec/draftReleaseNotes.mjs',
+  'scripts/pkgNec/draftReleaseState.mjs',
+];
 
 const inventory = {
   packages: [
@@ -122,6 +127,16 @@ test.each(artifactBuildInputs)(
     expect(classify([file])).toEqual({
       packageChanges: [],
       root: {allPackages: [file], ambiguous: [], noImpact: []},
+    });
+  },
+);
+
+test.each(draftToolingPaths)(
+  'classifies draft tooling %s only as no-impact',
+  file => {
+    expect(classify([file])).toEqual({
+      packageChanges: [],
+      root: {allPackages: [], ambiguous: [], noImpact: [file]},
     });
   },
 );

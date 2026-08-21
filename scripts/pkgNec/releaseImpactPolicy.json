@@ -6,6 +6,9 @@
     "GOVERNANCE.md",
     "PROJECT_CHARTER.md",
     "README.md",
+    "scripts/draftPkgNecRelease.mjs",
+    "scripts/pkgNec/draftReleaseNotes.mjs",
+    "scripts/pkgNec/draftReleaseState.mjs",
     "scripts/pkgNec/releaseArtifactPolicy.mjs",
     "SECURITY.md",
     "yarn.config.cjs"
