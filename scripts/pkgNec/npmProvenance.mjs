@@ -34,6 +34,10 @@ const provenanceBuildType =
 const provenancePredicateType = 'https://slsa.dev/provenance/v1';
 const publishPredicateType =
   'https://github.com/npm/attestation/tree/main/specs/publish/v0.1';
+const statementTypeByPredicate = new Map([
+  [provenancePredicateType, 'https://in-toto.io/Statement/v1'],
+  [publishPredicateType, 'https://in-toto.io/Statement/v0.1'],
+]);
 const retryableCodes = new Set([
   'E404',
   'E408',
@@ -424,7 +428,7 @@ export function normalizeAttestationBundle(item) {
   const statement = decodeStatement(bundle.dsseEnvelope?.payload);
   const subject = statement?.subject?.[0];
   if (
-    statement?._type !== 'https://in-toto.io/Statement/v1' ||
+    statement?._type !== statementTypeByPredicate.get(predicateType) ||
     statement?.predicateType !== predicateType ||
     typeof subject?.name !== 'string' ||
     typeof subject?.digest?.sha512 !== 'string' ||

@@ -75,9 +75,9 @@ function runNpmProvenanceProgram(program, input = {}) {
   return JSON.parse(child.stdout.trim());
 }
 
-function makeStatement({predicate, predicateType}) {
+function makeStatement({predicate, predicateType, statementType}) {
   return {
-    _type: 'https://in-toto.io/Statement/v1',
+    _type: statementType ?? 'https://in-toto.io/Statement/v1',
     predicate,
     predicateType,
     subject: [
@@ -135,6 +135,7 @@ function makePublishStatement() {
       version: '1.2.3',
     },
     predicateType: publishPredicateType,
+    statementType: 'https://in-toto.io/Statement/v0.1',
   });
 }
 
@@ -851,6 +852,65 @@ describe('npm provenance normalization', () => {
 });
 
 describe('exact npm package provenance query', () => {
+  // Mutation: require Statement/v1 for every bundle, rejecting npm's live
+  // publish-attestation representation before its exact subject is checked.
+  test('accepts npm Statement/v0.1 publish evidence with Statement/v1 provenance', () => {
+    const fixture = makeFixture();
+    const publishStatement = makePublishStatement();
+    publishStatement._type = 'https://in-toto.io/Statement/v0.1';
+    fixture.metadata._attestationBundles[1].bundle = makeBundle(
+      publishStatement,
+      {keyid: 'registry-key-1', logId: 'rekor-entry-2'},
+    );
+
+    const {outcome, verifyCalls} = runValidation(fixture.metadata);
+
+    expect(outcome).toEqual({
+      result: expect.objectContaining({
+        integrity: expectedIntegrity,
+        name: '@pkg-nec/a',
+        version: '1.2.3',
+      }),
+    });
+    expect(verifyCalls).toHaveLength(1);
+  });
+
+  // Mutation: allow either in-toto statement version for either predicate.
+  test.each([
+    [
+      'Statement/v1 publish',
+      1,
+      makePublishStatement,
+      'https://in-toto.io/Statement/v1',
+    ],
+    [
+      'Statement/v0.1 provenance',
+      0,
+      makeProvenanceStatement,
+      'https://in-toto.io/Statement/v0.1',
+    ],
+  ])(
+    'rejects %s as malformed',
+    (_label, bundleIndex, makeStatementForPredicate, statementType) => {
+      const fixture = makeFixture();
+      const statement = makeStatementForPredicate();
+      statement._type = statementType;
+      fixture.metadata._attestationBundles[bundleIndex].bundle = makeBundle(
+        statement,
+        bundleIndex === 1
+          ? {keyid: 'registry-key-1', logId: 'rekor-entry-2'}
+          : undefined,
+      );
+
+      const {outcome} = runValidation(fixture.metadata);
+
+      expect(outcome).toEqual({
+        error: expect.objectContaining({code: 'EMALFORMEDATTESTATION'}),
+      });
+      expect(classifySerializedError(outcome.error)).toBe('fatal');
+    },
+  );
+
   // Mutation: load npm keys or create Sigstore trust once per package attempt,
   // omit the remaining deadline from either trust API, or fail to reuse the
   // prepared verifier and keys.
