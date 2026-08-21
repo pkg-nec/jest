@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@babel-8/core": "npm:@babel/core@8.0.0-rc.4",
-    "@babel/core": "^7.27.4",
+    "@babel/core": "^8.0.1",
     "@pkg-nec/jest-test-utils": "workspace:*",
     "@types/graceful-fs": "^4.1.9"
   },
