@@ -9,6 +9,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import execa from 'execa';
 import fs from 'graceful-fs';
+import {promoteGuardedFileSet} from './pkgNec/guardedFileSet.mjs';
 import {classifyReleaseChanges} from './pkgNec/releaseChangePolicy.mjs';
 import {
   canonicalReleasePlan,
@@ -51,6 +52,86 @@ function parseJson(text, label) {
   }
 }
 
+function parsePlainJsonObject(text, label) {
+  const value = parseJson(text, label);
+  if (value === null || Array.isArray(value) || typeof value !== 'object') {
+    throw new Error(`${label} must contain a plain JSON object`);
+  }
+  return value;
+}
+
+function messageOf(value) {
+  try {
+    if (
+      value !== null &&
+      (typeof value === 'object' || typeof value === 'function') &&
+      typeof value.message === 'string'
+    ) {
+      return value.message;
+    }
+  } catch {
+    // Continue to the defensive string conversion.
+  }
+  try {
+    return String(value);
+  } catch {
+    return '<unprintable error>';
+  }
+}
+
+function propertyOf(value, key) {
+  try {
+    return value !== null &&
+      (typeof value === 'object' || typeof value === 'function')
+      ? value[key]
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function diagnosticJson(value, label) {
+  try {
+    return JSON.stringify(value, null, 2) ?? `<unable to format ${label}>`;
+  } catch (error) {
+    return `<unable to format ${label}: ${messageOf(error)}>`;
+  }
+}
+
+function appendArrayDiagnostic(lines, value, heading, label, normalize) {
+  try {
+    if (!Array.isArray(value) || value.length === 0) return;
+    lines.push(heading, diagnosticJson(normalize(value), label));
+  } catch (error) {
+    lines.push(heading, `<unable to format ${label}: ${messageOf(error)}>`);
+  }
+}
+
+export function formatPlanReleaseError(error) {
+  const lines = [messageOf(error)];
+  const details = propertyOf(error, 'details');
+  if (details) lines.push(diagnosticJson(details, 'error details'));
+
+  const cleanupErrors = propertyOf(error, 'cleanupErrors');
+  appendArrayDiagnostic(
+    lines,
+    cleanupErrors,
+    'Cleanup errors:',
+    'cleanup errors',
+    values => values.map(messageOf),
+  );
+
+  const recoveryPaths = propertyOf(error, 'recoveryPaths');
+  appendArrayDiagnostic(
+    lines,
+    recoveryPaths,
+    'Recovery backup paths:',
+    'recovery backup paths',
+    values => values,
+  );
+  return `${lines.join('\n')}\n`;
+}
+
 function parseOptions(args) {
   if (!Array.isArray(args)) throw new Error(usage);
   const bumpOverrideValues = [];
@@ -90,6 +171,28 @@ function fullCommit(value, label) {
     throw new Error(`${label} must resolve to a full 40-hex commit`);
   }
   return commit;
+}
+
+async function assertStableApplyState({head, originMain, runGit}) {
+  const status = commandText(await runGit(['status', '--porcelain']));
+  if (status.trim().length > 0) {
+    throw new Error(
+      'Planner worktree changed and must remain clean before apply',
+    );
+  }
+  const finalHead = fullCommit(
+    commandText(await runGit(['rev-parse', 'HEAD'])),
+    'Final HEAD',
+  );
+  const finalOriginMain = fullCommit(
+    commandText(await runGit(['rev-parse', 'origin/main'])),
+    'Final origin/main',
+  );
+  if (finalHead !== head || finalOriginMain !== originMain) {
+    throw new Error(
+      'Planner Git identity changed during planning; HEAD and origin/main must remain at the captured commit',
+    );
+  }
 }
 
 function slurpedItems(text, field, label) {
@@ -233,10 +336,16 @@ async function commitRelationToBaseline({baselineCommit, commit, runGit}) {
 
 export async function runPlanReleaseCommand({
   args = process.argv.slice(2),
+  link = fs.promises.link,
+  lstat = fs.promises.lstat,
   readFile = fs.promises.readFile,
+  realpath = fs.promises.realpath,
+  rename = fs.promises.rename,
+  rm = fs.promises.rm,
   runGh,
   runGit,
   write = value => process.stdout.write(value),
+  writeFile = fs.promises.writeFile,
 } = {}) {
   const options = parseOptions(args);
   const repoRoot = path.resolve(process.cwd());
@@ -383,7 +492,7 @@ export async function runPlanReleaseCommand({
     );
   }
   try {
-    await invokeGit(['merge-base', '--is-ancestor', baseline.commit, 'HEAD']);
+    await invokeGit(['merge-base', '--is-ancestor', baseline.commit, head]);
   } catch {
     throw unresolvedError(
       [
@@ -399,7 +508,13 @@ export async function runPlanReleaseCommand({
     );
   }
   const changedFiles = commandText(
-    await invokeGit(['diff', '--name-only', '-z', `${baseline.commit}..HEAD`]),
+    await invokeGit([
+      'diff',
+      '--no-renames',
+      '--name-only',
+      '-z',
+      `${baseline.commit}..${head}`,
+    ]),
   )
     .split('\0')
     .filter(Boolean);
@@ -523,7 +638,62 @@ export async function runPlanReleaseCommand({
     return {...result, apply: options.apply};
   }
 
-  write(canonicalReleasePlan(result.plan));
+  const planText = canonicalReleasePlan(result.plan);
+  if (options.apply) {
+    const files = [];
+    for (const planned of result.plan.packages) {
+      const identity = currentInventory.byNewName.get(planned.name);
+      const manifestText = currentManifests.get(identity.manifestPath);
+      const manifest = parseJson(manifestText, `manifest ${planned.name}`);
+      const updated = {...manifest, version: planned.toVersion};
+      files.push({
+        expectedPreimage: manifestText,
+        path: identity.manifestPath,
+        text: `${JSON.stringify(updated, null, 2)}\n`,
+      });
+    }
+
+    const planPath = path.resolve(repoRoot, result.plan.planPath);
+    let planExists = true;
+    try {
+      await readFile(planPath, 'utf8');
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw error;
+      planExists = false;
+    }
+    if (planExists) {
+      throw new Error(`Release plan already exists: ${result.plan.planPath}`);
+    }
+    files.push({mustNotExist: true, path: planPath, text: planText});
+
+    const lernaPath = path.resolve(repoRoot, 'lerna.json');
+    const lernaText = await readFile(lernaPath, 'utf8');
+    const lerna = parsePlainJsonObject(lernaText, 'lerna.json');
+    if (lerna.version !== 'independent') {
+      files.push({
+        expectedPreimage: lernaText,
+        path: lernaPath,
+        text: `${JSON.stringify({...lerna, version: 'independent'}, null, 2)}\n`,
+      });
+    }
+    await assertStableApplyState({
+      head,
+      originMain,
+      runGit: invokeGit,
+    });
+    await promoteGuardedFileSet({
+      files,
+      link,
+      lstat,
+      readFile,
+      realpath,
+      rename,
+      rm,
+      writeFile,
+    });
+  }
+
+  write(planText);
   write(packageTable(result.plan));
   return {...result, apply: options.apply};
 }
@@ -536,8 +706,7 @@ if (isMain) {
   try {
     await runPlanReleaseCommand();
   } catch (error) {
-    console.error(error.message);
-    if (error.details) console.error(JSON.stringify(error.details, null, 2));
+    process.stderr.write(formatPlanReleaseError(error));
     process.exitCode = 1;
   }
 }

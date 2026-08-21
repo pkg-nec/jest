@@ -15,6 +15,9 @@ const repoRoot = process.cwd();
 const moduleUrl = pathToFileURL(
   path.join(repoRoot, 'scripts/planPkgNecRelease.mjs'),
 ).href;
+const validatorModuleUrl = pathToFileURL(
+  path.join(repoRoot, 'scripts/validatePkgNecReleasePlan.mjs'),
+).href;
 const identityPolicy = JSON.parse(
   fs.readFileSync(
     path.join(repoRoot, 'scripts/pkgNec/packageIdentityPolicy.json'),
@@ -25,6 +28,13 @@ const baselineCommit = '1111111111111111111111111111111111111111';
 const headCommit = '2222222222222222222222222222222222222222';
 const baselineTag = '@pkg-nec/jest-v30.4.3';
 const runUrl = 'https://github.com/pkg-nec/jest/actions/runs/100';
+const artifactBuildInputs = [
+  'eslint.config.mjs',
+  'scripts/babel-plugin-jest-native-globals.js',
+  'scripts/bundleTs.mjs',
+  'scripts/removeBuildDeclarations.mjs',
+  'scripts/writeBundledDeclarations.mjs',
+];
 
 const publishedPackages = identityPolicy.packages
   .filter(item => item.publishable)
@@ -198,15 +208,120 @@ function trackedPlan({tag = '@pkg-nec/jest-v30.5.0', version = '30.5.0'} = {}) {
   };
 }
 
+function formatFailure({
+  circularDetails = false,
+  cleanupErrors = [],
+  details = null,
+  hostileMetadata = null,
+  primary = 'planning failed',
+  recoveryPaths = [],
+} = {}) {
+  const scenario = {
+    circularDetails,
+    cleanupErrors,
+    details,
+    hostileMetadata,
+    primary,
+    recoveryPaths,
+  };
+  const child = spawnSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '--eval',
+      `
+        import {formatPlanReleaseError} from ${JSON.stringify(moduleUrl)};
+        const scenario = ${JSON.stringify(scenario)};
+        const error = new Error(scenario.primary);
+        error.cleanupErrors = scenario.cleanupErrors.map(
+          value => new Error(value),
+        );
+        error.details = scenario.circularDetails
+          ? Object.assign({}, {self: null})
+          : scenario.details;
+        if (scenario.circularDetails) error.details.self = error.details;
+        error.recoveryPaths = scenario.recoveryPaths;
+        if (scenario.hostileMetadata === 'revoked-proxies') {
+          const cleanup = Proxy.revocable([], {});
+          const recovery = Proxy.revocable([], {});
+          cleanup.revoke();
+          recovery.revoke();
+          error.cleanupErrors = cleanup.proxy;
+          error.recoveryPaths = recovery.proxy;
+        }
+        if (scenario.hostileMetadata === 'throwing-access') {
+          error.cleanupErrors = [];
+          Object.defineProperty(error.cleanupErrors, 0, {
+            get() {
+              throw new Error('cleanup element trap');
+            },
+          });
+          error.recoveryPaths = new Proxy(['recovery'], {
+            get(target, key, receiver) {
+              if (key === 'length') throw new Error('recovery length trap');
+              return Reflect.get(target, key, receiver);
+            },
+          });
+        }
+        if (scenario.hostileMetadata === 'hostile-values') {
+          error.cleanupErrors = [
+            {
+              get message() {
+                throw new Error('cleanup message trap');
+              },
+              toString() {
+                throw new Error('cleanup string trap');
+              },
+            },
+          ];
+          error.recoveryPaths = [
+            {
+              toJSON() {
+                throw new Error('recovery value trap');
+              },
+            },
+          ];
+        }
+        if (scenario.hostileMetadata === 'throwing-iterators') {
+          const withoutIteration = values =>
+            new Proxy(values, {
+              get(target, key, receiver) {
+                if (key === Symbol.iterator) {
+                  throw new Error('iterator trap');
+                }
+                return Reflect.get(target, key, receiver);
+              },
+            });
+          error.cleanupErrors = withoutIteration([
+            new Error('cleanup survived'),
+          ]);
+          error.recoveryPaths = withoutIteration(['recovery survived']);
+        }
+        process.stdout.write(formatPlanReleaseError(error));
+      `,
+    ],
+    {cwd: repoRoot, encoding: 'utf8'},
+  );
+  if (child.status !== 0) throw new Error(child.stderr || child.stdout);
+  return child.stdout;
+}
+
 function runCommand({
   args = [],
   assetContents = {},
   changedFiles = ['packages/create-jest/src/index.ts'],
   dirty = false,
+  existingFiles = {},
+  finalDirty = false,
   head = headCommit,
+  finalHead = head,
+  lernaContent = null,
   localPlans = [],
   manifestOverrides = {},
   originMain = headCommit,
+  finalOriginMain = originMain,
+  planArrivalPath = null,
+  realFileSystem = false,
   releases = [completedRelease()],
   runs = [workflowRun()],
   tagManifestOverrides = {},
@@ -217,16 +332,24 @@ function runCommand({
       name: baselineTag,
     },
   ],
+  workingDirectory = repoRoot,
 } = {}) {
   const scenario = {
     args,
     assetContents,
     changedFiles,
     dirty,
+    existingFiles,
+    finalDirty,
+    finalHead,
+    finalOriginMain,
     head,
+    lernaContent,
     localPlans,
     manifestOverrides,
     originMain,
+    planArrivalPath,
+    realFileSystem,
     releases,
     runs,
     tagManifestOverrides,
@@ -242,7 +365,7 @@ function runCommand({
         import path from 'node:path';
         import {runPlanReleaseCommand} from ${JSON.stringify(moduleUrl)};
 
-        const repoRoot = ${JSON.stringify(repoRoot)};
+        const repoRoot = process.cwd();
         const scenario = ${JSON.stringify(scenario)};
         const baselineCommit = ${JSON.stringify(baselineCommit)};
         const events = [];
@@ -255,13 +378,57 @@ function runCommand({
             item.content ?? JSON.stringify(item.plan),
           ]),
         );
+        const virtualEntries = new Map();
+        const virtualMissing = new Set();
+        let headReads = 0;
+        let nextVirtualIno = 1n;
+        let originMainReads = 0;
+        let statusReads = 0;
+        const virtualPath = file => path.resolve(String(file));
+        const virtualLstat = async (file, options) => {
+          const normalized = virtualPath(file);
+          const entry = virtualEntries.get(normalized);
+          if (entry) {
+            return {
+              dev: entry.dev,
+              ino: entry.ino,
+              isFile: () => true,
+            };
+          }
+          if (virtualMissing.has(normalized)) {
+            throw Object.assign(new Error('missing'), {code: 'ENOENT'});
+          }
+          return fs.promises.lstat(file, options);
+        };
+        const requireVirtualAbsence = async file => {
+          try {
+            await virtualLstat(file, {bigint: true});
+          } catch (error) {
+            if (error?.code === 'ENOENT') return;
+            throw error;
+          }
+          throw Object.assign(new Error('already exists'), {code: 'EEXIST'});
+        };
 
         const runGit = async args => {
           events.push({args, kind: 'git'});
-          if (args[0] === 'status') return scenario.dirty ? ' M package.json\\n' : '';
+          if (args[0] === 'status') {
+            statusReads++;
+            return (statusReads === 1 ? scenario.dirty : scenario.finalDirty)
+              ? ' M package.json\\n'
+              : '';
+          }
           if (args[0] === 'fetch') return '';
-          if (args.join(' ') === 'rev-parse HEAD') return scenario.head;
-          if (args.join(' ') === 'rev-parse origin/main') return scenario.originMain;
+          if (args.join(' ') === 'rev-parse HEAD') {
+            headReads++;
+            return headReads === 1 ? scenario.head : scenario.finalHead;
+          }
+          if (args.join(' ') === 'rev-parse origin/main') {
+            originMainReads++;
+            return originMainReads === 1
+              ? scenario.originMain
+              : scenario.finalOriginMain;
+          }
           if (args[0] === 'for-each-ref') {
             return scenario.tags
               .map(tag => tag.name)
@@ -280,7 +447,12 @@ function runCommand({
           if (args[0] === 'merge-base') {
             const left = args[2];
             const right = args[3];
-            if (left === baselineCommit && right === 'HEAD') return '';
+            if (
+              left === baselineCommit &&
+              ['HEAD', scenario.head].includes(right)
+            ) {
+              return '';
+            }
             const relatedCommit =
               left === baselineCommit ? right : left;
             const relatedTag = scenario.tags.find(
@@ -342,8 +514,23 @@ function runCommand({
         const readFile = async (file, encoding) => {
           const normalized = String(file).replaceAll('\\\\', '/');
           events.push({file: normalized, kind: 'read'});
+          const virtualEntry = virtualEntries.get(virtualPath(file));
+          if (virtualEntry?.content) {
+            return encoding
+              ? virtualEntry.content.toString(encoding)
+              : Buffer.from(virtualEntry.content);
+          }
+          if (virtualMissing.has(virtualPath(file))) {
+            throw Object.assign(new Error('missing'), {code: 'ENOENT'});
+          }
           if (planFiles.has(normalized)) return planFiles.get(normalized);
           const relative = path.relative(repoRoot, String(file)).replaceAll('\\\\', '/');
+          if (Object.hasOwn(scenario.existingFiles, relative)) {
+            return scenario.existingFiles[relative];
+          }
+          if (relative === 'lerna.json' && scenario.lernaContent !== null) {
+            return scenario.lernaContent;
+          }
           if (scenario.manifestOverrides[relative]) {
             const manifest = JSON.parse(
               await fs.promises.readFile(file, encoding),
@@ -355,6 +542,91 @@ function runCommand({
           }
           return fs.promises.readFile(file, encoding);
         };
+        let planArrived = false;
+        const raceAdapters = scenario.planArrivalPath
+          ? {
+              link: fs.promises.link,
+              lstat: fs.promises.lstat,
+              realpath: fs.promises.realpath,
+              rename: async (from, to) => {
+                const planPath = path.join(repoRoot, scenario.planArrivalPath);
+                if (path.resolve(to) === planPath) {
+                  await fs.promises.rm(to, {force: true});
+                }
+                return fs.promises.rename(from, to);
+              },
+              rm: fs.promises.rm,
+              writeFile: async (file, text, options) => {
+                if (!planArrived) {
+                  await fs.promises.writeFile(
+                    path.join(repoRoot, scenario.planArrivalPath),
+                    'foreign-plan',
+                    {flag: 'wx'},
+                  );
+                  planArrived = true;
+                }
+                return fs.promises.writeFile(file, text, options);
+              },
+            }
+          : {};
+        const mutationAdapters = scenario.realFileSystem
+          ? raceAdapters
+          : {
+              link: async (from, to) => {
+                await requireVirtualAbsence(to);
+                const source = await virtualLstat(from, {bigint: true});
+                const sourceEntry = virtualEntries.get(virtualPath(from));
+                const normalized = virtualPath(to);
+                virtualEntries.set(normalized, {
+                  content: sourceEntry?.content
+                    ? Buffer.from(sourceEntry.content)
+                    : Buffer.from(await readFile(from)),
+                  dev: source.dev,
+                  ino: source.ino,
+                });
+                virtualMissing.delete(normalized);
+                events.push({
+                  from: String(from).replaceAll('\\\\', '/'),
+                  kind: 'file-link',
+                  to: String(to).replaceAll('\\\\', '/'),
+                });
+              },
+              lstat: virtualLstat,
+              realpath: fs.promises.realpath,
+              rename: async (from, to) => {
+                events.push({
+                  from: String(from).replaceAll('\\\\', '/'),
+                  kind: 'file-rename',
+                  to: String(to).replaceAll('\\\\', '/'),
+                });
+              },
+              rm: async (file, options) => {
+                const normalized = virtualPath(file);
+                virtualEntries.delete(normalized);
+                virtualMissing.add(normalized);
+                events.push({
+                  file: String(file).replaceAll('\\\\', '/'),
+                  kind: 'file-rm',
+                  options,
+                });
+              },
+              writeFile: async (file, text, options) => {
+                await requireVirtualAbsence(file);
+                const normalized = virtualPath(file);
+                virtualEntries.set(normalized, {
+                  content: Buffer.from(text, options.encoding ?? 'utf8'),
+                  dev: 8675309n,
+                  ino: nextVirtualIno++,
+                });
+                virtualMissing.delete(normalized);
+                events.push({
+                  file: String(file).replaceAll('\\\\', '/'),
+                  kind: 'file-write',
+                  options,
+                  text,
+                });
+              },
+            };
 
         let value;
         try {
@@ -363,6 +635,7 @@ function runCommand({
             readFile,
             runGh,
             runGit,
+            ...mutationAdapters,
             write: text => {
               events.push({kind: 'write', text});
               output.push(text);
@@ -374,10 +647,203 @@ function runCommand({
         console.log(JSON.stringify({events, output, value}));
       `,
     ],
-    {cwd: repoRoot, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024},
+    {
+      cwd: workingDirectory,
+      encoding: 'utf8',
+      maxBuffer: 10 * 1024 * 1024,
+    },
   );
   if (child.status !== 0) throw new Error(child.stderr || child.stdout);
   return JSON.parse(child.stdout.trim());
+}
+
+function mutationEvents(result) {
+  return result.events.filter(event => event.kind.startsWith('file-'));
+}
+
+function runFixtureGit(directory, args) {
+  const result = spawnSync('git', args, {cwd: directory, encoding: 'utf8'});
+  if (result.status !== 0) throw new Error(result.stderr || result.stdout);
+  return result.stdout;
+}
+
+function createApplyFixture() {
+  const directory = fs.mkdtempSync(
+    path.join(repoRoot, '.plan-pkg-nec-release-test-'),
+  );
+  const files = new Set([
+    'lerna.json',
+    'package.json',
+    'scripts/pkgNec/packageIdentityPolicy.json',
+    'scripts/pkgNec/releaseImpactPolicy.json',
+    ...identityPolicy.packages.map(item => item.manifestPath),
+  ]);
+  for (const file of files) {
+    const destination = path.join(directory, file);
+    fs.mkdirSync(path.dirname(destination), {recursive: true});
+    fs.copyFileSync(path.join(repoRoot, file), destination);
+  }
+  const fixtureLernaPath = path.join(directory, 'lerna.json');
+  const fixtureLerna = JSON.parse(fs.readFileSync(fixtureLernaPath, 'utf8'));
+  fs.writeFileSync(
+    fixtureLernaPath,
+    `${JSON.stringify({...fixtureLerna, version: '30.4.3'}, null, 2)}\n`,
+  );
+  fs.mkdirSync(path.join(directory, 'docs/releases'), {recursive: true});
+  const manifestPath = 'packages/create-jest/package.json';
+  const originalManifest = JSON.parse(
+    fs.readFileSync(path.join(directory, manifestPath), 'utf8'),
+  );
+  const originalLerna = JSON.parse(
+    fs.readFileSync(path.join(directory, 'lerna.json'), 'utf8'),
+  );
+  runFixtureGit(directory, ['init', '--quiet']);
+  runFixtureGit(directory, ['config', 'user.email', 'fixture@example.invalid']);
+  runFixtureGit(directory, ['config', 'user.name', 'Fixture']);
+  runFixtureGit(directory, ['add', '.']);
+  runFixtureGit(directory, ['commit', '--quiet', '-m', 'fixture']);
+  return {directory, manifestPath, originalLerna, originalManifest};
+}
+
+function runRenameParityFixture() {
+  const directory = fs.mkdtempSync(
+    path.join(repoRoot, '.plan-pkg-nec-release-rename-test-'),
+  );
+  try {
+    const files = new Set([
+      'lerna.json',
+      'scripts/pkgNec/packageIdentityPolicy.json',
+      'scripts/pkgNec/releaseImpactPolicy.json',
+      ...identityPolicy.packages.map(item => item.manifestPath),
+    ]);
+    for (const file of files) {
+      const destination = path.join(directory, file);
+      fs.mkdirSync(path.dirname(destination), {recursive: true});
+      fs.copyFileSync(path.join(repoRoot, file), destination);
+    }
+    const renamedFrom = 'packages/create-jest/renamed-source.ts';
+    const renamedTo = 'docs/renamed-source.ts';
+    fs.writeFileSync(path.join(directory, renamedFrom), 'renamed source\n');
+    runFixtureGit(directory, ['init', '--quiet']);
+    runFixtureGit(directory, [
+      'config',
+      'user.email',
+      'fixture@example.invalid',
+    ]);
+    runFixtureGit(directory, ['config', 'user.name', 'Fixture']);
+    runFixtureGit(directory, ['config', 'diff.renames', 'true']);
+    runFixtureGit(directory, ['add', '.']);
+    runFixtureGit(directory, ['commit', '--quiet', '-m', 'baseline']);
+    const baseline = runFixtureGit(directory, ['rev-parse', 'HEAD']).trim();
+    runFixtureGit(directory, ['tag', baselineTag]);
+    fs.mkdirSync(path.join(directory, 'docs'), {recursive: true});
+    fs.renameSync(
+      path.join(directory, renamedFrom),
+      path.join(directory, renamedTo),
+    );
+    runFixtureGit(directory, ['add', '-A']);
+    runFixtureGit(directory, ['commit', '--quiet', '-m', 'prepared']);
+    const prepared = runFixtureGit(directory, ['rev-parse', 'HEAD']).trim();
+    fs.mkdirSync(path.join(directory, 'docs/releases'), {recursive: true});
+
+    const release = completedRelease();
+    for (const asset of release.assets) {
+      if (asset.content && typeof asset.content === 'object') {
+        asset.content.sourceCommit = baseline;
+      }
+    }
+    const releaseRun = workflowRun({head_sha: baseline});
+    const program = `
+      import {execFileSync} from 'node:child_process';
+      import {runPlanReleaseCommand} from ${JSON.stringify(moduleUrl)};
+      import {runValidateReleasePlanCommand} from ${JSON.stringify(validatorModuleUrl)};
+      const directory = ${JSON.stringify(directory)};
+      const prepared = ${JSON.stringify(prepared)};
+      const release = ${JSON.stringify(release)};
+      const releaseRun = ${JSON.stringify(releaseRun)};
+      const git = args => execFileSync('git', args, {
+        cwd: directory,
+        encoding: 'utf8',
+      });
+      const gitEvents = [];
+      const runGit = async args => {
+        gitEvents.push(args);
+        if (args[0] === 'fetch') return '';
+        if (args.join(' ') === 'rev-parse origin/main') return prepared + '\\n';
+        return git(args);
+      };
+      const runGh = async args => {
+        if (args[0] === 'repo') {
+          return JSON.stringify({nameWithOwner: 'pkg-nec/jest'});
+        }
+        const endpoint = args.at(-1);
+        if (endpoint === 'repos/pkg-nec/jest/releases?per_page=100') {
+          return JSON.stringify([[release]]);
+        }
+        if (
+          endpoint ===
+          'repos/pkg-nec/jest/actions/workflows/release.yml/runs?per_page=100'
+        ) {
+          return JSON.stringify([{workflow_runs: [releaseRun]}]);
+        }
+        throw new Error('Unexpected gh arguments: ' + JSON.stringify(args));
+      };
+      try {
+        const planner = await runPlanReleaseCommand({
+          args: ['--apply'],
+          runGh,
+          runGit,
+          write: () => {},
+        });
+        if (planner.kind !== 'release') {
+          console.log(JSON.stringify({gitEvents, planner}));
+        } else {
+          git(['add', '-A']);
+          git(['commit', '--quiet', '-m', 'release preparation']);
+          const head = git(['rev-parse', 'HEAD']).trim();
+          const validation = await runValidateReleasePlanCommand({
+            args: [prepared],
+            expectedHead: head,
+            write: () => {},
+          });
+          console.log(JSON.stringify({gitEvents, planner, validation}));
+        }
+      } catch (error) {
+        console.log(JSON.stringify({error: error.message, gitEvents}));
+      }
+    `;
+    const child = spawnSync(
+      process.execPath,
+      ['--input-type=module', '--eval', program],
+      {cwd: directory, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024},
+    );
+    if (child.status !== 0) throw new Error(child.stderr || child.stdout);
+    return JSON.parse(child.stdout.trim());
+  } finally {
+    fs.rmSync(directory, {force: true, recursive: true});
+  }
+}
+
+function changedKeys(left, right) {
+  return [...new Set([...Object.keys(left), ...Object.keys(right)])]
+    .filter(key => JSON.stringify(left[key]) !== JSON.stringify(right[key]))
+    .sort();
+}
+
+function generatedArtifacts(directory) {
+  const found = [];
+  const visit = current => {
+    for (const item of fs.readdirSync(current, {withFileTypes: true})) {
+      if (item.name === '.git') continue;
+      const itemPath = path.join(current, item.name);
+      if (item.isDirectory()) visit(itemPath);
+      else if (/\.pkg-nec-release-(?:tmp|backup)-/u.test(item.name)) {
+        found.push(path.relative(directory, itemPath).replaceAll('\\', '/'));
+      }
+    }
+  };
+  visit(directory);
+  return found.sort();
 }
 
 const expectedPreflight = [
@@ -422,9 +888,10 @@ test('runs the exact preflight before state discovery and baseline diffing', () 
   ).toEqual(['rev-list', '-n', '1', `refs/tags/${baselineTag}`]);
   expect(commandEvents[diffIndex].args).toEqual([
     'diff',
+    '--no-renames',
     '--name-only',
     '-z',
-    `${baselineCommit}..HEAD`,
+    `${baselineCommit}..${headCommit}`,
   ]);
   expect(
     commandEvents
@@ -434,23 +901,74 @@ test('runs the exact preflight before state discovery and baseline diffing', () 
   ).toBe(true);
 });
 
+test('keeps real rename classification identical between planning and validation', () => {
+  const result = runRenameParityFixture();
+
+  expect(result.error).toBeUndefined();
+  expect(result.planner.kind).toBe('release');
+  expect(result.planner.plan.changedFiles).toEqual({
+    packages: [
+      {
+        files: ['packages/create-jest/renamed-source.ts'],
+        name: '@pkg-nec/create-jest',
+      },
+    ],
+    root: {
+      allPackages: [],
+      ambiguous: [],
+      noImpact: ['docs/renamed-source.ts'],
+    },
+  });
+  expect(result.validation).toEqual({
+    classification: 'release-preparation',
+    packageCount: result.planner.plan.packages.length,
+    planPath: result.planner.plan.planPath,
+  });
+});
+
 test('stops a dirty worktree before fetch and produces no output', () => {
-  const result = runCommand({dirty: true});
+  const result = runCommand({args: ['--apply'], dirty: true});
 
   expect(result.value.error).toMatch(/clean worktree/iu);
   expect(result.events).toEqual([
     {args: ['status', '--porcelain'], kind: 'git'},
   ]);
   expect(result.output).toEqual([]);
+  expect(mutationEvents(result)).toEqual([]);
 });
 
 test('stops stale main after the fetched comparison and produces no output', () => {
-  const result = runCommand({originMain: baselineCommit});
+  const result = runCommand({args: ['--apply'], originMain: baselineCommit});
 
   expect(result.value.error).toMatch(/HEAD.*origin\/main/iu);
   expect(result.events).toEqual(expectedPreflight.slice(0, 4));
   expect(result.output).toEqual([]);
+  expect(mutationEvents(result)).toEqual([]);
 });
+
+test.each([
+  ['tracked worktree', {finalDirty: true}, /clean|changed/iu],
+  ['HEAD', {finalHead: baselineCommit}, /HEAD|identity|changed/iu],
+  [
+    'origin/main',
+    {finalOriginMain: baselineCommit},
+    /origin\/main|identity|changed/iu,
+  ],
+])(
+  'aborts apply when final %s identity drifts without output or mutation',
+  (_label, input, message) => {
+    const result = runCommand({args: ['--apply'], ...input});
+
+    expect(result.value.error).toMatch(message);
+    expect(result.output).toEqual([]);
+    expect(mutationEvents(result)).toEqual([]);
+    expect(
+      result.events.filter(
+        event => event.kind === 'git' && event.args[0] === 'fetch',
+      ),
+    ).toHaveLength(1);
+  },
+);
 
 test.each([
   [['--since', baselineTag]],
@@ -471,7 +989,10 @@ test.each([
 test('blocks unresolved state before ancestry checks or diff output', () => {
   const planPath = 'docs/releases/pkg-nec-jest-v30.5.0-plan.json';
   const plan = trackedPlan();
-  const result = runCommand({localPlans: [{path: planPath, plan}]});
+  const result = runCommand({
+    args: ['--apply'],
+    localPlans: [{path: planPath, plan}],
+  });
 
   expect(result.value.error).toMatch(/unresolved release state/iu);
   expect(result.value.details).toEqual([
@@ -488,11 +1009,13 @@ test('blocks unresolved state before ancestry checks or diff output', () => {
     ),
   ).toBe(false);
   expect(result.output).toEqual([]);
+  expect(mutationEvents(result)).toEqual([]);
 });
 
 test('blocks malformed tracked plan JSON without output or mutation', () => {
   const planPath = 'docs/releases/pkg-nec-jest-v30.4.3-plan.json';
   const result = runCommand({
+    args: ['--apply'],
     localPlans: [{content: '{', path: planPath}],
   });
 
@@ -505,6 +1028,7 @@ test('blocks malformed tracked plan JSON without output or mutation', () => {
       event => event.kind === 'git' && event.args[0] === 'merge-base',
     ),
   ).toBe(false);
+  expect(mutationEvents(result)).toEqual([]);
 });
 
 test('prints no-change and ambiguous-root outcomes without plan JSON', () => {
@@ -519,6 +1043,104 @@ test('prints no-change and ambiguous-root outcomes without plan JSON', () => {
   );
   expect(ambiguous.output.join('')).not.toContain('"schemaVersion"');
 });
+
+test('formats guarded recovery diagnostics without losing messages or paths', () => {
+  expect(
+    formatFailure({
+      cleanupErrors: ['first cleanup failed', 'second cleanup failed'],
+      details: [{kind: 'guarded-write', path: 'manifest.json'}],
+      recoveryPaths: [
+        'packages/example/package.json.pkg-nec-release-backup-a b\\c\nnext',
+      ],
+    }),
+  ).toBe(
+    'planning failed\n' +
+      '[\n' +
+      '  {\n' +
+      '    "kind": "guarded-write",\n' +
+      '    "path": "manifest.json"\n' +
+      '  }\n' +
+      ']\n' +
+      'Cleanup errors:\n' +
+      '[\n' +
+      '  "first cleanup failed",\n' +
+      '  "second cleanup failed"\n' +
+      ']\n' +
+      'Recovery backup paths:\n' +
+      '[\n' +
+      '  "packages/example/package.json.pkg-nec-release-backup-a b\\\\c\\nnext"\n' +
+      ']\n',
+  );
+});
+
+test('keeps the primary failure printable when attached details are circular', () => {
+  const output = formatFailure({circularDetails: true});
+
+  expect(output).toMatch(/^planning failed\n/u);
+  expect(output).toMatch(/unable to format|circular/iu);
+});
+
+test('contains revoked cleanup and recovery proxy failures independently', () => {
+  const output = formatFailure({
+    details: [{kind: 'guarded-write'}],
+    hostileMetadata: 'revoked-proxies',
+  });
+
+  expect(output).toMatch(/^planning failed\n/iu);
+  expect(output).toContain('"kind": "guarded-write"');
+  expect(output).toMatch(
+    /Cleanup errors:\n<unable to format cleanup errors:/iu,
+  );
+  expect(output).toMatch(
+    /Recovery backup paths:\n<unable to format recovery backup paths:/iu,
+  );
+});
+
+test('contains throwing cleanup elements and recovery array access', () => {
+  const output = formatFailure({hostileMetadata: 'throwing-access'});
+
+  expect(output).toMatch(/^planning failed\n/iu);
+  expect(output).toContain('cleanup element trap');
+  expect(output).toContain('recovery length trap');
+});
+
+test('contains hostile diagnostic values without masking the primary failure', () => {
+  const output = formatFailure({hostileMetadata: 'hostile-values'});
+
+  expect(output).toMatch(/^planning failed\n/iu);
+  expect(output).toContain('"<unprintable error>"');
+  expect(output).toMatch(/recovery value trap/iu);
+});
+
+test('does not iterate cleanup errors or recovery paths', () => {
+  const output = formatFailure({hostileMetadata: 'throwing-iterators'});
+
+  expect(output).toContain('"cleanup survived"');
+  expect(output).toContain('"recovery survived"');
+  expect(output).not.toContain('iterator trap');
+});
+
+test.each(artifactBuildInputs)(
+  'does not let --root-impact=none suppress known artifact input %s',
+  changedFile => {
+    const result = runCommand({
+      args: ['--root-impact=none'],
+      changedFiles: [changedFile],
+    });
+
+    expect(result.value.kind).toBe('release');
+    expect(result.value.plan.packages).toHaveLength(publishedPackages.length);
+    expect(result.value.plan.changedFiles.root).toEqual({
+      allPackages: [changedFile],
+      ambiguous: [],
+      noImpact: [],
+    });
+    expect(result.value.plan.rootImpact).toEqual({
+      applied: 'all',
+      requested: 'none',
+    });
+  },
+);
 
 test('accepts only the planned options and prints canonical JSON plus a package table', () => {
   const result = runCommand({
@@ -541,6 +1163,182 @@ test('accepts only the planned options and prints canonical JSON plus a package 
     '| @pkg-nec/create-jest | 30.4.3 | 30.5.0 | minor |',
   );
   expect(output).not.toMatch(/undefined/iu);
+  expect(
+    mutationEvents(result).some(
+      event =>
+        event.kind === 'file-write' &&
+        event.file
+          .replaceAll('\\', '/')
+          .includes('/lerna.json.pkg-nec-release-'),
+    ),
+  ).toBe(false);
+});
+
+test('keeps read-only and non-release outcomes free of filesystem mutations', () => {
+  const results = [
+    runCommand(),
+    runCommand({args: ['--apply'], changedFiles: ['docs/maintenance.md']}),
+    runCommand({args: ['--apply'], changedFiles: ['yarn.lock']}),
+  ];
+
+  for (const result of results) expect(mutationEvents(result)).toEqual([]);
+});
+
+test('reads and validates the complete apply set before the first temporary write', () => {
+  const result = runCommand({
+    args: ['--bump', '@pkg-nec/create-jest=minor', '--apply'],
+    lernaContent: '{"version":"30.4.3"}\n',
+  });
+  const firstWrite = result.events.findIndex(
+    event => event.kind === 'file-write',
+  );
+  const beforeWrite = result.events.slice(0, firstWrite);
+
+  expect(result.value.kind).toBe('release');
+  expect(firstWrite).toBeGreaterThan(-1);
+  expect(result.value.plan.packages.map(item => item.name)).toEqual([
+    '@pkg-nec/create-jest',
+  ]);
+  for (const expectedPath of [
+    'packages/create-jest/package.json',
+    'lerna.json',
+    result.value.plan.planPath,
+  ]) {
+    expect(
+      beforeWrite.some(
+        event =>
+          event.kind === 'read' &&
+          event.file.replaceAll('\\', '/').endsWith(expectedPath),
+      ),
+    ).toBe(true);
+  }
+  const fileWrites = mutationEvents(result).filter(
+    event => event.kind === 'file-write',
+  );
+  expect(fileWrites).toHaveLength(3);
+  for (const event of fileWrites)
+    expect(() => JSON.parse(event.text)).not.toThrow();
+});
+
+test.each([
+  ['invalid Lerna JSON', {args: ['--apply'], lernaContent: '{'}, /lerna/iu],
+  [
+    'an existing untracked plan path',
+    {
+      args: ['--bump', '@pkg-nec/create-jest=minor', '--apply'],
+      existingFiles: {
+        'docs/releases/pkg-nec-create-jest-v30.5.0-plan.json': 'foreign\n',
+      },
+    },
+    /plan.*exist/iu,
+  ],
+])('rejects %s with zero filesystem mutations', (_label, input, message) => {
+  const result = runCommand(input);
+
+  expect(result.value.error).toMatch(message);
+  expect(mutationEvents(result)).toEqual([]);
+});
+
+test.each([
+  ['null', 'null'],
+  ['an array', '[]'],
+  ['a string', '"independent"'],
+  ['a number', '1'],
+])('rejects %s Lerna JSON before mutation', (_label, lernaContent) => {
+  const result = runCommand({args: ['--apply'], lernaContent});
+
+  expect(result.value.error).toMatch(/lerna.*plain.*object/iu);
+  expect(mutationEvents(result)).toEqual([]);
+});
+
+test('applies only the selected version, canonical plan, and Lerna mode in a Git fixture', () => {
+  const fixture = createApplyFixture();
+  try {
+    const result = runCommand({
+      args: ['--bump', '@pkg-nec/create-jest=minor', '--apply'],
+      realFileSystem: true,
+      workingDirectory: fixture.directory,
+    });
+    expect(result.value.kind).toBe('release');
+    expect(result.value.plan.packages.map(item => item.name)).toEqual([
+      '@pkg-nec/create-jest',
+    ]);
+
+    runFixtureGit(fixture.directory, [
+      'add',
+      '--intent-to-add',
+      '--',
+      result.value.plan.planPath,
+    ]);
+    const diffNames = runFixtureGit(fixture.directory, ['diff', '--name-only'])
+      .split(/\r?\n/u)
+      .filter(Boolean)
+      .sort();
+    expect(diffNames).toEqual(
+      [result.value.plan.planPath, fixture.manifestPath, 'lerna.json'].sort(),
+    );
+
+    const updatedManifest = JSON.parse(
+      fs.readFileSync(
+        path.join(fixture.directory, fixture.manifestPath),
+        'utf8',
+      ),
+    );
+    expect(changedKeys(fixture.originalManifest, updatedManifest)).toEqual([
+      'version',
+    ]);
+    expect(updatedManifest.version).toBe('30.5.0');
+
+    const updatedLerna = JSON.parse(
+      fs.readFileSync(path.join(fixture.directory, 'lerna.json'), 'utf8'),
+    );
+    expect(changedKeys(fixture.originalLerna, updatedLerna)).toEqual([
+      'version',
+    ]);
+    expect(updatedLerna.version).toBe('independent');
+    expect(
+      fs.readFileSync(
+        path.join(fixture.directory, result.value.plan.planPath),
+        'utf8',
+      ),
+    ).toBe(`${JSON.stringify(result.value.plan, null, 2)}\n`);
+    expect(generatedArtifacts(fixture.directory)).toEqual([]);
+  } finally {
+    fs.rmSync(fixture.directory, {force: true, recursive: true});
+  }
+});
+
+test('does not clobber a plan that appears after validation in a Git fixture', () => {
+  const fixture = createApplyFixture();
+  const planPath = 'docs/releases/pkg-nec-create-jest-v30.5.0-plan.json';
+  try {
+    const originalManifest = fs.readFileSync(
+      path.join(fixture.directory, fixture.manifestPath),
+    );
+    const originalLerna = fs.readFileSync(
+      path.join(fixture.directory, 'lerna.json'),
+    );
+    const result = runCommand({
+      args: ['--bump', '@pkg-nec/create-jest=minor', '--apply'],
+      planArrivalPath: planPath,
+      realFileSystem: true,
+      workingDirectory: fixture.directory,
+    });
+
+    expect(result.value.error).toMatch(/exist/iu);
+    expect(
+      fs.readFileSync(path.join(fixture.directory, planPath), 'utf8'),
+    ).toBe('foreign-plan');
+    expect(
+      fs.readFileSync(path.join(fixture.directory, fixture.manifestPath)),
+    ).toEqual(originalManifest);
+    expect(fs.readFileSync(path.join(fixture.directory, 'lerna.json'))).toEqual(
+      originalLerna,
+    );
+    expect(generatedArtifacts(fixture.directory)).toEqual([]);
+  } finally {
+    fs.rmSync(fixture.directory, {force: true, recursive: true});
+  }
 });
 
 test('builds dependent closure from manifests supplied by the file adapter', () => {
@@ -671,6 +1469,7 @@ test('keeps schema-1 completed baselines full-inventory', () => {
     error: expect.stringMatching(/unresolved release state/iu),
   });
   expect(result.output).toEqual([]);
+  expect(mutationEvents(result)).toEqual([]);
 });
 
 test.each([
