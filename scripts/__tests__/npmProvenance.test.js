@@ -24,16 +24,28 @@ const expectedIntegrity =
   'sha512-Hd8KszarD9yGomGtdBM9na1YYvRGKjdjIW23y0AWf5LZY1b43Y8SLgqfnGBYCFtk8tscEGuT2HbOM6yOoIHIPQ==';
 const expectedSha512Hex =
   '1ddf0ab336ab0fdc86a261ad74133d9dad5862f4462a3763216db7cb40167f92d96356f8dd8f122e0a9f9c6058085b64f2db1c106b93d876ce33ac8ea081c83d';
+const githubHostedOid = '1.3.6.1.4.1.57264.1.11';
 const packagePurl = 'pkg:npm/%40pkg-nec/a@1.2.3';
 const provenancePredicateType = 'https://slsa.dev/provenance/v1';
 const publishPredicateType =
   'https://github.com/npm/attestation/tree/main/specs/publish/v0.1';
+const publicVisibilityOid = '1.3.6.1.4.1.57264.1.22';
 const releaseTag = '@pkg-nec/a-v1.2.3';
 const sourceCommit = 'a'.repeat(40);
 const sourceRef = 'refs/tags/@pkg-nec/a-v1.2.3';
 const registryPublicKey =
   'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE+g7QmezB0LUTp3uXYuFUJuPaNES+sX6J7L5nTNdZUeTAV27M82U/dYxfsNMblTOD9iB7SbhA/aSW6NdE2Q1aJA==';
 const registryPublicKeyPem = `-----BEGIN PUBLIC KEY-----\n${registryPublicKey}\n-----END PUBLIC KEY-----`;
+const requiredCertificateOidFixtures = [
+  {
+    oid: {id: githubHostedOid.split('.').map(Number)},
+    valueHex: '0c0d6769746875622d686f73746564',
+  },
+  {
+    oid: {id: publicVisibilityOid.split('.').map(Number)},
+    valueHex: '0c067075626c6963',
+  },
+];
 
 function runNpmProvenanceProgram(program, input = {}) {
   const child = spawnSync(
@@ -62,6 +74,16 @@ function runNpmProvenanceProgram(program, input = {}) {
           new Error(value?.message ?? 'fixture error'),
           value,
         );
+        const signerFromFixture = signer => ({
+          ...signer,
+          identity: signer?.identity && {
+            ...signer.identity,
+            oids: signer.identity.oids?.map(({oid, valueHex}) => ({
+              oid,
+              value: Buffer.from(valueHex, 'hex'),
+            })),
+          },
+        });
         const output = value => console.log(JSON.stringify(value));
         ${program}
       `,
@@ -217,7 +239,16 @@ const verificationKeys = [
   },
 ];
 
-function runValidation(metadata, verifyError, entry = makeFixture().entry) {
+function makeVerifiedSigner(oids = requiredCertificateOidFixtures) {
+  return {identity: {oids}};
+}
+
+function runValidation(
+  metadata,
+  verifyError,
+  entry = makeFixture().entry,
+  verifiedSigner = makeVerifiedSigner(),
+) {
   return runNpmProvenanceProgram(
     `
       const selectedBundle = input.metadata._attestationBundles?.find(
@@ -233,6 +264,7 @@ function runValidation(metadata, verifyError, entry = makeFixture().entry) {
           verifyBundle: async (bundle, options) => {
             verifyCalls.push({sameBundle: bundle === selectedBundle, options});
             if (input.verifyError) throw makeError(input.verifyError);
+            return signerFromFixture(input.verifiedSigner);
           },
         }),
       );
@@ -244,6 +276,7 @@ function runValidation(metadata, verifyError, entry = makeFixture().entry) {
       releaseTag,
       sourceCommit,
       verifyError,
+      verifiedSigner,
     },
   );
 }
@@ -938,6 +971,148 @@ describe('exact npm package provenance query', () => {
     },
   );
 
+  // Mutation: pass npm's plain-string certificate OID policy to Sigstore 4.1.1
+  // or skip exact DER checks on the signer returned after verification.
+  test('validates required raw DER OIDs from the verified Sigstore signer', () => {
+    const fixture = makeFixture();
+    const result = runNpmProvenanceProgram(
+      `
+        const verifyCalls = [];
+        const outcome = await attempt(() =>
+          provenanceApi.validateAndNormalizeNpmEvidence({
+            entry: input.entry,
+            metadata: input.metadata,
+            releaseTag: input.releaseTag,
+            sourceCommit: input.sourceCommit,
+            verifyBundle: async (_bundle, options) => {
+              verifyCalls.push({
+                certificateIdentityURI: options.certificateIdentityURI,
+                certificateIssuer: options.certificateIssuer,
+                hasCertificateOIDs: Object.hasOwn(options, 'certificateOIDs'),
+              });
+              if (Object.hasOwn(options, 'certificateOIDs')) {
+                throw Object.assign(
+                  new Error('invalid certificate extension - missing OID'),
+                  {code: 'UNTRUSTED_SIGNER_ERROR'},
+                );
+              }
+              return signerFromFixture(input.verifiedSigner);
+            },
+          }),
+        );
+        output({outcome, verifyCalls});
+      `,
+      {
+        entry: fixture.entry,
+        metadata: fixture.metadata,
+        releaseTag,
+        sourceCommit,
+        verifiedSigner: makeVerifiedSigner(),
+      },
+    );
+
+    expect(result).toEqual({
+      outcome: {
+        result: expect.objectContaining({
+          integrity: expectedIntegrity,
+          name: '@pkg-nec/a',
+          version: '1.2.3',
+        }),
+      },
+      verifyCalls: [
+        {
+          certificateIdentityURI: certificateIdentityPattern,
+          certificateIssuer: 'https://token.actions.githubusercontent.com',
+          hasCertificateOIDs: false,
+        },
+      ],
+    });
+  });
+
+  // Mutations: trust a verified signer with missing, substituted, duplicate,
+  // or noncanonical Fulcio OID values.
+  test.each([
+    [
+      'missing GitHub-hosted OID',
+      oids => oids.filter(({oid}) => oid.id.join('.') !== githubHostedOid),
+    ],
+    [
+      'wrong GitHub-hosted OID',
+      oids => [
+        {
+          ...oids[0],
+          oid: {id: [...oids[0].oid.id.slice(0, -1), 12]},
+        },
+        oids[1],
+      ],
+    ],
+    [
+      'duplicate GitHub-hosted OID',
+      oids => [
+        ...oids,
+        {oid: {id: [...oids[0].oid.id]}, valueHex: oids[0].valueHex},
+      ],
+    ],
+    [
+      'wrong DER tag',
+      oids => [
+        {...oids[0], valueHex: '040d6769746875622d686f73746564'},
+        oids[1],
+      ],
+    ],
+    [
+      'wrong DER length',
+      oids => [
+        {...oids[0], valueHex: '0c0c6769746875622d686f73746564'},
+        oids[1],
+      ],
+    ],
+    [
+      'wrong DER value',
+      oids => [
+        {...oids[0], valueHex: '0c0d6769746875622d6861636b6564'},
+        oids[1],
+      ],
+    ],
+  ])('rejects a verified signer with %s as fatal', (_label, mutate) => {
+    const fixture = makeFixture();
+    const oids = requiredCertificateOidFixtures.map(({oid, valueHex}) => ({
+      oid: {id: [...oid.id]},
+      valueHex,
+    }));
+    const result = runNpmProvenanceProgram(
+      `
+        const outcome = await attempt(() =>
+          provenanceApi.validateAndNormalizeNpmEvidence({
+            entry: input.entry,
+            metadata: input.metadata,
+            releaseTag: input.releaseTag,
+            sourceCommit: input.sourceCommit,
+            verifyBundle: async () => signerFromFixture(input.verifiedSigner),
+          }),
+        );
+        output({
+          classification: provenanceApi.classifyProvenanceError(outcome.error),
+          outcome,
+        });
+      `,
+      {
+        entry: fixture.entry,
+        metadata: fixture.metadata,
+        releaseTag,
+        sourceCommit,
+        verifiedSigner: makeVerifiedSigner(mutate(oids)),
+      },
+    );
+
+    expect(result).toEqual({
+      classification: 'fatal',
+      outcome: {
+        error: expect.objectContaining({code: 'EATTESTATIONVERIFY'}),
+      },
+    });
+  });
+
   // Mutation: load npm keys or create Sigstore trust once per package attempt,
   // omit the remaining deadline from either trust API, or fail to reuse the
   // prepared verifier and keys.
@@ -969,6 +1144,7 @@ describe('exact npm package provenance query', () => {
               return {
                 verify: async bundle => {
                   calls.verify.push(bundle === selectedBundle);
+                  return signerFromFixture(input.verifiedSigner);
                 },
               };
             },
@@ -1009,6 +1185,7 @@ describe('exact npm package provenance query', () => {
         releaseTag,
         sourceCommit,
         tufTarget,
+        verifiedSigner: makeVerifiedSigner(),
       },
     );
 
@@ -1020,10 +1197,6 @@ describe('exact npm package provenance query', () => {
       {
         certificateIdentityURI: certificateIdentityPattern,
         certificateIssuer: 'https://token.actions.githubusercontent.com',
-        certificateOIDs: {
-          '1.3.6.1.4.1.57264.1.11': 'github-hosted',
-          '1.3.6.1.4.1.57264.1.22': 'public',
-        },
         timeout: 4000,
         tufCachePath: 'C:/npm-cache/_tuf',
       },
@@ -1077,6 +1250,7 @@ describe('exact npm package provenance query', () => {
                 options,
                 sameBundle: bundle === selectedBundle,
               });
+              return signerFromFixture(input.verifiedSigner);
             },
           },
         );
@@ -1088,6 +1262,7 @@ describe('exact npm package provenance query', () => {
         releaseTag,
         sourceCommit,
         tufTarget,
+        verifiedSigner: makeVerifiedSigner(),
       },
     );
 
@@ -1111,10 +1286,6 @@ describe('exact npm package provenance query', () => {
         options: expect.objectContaining({
           certificateIdentityURI: certificateIdentityPattern,
           certificateIssuer: 'https://token.actions.githubusercontent.com',
-          certificateOIDs: {
-            '1.3.6.1.4.1.57264.1.11': 'github-hosted',
-            '1.3.6.1.4.1.57264.1.22': 'public',
-          },
         }),
         sameBundle: true,
       },
@@ -1122,6 +1293,7 @@ describe('exact npm package provenance query', () => {
     expect(calls.verifyBundle[0].options).not.toHaveProperty(
       'certificateIdentity',
     );
+    expect(calls.verifyBundle[0].options).not.toHaveProperty('certificateOIDs');
     expect(result).toEqual({
       integrity: expectedIntegrity,
       name: '@pkg-nec/a',
@@ -1175,6 +1347,7 @@ describe('exact npm package provenance query', () => {
                 identityPattern: options.certificateIdentityURI,
                 legacyIdentity: options.certificateIdentity,
               });
+              return signerFromFixture(input.verifiedSigner);
             },
           }),
         );
@@ -1191,6 +1364,7 @@ describe('exact npm package provenance query', () => {
         metadata: fixture.metadata,
         releaseTag,
         sourceCommit,
+        verifiedSigner: makeVerifiedSigner(),
       },
     );
 
@@ -1659,13 +1833,13 @@ describe('exact npm package provenance query', () => {
     expect(verifyCalls).toEqual([
       {
         options: expect.objectContaining({
-          certificateOIDs: expect.objectContaining({
-            '1.3.6.1.4.1.57264.1.22': 'public',
-          }),
+          certificateIdentityURI: certificateIdentityPattern,
+          certificateIssuer: 'https://token.actions.githubusercontent.com',
         }),
         sameBundle: true,
       },
     ]);
+    expect(verifyCalls[0].options).not.toHaveProperty('certificateOIDs');
     expect(outcome).toEqual({
       error: expect.objectContaining({
         code: 'CERTIFICATE_POLICY_ERROR',

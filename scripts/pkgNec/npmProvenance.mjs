@@ -27,6 +27,16 @@ const fatalCodes = new Set([
 ]);
 const githubHostedBuilderIdentity =
   'https://github.com/actions/runner/github-hosted';
+const requiredCertificateOids = [
+  {
+    id: [1, 3, 6, 1, 4, 1, 57264, 1, 11],
+    value: Buffer.from('0c0d6769746875622d686f73746564', 'hex'),
+  },
+  {
+    id: [1, 3, 6, 1, 4, 1, 57264, 1, 22],
+    value: Buffer.from('0c067075626c6963', 'hex'),
+  },
+];
 const githubRepository = 'https://github.com/pkg-nec/jest';
 const githubWorkflowPath = '.github/workflows/release.yml';
 const provenanceBuildType =
@@ -591,16 +601,43 @@ function requireExpectedAttestationKeying(provenanceItem, publishItem) {
   }
 }
 
+function requireExpectedCertificateOids(signer) {
+  const signerOids = signer?.identity?.oids;
+  if (!Array.isArray(signerOids)) {
+    throw codedError(
+      'EATTESTATIONVERIFY',
+      'Verified signer did not match the required certificate OIDs',
+    );
+  }
+
+  for (const requiredOid of requiredCertificateOids) {
+    const matches = signerOids.filter(
+      signerOid =>
+        Array.isArray(signerOid?.oid?.id) &&
+        signerOid.oid.id.length === requiredOid.id.length &&
+        signerOid.oid.id.every(
+          (component, index) => component === requiredOid.id[index],
+        ),
+    );
+    if (
+      matches.length !== 1 ||
+      !Buffer.isBuffer(matches[0].value) ||
+      !matches[0].value.equals(requiredOid.value)
+    ) {
+      throw codedError(
+        'EATTESTATIONVERIFY',
+        'Verified signer did not match the required certificate OIDs',
+      );
+    }
+  }
+}
+
 function certificateVerificationOptions(releaseTag) {
   const sourceRef = `refs/tags/${releaseTag}`;
   const certificateIdentity = `${githubRepository}/${githubWorkflowPath}@${sourceRef}`;
   return {
     certificateIdentityURI: exactRegexPattern(certificateIdentity),
     certificateIssuer: 'https://token.actions.githubusercontent.com',
-    certificateOIDs: {
-      '1.3.6.1.4.1.57264.1.11': 'github-hosted',
-      '1.3.6.1.4.1.57264.1.22': 'public',
-    },
   };
 }
 
@@ -640,9 +677,10 @@ export async function validateAndNormalizeNpmEvidence({
   });
 
   try {
-    await verifyBundle(provenanceItem.bundle, {
+    const signer = await verifyBundle(provenanceItem.bundle, {
       ...certificateVerificationOptions(releaseTag),
     });
+    requireExpectedCertificateOids(signer);
   } catch (error) {
     throw sanitizedProvenanceError(error);
   }
