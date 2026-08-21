@@ -94,6 +94,11 @@ test('maps every public package path to its longest matching package directory',
 test.each([
   ['documentation', ['docs/pkg-nec-maintenance.md'], 'noImpact'],
   ['license', ['LICENSE'], 'allPackages'],
+  [
+    'release preparation orchestrator',
+    ['scripts/preparePkgNecRelease.mjs'],
+    'ambiguous',
+  ],
   ['unreviewed root input', ['yarn.lock'], 'ambiguous'],
   [
     'private workspace input',
