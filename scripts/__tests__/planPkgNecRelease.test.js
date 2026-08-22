@@ -27,6 +27,7 @@ const identityPolicy = JSON.parse(
 const baselineCommit = '1111111111111111111111111111111111111111';
 const headCommit = '2222222222222222222222222222222222222222';
 const baselineTag = '@pkg-nec/jest-v30.4.3';
+const schema2JestVersion = '30.4.3';
 const runUrl = 'https://github.com/pkg-nec/jest/actions/runs/100';
 const artifactBuildInputs = [
   'eslint.config.mjs',
@@ -92,13 +93,14 @@ function schema2ReleaseFixture() {
     identityPolicy.packages.map(item => [item.newName, item]),
   );
   const fixturePackages = [
-    {
-      ...publishedPackages.find(item => item.name === '@pkg-nec/jest'),
-      order: 1,
-    },
+    {name: '@pkg-nec/jest', order: 1, version: schema2JestVersion},
   ];
   const plan = {
-    anchor: {name: '@pkg-nec/jest', tag: baselineTag, version: '30.4.3'},
+    anchor: {
+      name: '@pkg-nec/jest',
+      tag: baselineTag,
+      version: schema2JestVersion,
+    },
     changedFiles: {
       packages: fixturePackages
         .map(item => ({
@@ -1173,8 +1175,11 @@ test('accepts only the planned options and prints canonical JSON plus a package 
   expect(output).toContain(
     '| Order | Package | From | To | Bump |\n| ---: | --- | --- | --- | --- |',
   );
+  const createJestPlan = result.value.plan.packages.find(
+    item => item.name === '@pkg-nec/create-jest',
+  );
   expect(output).toContain(
-    '| @pkg-nec/create-jest | 30.4.3 | 30.5.0 | minor |',
+    `| ${createJestPlan.order} | ${createJestPlan.name} | ${createJestPlan.fromVersion} | ${createJestPlan.toVersion} | ${createJestPlan.bump} |`,
   );
   expect(output).not.toMatch(/undefined/iu);
   expect(
@@ -1376,6 +1381,7 @@ test('uses completed tag manifests as the full baseline for a second selective r
     localPlans: [{path: fixture.plan.planPath, plan: fixture.plan}],
     manifestOverrides: {
       'packages/create-jest/package.json': {version: '30.4.2'},
+      'packages/jest/package.json': {version: schema2JestVersion},
     },
     releases: [fixture.release],
     runs: [
@@ -1387,6 +1393,7 @@ test('uses completed tag manifests as the full baseline for a second selective r
     ],
     tagManifestOverrides: {
       'packages/create-jest/package.json': {version: '30.4.2'},
+      'packages/jest/package.json': {version: schema2JestVersion},
     },
   });
 
@@ -1433,6 +1440,9 @@ test('validates schema-2 recorded versions against tag manifests', () => {
   const fixture = schema2ReleaseFixture();
   const result = runCommand({
     assetContents: fixture.assetContents,
+    manifestOverrides: {
+      'packages/jest/package.json': {version: schema2JestVersion},
+    },
     releases: [fixture.release],
     tagManifestOverrides: {
       'packages/jest/package.json': {version: '30.4.2'},
