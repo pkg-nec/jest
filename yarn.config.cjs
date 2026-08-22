@@ -12,7 +12,8 @@
 const {defineConfig} = require('@yarnpkg/types');
 
 const EXCEPTIONS = new Set([
-  // root needs to stay on 18.x
+  // Root development uses Node 18 types while published packages accept any
+  // supported Node type version.
   '@types/node',
 ]);
 
