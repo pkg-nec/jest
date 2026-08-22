@@ -15,6 +15,9 @@ const EXCEPTIONS = new Set([
   // Root development uses Node 18 types while published packages accept any
   // supported Node type version.
   '@types/node',
+  // React Native 0.81 requires React 19 while the repository remains on 18.
+  'react',
+  'react-test-renderer',
 ]);
 
 module.exports = defineConfig({
