@@ -1,0 +1,260 @@
+{
+  "anchor": {
+    "name": "@pkg-nec/jest",
+    "tag": "@pkg-nec/jest-v30.4.4",
+    "version": "30.4.4"
+  },
+  "changedFiles": {
+    "packages": [
+      {
+        "files": [
+          "packages/babel-jest/package.json"
+        ],
+        "name": "@pkg-nec/babel-jest"
+      },
+      {
+        "files": [
+          "packages/babel-plugin-jest-hoist/package.json"
+        ],
+        "name": "@pkg-nec/babel-plugin-jest-hoist"
+      },
+      {
+        "files": [
+          "packages/babel-preset-jest/package.json"
+        ],
+        "name": "@pkg-nec/babel-preset-jest"
+      },
+      {
+        "files": [
+          "packages/create-jest/package.json"
+        ],
+        "name": "@pkg-nec/create-jest"
+      },
+      {
+        "files": [
+          "packages/jest-cli/package.json"
+        ],
+        "name": "@pkg-nec/jest-cli"
+      },
+      {
+        "files": [
+          "packages/jest-config/package.json"
+        ],
+        "name": "@pkg-nec/jest-config"
+      }
+    ],
+    "root": {
+      "allPackages": [],
+      "ambiguous": [
+        ".yarn/patches/ts-node-npm-10.9.1-6c268be7f4.patch",
+        ".yarnrc.yml",
+        "AGENTS.md",
+        "lerna.json",
+        "package.json",
+        "scripts/pkgNec/guardedFileSet.mjs",
+        "scripts/pkgNec/npmProvenance.mjs",
+        "scripts/pkgNec/publicationProgress.mjs",
+        "scripts/pkgNec/releaseChangePolicy.mjs",
+        "scripts/pkgNec/releaseGraph.mjs",
+        "scripts/pkgNec/releaseImpactPolicy.json",
+        "scripts/pkgNec/releasePlanSchema.mjs",
+        "scripts/pkgNec/releasePublisher.mjs",
+        "scripts/pkgNec/releaseState.mjs",
+        "scripts/pkgNec/releaseValidation.mjs",
+        "scripts/pkgNec/releaseVerification.mjs",
+        "scripts/pkgNec/selectiveReleaseGraph.mjs",
+        "scripts/pkgNec/selectiveReleasePlanner.mjs",
+        "scripts/planPkgNecRelease.mjs",
+        "scripts/preparePkgNecRelease.mjs",
+        "scripts/publishPkgNecRelease.mjs",
+        "scripts/summarizePkgNecPublication.mjs",
+        "scripts/validatePkgNecRelease.mjs",
+        "scripts/validatePkgNecReleasePlan.mjs",
+        "scripts/verifyPkgNecRelease.mjs",
+        "yarn.lock"
+      ],
+      "noImpact": [
+        ".github/dependabot.yml",
+        ".github/workflows/dependency-review.yml",
+        ".github/workflows/macos-notifier-diagnostic.yml",
+        ".github/workflows/nodejs.yml",
+        ".github/workflows/ossf-scorecard.yml",
+        ".github/workflows/release.yml",
+        "CONTRIBUTING.md",
+        "docs/DependencyResolutions.md",
+        "docs/pkg-nec-maintenance.md",
+        "examples/react-native/__tests__/intro.test.js",
+        "examples/react-native/package.json",
+        "scripts/__tests__/draftPkgNecRelease.test.js",
+        "scripts/__tests__/draftReleaseNotes.test.js",
+        "scripts/__tests__/draftReleaseState.test.js",
+        "scripts/__tests__/guardedFileSet.test.js",
+        "scripts/__tests__/npmProvenance.test.js",
+        "scripts/__tests__/planPkgNecRelease.test.js",
+        "scripts/__tests__/preparePkgNecRelease.test.js",
+        "scripts/__tests__/publicationProgress.test.js",
+        "scripts/__tests__/publishPkgNecRelease.test.js",
+        "scripts/__tests__/releaseChangePolicy.test.js",
+        "scripts/__tests__/releasePlanSchema.test.js",
+        "scripts/__tests__/releaseState.test.js",
+        "scripts/__tests__/selectiveReleaseGraph.test.js",
+        "scripts/__tests__/selectiveReleasePlanner.test.js",
+        "scripts/__tests__/validatePkgNecRelease.test.js",
+        "scripts/__tests__/validatePkgNecReleasePlan.test.js",
+        "scripts/__tests__/verifyPkgNecRelease.test.js",
+        "scripts/draftPkgNecRelease.mjs",
+        "scripts/pkgNec/draftReleaseNotes.mjs",
+        "scripts/pkgNec/draftReleaseState.mjs",
+        "website/package.json",
+        "yarn.config.cjs"
+      ]
+    }
+  },
+  "packages": [
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.1",
+      "name": "@pkg-nec/babel-plugin-jest-hoist",
+      "order": 1,
+      "path": "packages/babel-plugin-jest-hoist",
+      "reasons": [
+        {
+          "files": [
+            "packages/babel-plugin-jest-hoist/package.json"
+          ],
+          "kind": "changed"
+        }
+      ],
+      "toVersion": "30.4.2"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.1",
+      "name": "@pkg-nec/babel-preset-jest",
+      "order": 2,
+      "path": "packages/babel-preset-jest",
+      "reasons": [
+        {
+          "files": [
+            "packages/babel-preset-jest/package.json"
+          ],
+          "kind": "changed"
+        }
+      ],
+      "toVersion": "30.4.2"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/babel-jest",
+      "order": 3,
+      "path": "packages/babel-jest",
+      "reasons": [
+        {
+          "files": [
+            "packages/babel-jest/package.json"
+          ],
+          "kind": "changed"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.3",
+      "name": "@pkg-nec/jest-config",
+      "order": 4,
+      "path": "packages/jest-config",
+      "reasons": [
+        {
+          "files": [
+            "packages/jest-config/package.json"
+          ],
+          "kind": "changed"
+        }
+      ],
+      "toVersion": "30.4.4"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.3",
+      "name": "@pkg-nec/create-jest",
+      "order": 5,
+      "path": "packages/create-jest",
+      "reasons": [
+        {
+          "files": [
+            "packages/create-jest/package.json"
+          ],
+          "kind": "changed"
+        }
+      ],
+      "toVersion": "30.4.4"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.3",
+      "name": "@pkg-nec/jest-core",
+      "order": 6,
+      "path": "packages/jest-core",
+      "reasons": [
+        {
+          "kind": "dependent",
+          "paths": [
+            [
+              "@pkg-nec/jest-config",
+              "@pkg-nec/jest-core"
+            ]
+          ]
+        }
+      ],
+      "toVersion": "30.4.4"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.3",
+      "name": "@pkg-nec/jest-cli",
+      "order": 7,
+      "path": "packages/jest-cli",
+      "reasons": [
+        {
+          "files": [
+            "packages/jest-cli/package.json"
+          ],
+          "kind": "changed"
+        }
+      ],
+      "toVersion": "30.4.4"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.3",
+      "name": "@pkg-nec/jest",
+      "order": 8,
+      "path": "packages/jest",
+      "reasons": [
+        {
+          "kind": "dependent",
+          "paths": [
+            [
+              "@pkg-nec/jest-cli",
+              "@pkg-nec/jest"
+            ]
+          ]
+        }
+      ],
+      "toVersion": "30.4.4"
+    }
+  ],
+  "planPath": "docs/releases/pkg-nec-jest-v30.4.4-plan.json",
+  "preparedFrom": "7825e24699f4c2ebac3fe3af94547885d5816e7e",
+  "previousRelease": {
+    "commit": "d8ba8b4b36a84ee019c9f8cdfc99d0fc598b61fb",
+    "tag": "@pkg-nec/jest-v30.4.3"
+  },
+  "rootImpact": {
+    "applied": "none",
+    "requested": "none"
+  },
+  "schemaVersion": 1
+}
