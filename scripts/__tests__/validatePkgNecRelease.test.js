@@ -1563,17 +1563,35 @@ test('defines a least-privilege provenance release workflow with durable evidenc
     );
   }
 
-  for (const pin of [
-    'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1',
-    'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0',
-    'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1',
-    'actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0',
-  ]) {
-    expect(workflowSource).toContain(pin);
-  }
-  expect(workflowSource).not.toMatch(
-    /uses:\s+[^@\s]+@(?![0-9a-f]{40}(?:\s|$))/u,
+  const expectedActionNames = [
+    'actions/checkout',
+    'actions/download-artifact',
+    'actions/setup-node',
+    'actions/upload-artifact',
+  ];
+  const actionPinsByName = new Map(
+    expectedActionNames.map(actionName => [actionName, new Set()]),
   );
+  for (const {uses} of actionSteps) {
+    const match = /^([^@\s]+)@([0-9a-f]{40})$/u.exec(uses);
+    expect(match).not.toBeNull();
+    const [, actionName, pin] = match;
+    expect(expectedActionNames).toContain(actionName);
+    actionPinsByName.get(actionName).add(pin);
+  }
+  for (const pins of actionPinsByName.values()) {
+    expect(pins.size).toBe(1);
+  }
+
+  const actionSourceLines = workflowSource
+    .split('\n')
+    .filter(line => /^\s*uses:\s+/u.test(line));
+  expect(actionSourceLines).toHaveLength(actionSteps.length);
+  for (const line of actionSourceLines) {
+    expect(line).toMatch(
+      /^\s*uses:\s+[^@\s]+@[0-9a-f]{40}\s+# v\d+(?:\.\d+){0,2}\s*$/u,
+    );
+  }
   expect(workflowSource).not.toMatch(
     /NODE_AUTH_TOKEN|GH_REPO|check:pkg-nec-registry|cache:\s*yarn|yarn test(?:\s|$)/mu,
   );
