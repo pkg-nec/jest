@@ -211,7 +211,6 @@
   },
   "resolutions": {
     "@types/node": "18.x",
-    "@types/react": "^18.2.21",
     "ansi-escapes/type-fest": "^2.0.0",
     "lru-cache@^10.0.1": "patch:lru-cache@npm:10.4.3#./.yarn/patches/lru-cache-npm-10.4.3-30c10b861a.patch",
     "lru-cache@^10.2.0": "patch:lru-cache@npm:10.4.3#./.yarn/patches/lru-cache-npm-10.4.3-30c10b861a.patch",
