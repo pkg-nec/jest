@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@types/graceful-fs": "^4.1.9",
+    "@types/node": "*",
     "@types/prompts": "^2.4.9"
   }
 }
