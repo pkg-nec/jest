@@ -5405,6 +5405,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@pkg-nec/babel-preset-jest@workspace:packages/babel-preset-jest"
   dependencies:
+    "@babel/core": "npm:^7.27.4"
     "@pkg-nec/babel-plugin-jest-hoist": "workspace:*"
     babel-preset-current-node-syntax: "npm:^1.2.0"
   peerDependencies:
