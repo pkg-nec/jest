@@ -6058,13 +6058,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@pkg-nec/jest-silent-reporter@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@pkg-nec/jest-silent-reporter@npm:0.7.0"
+"@pkg-nec/jest-silent-reporter@npm:^0.7.1":
+  version: 0.7.1
+  resolution: "@pkg-nec/jest-silent-reporter@npm:0.7.1"
   dependencies:
+    "@pkg-nec/jest-util": "npm:^30.4.1"
     chalk: "npm:^4.0.0"
-    jest-util: "npm:^30.4.1"
-  checksum: 10/3b4b288921f99c931221bd4ba13dc49de9eda9c14085720b4ea8d2c52cedb91b3a69ea71fc3277fd76d027d3c7a69b4e6c1a152fa86abb710a3afbcfd140111a
+  checksum: 10/3a858991992ab8b99256af4cd50c71bdf26041990368e8cd1707d405fbed85481c75a9698bb544c3b2de8337b3a2364f862c8d7ab58b56db78754043334a71cf
   languageName: node
   linkType: hard
 
@@ -6225,7 +6225,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@pkg-nec/jest-util@workspace:*, @pkg-nec/jest-util@workspace:packages/jest-util":
+"@pkg-nec/jest-util@npm:^30.4.1, @pkg-nec/jest-util@workspace:*, @pkg-nec/jest-util@workspace:packages/jest-util":
   version: 0.0.0-use.local
   resolution: "@pkg-nec/jest-util@workspace:packages/jest-util"
   dependencies:
@@ -6332,7 +6332,7 @@ __metadata:
     "@pkg-nec/jest-changed-files": "workspace:*"
     "@pkg-nec/jest-globals": "workspace:*"
     "@pkg-nec/jest-mock": "workspace:*"
-    "@pkg-nec/jest-silent-reporter": "npm:^0.7.0"
+    "@pkg-nec/jest-silent-reporter": "npm:^0.7.1"
     "@pkg-nec/jest-snapshot": "workspace:*"
     "@pkg-nec/jest-test-utils": "workspace:*"
     "@pkg-nec/jest-util": "workspace:*"
@@ -15298,7 +15298,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-util@npm:30.4.1, jest-util@npm:^30.0.0, jest-util@npm:^30.4.1":
+"jest-util@npm:30.4.1, jest-util@npm:^30.0.0":
   version: 30.4.1
   resolution: "jest-util@npm:30.4.1"
   dependencies:
