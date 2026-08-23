@@ -4441,19 +4441,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jest/types@npm:^26.6.2":
-  version: 26.6.2
-  resolution: "@jest/types@npm:26.6.2"
-  dependencies:
-    "@types/istanbul-lib-coverage": "npm:^2.0.0"
-    "@types/istanbul-reports": "npm:^3.0.0"
-    "@types/node": "npm:*"
-    "@types/yargs": "npm:^15.0.0"
-    chalk: "npm:^4.0.0"
-  checksum: 10/02d42749c8c6dc7e3184d0ff0293dd91c97233c2e6dc3708d61ef33d3162d4f07ad38d2d8a39abd94cf2fced69b92a87565c7099137c4529809242ca327254af
-  languageName: node
-  linkType: hard
-
 "@jest/types@npm:^29.6.3":
   version: 29.6.3
   resolution: "@jest/types@npm:29.6.3"
@@ -6071,13 +6058,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@pkg-nec/jest-silent-reporter@npm:^0.6.0":
-  version: 0.6.1
-  resolution: "@pkg-nec/jest-silent-reporter@npm:0.6.1"
+"@pkg-nec/jest-silent-reporter@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "@pkg-nec/jest-silent-reporter@npm:0.7.0"
   dependencies:
     chalk: "npm:^4.0.0"
-    jest-util: "npm:^26.0.0"
-  checksum: 10/89d88f18695404485c836cec38fa1af23b8f837700fb9e495377fa0f65be80220166ae336649d5789edbb11ae7e24738ee310bce34ebb59d89307d4ea6b64286
+    jest-util: "npm:^30.4.1"
+  checksum: 10/3b4b288921f99c931221bd4ba13dc49de9eda9c14085720b4ea8d2c52cedb91b3a69ea71fc3277fd76d027d3c7a69b4e6c1a152fa86abb710a3afbcfd140111a
   languageName: node
   linkType: hard
 
@@ -6345,7 +6332,7 @@ __metadata:
     "@pkg-nec/jest-changed-files": "workspace:*"
     "@pkg-nec/jest-globals": "workspace:*"
     "@pkg-nec/jest-mock": "workspace:*"
-    "@pkg-nec/jest-silent-reporter": "npm:^0.6.0"
+    "@pkg-nec/jest-silent-reporter": "npm:^0.7.0"
     "@pkg-nec/jest-snapshot": "workspace:*"
     "@pkg-nec/jest-test-utils": "workspace:*"
     "@pkg-nec/jest-util": "workspace:*"
@@ -8320,15 +8307,6 @@ __metadata:
   version: 21.0.3
   resolution: "@types/yargs-parser@npm:21.0.3"
   checksum: 10/a794eb750e8ebc6273a51b12a0002de41343ffe46befef460bdbb57262d187fdf608bc6615b7b11c462c63c3ceb70abe2564c8dd8ee0f7628f38a314f74a9b9b
-  languageName: node
-  linkType: hard
-
-"@types/yargs@npm:^15.0.0":
-  version: 15.0.20
-  resolution: "@types/yargs@npm:15.0.20"
-  dependencies:
-    "@types/yargs-parser": "npm:*"
-  checksum: 10/f348069c4a0cf5b365e72507f67c6569b12a4af44346c08288319d522272dbe1e3f3acde3ff9ab72bd9f894676624d10fff21096d44bad33e390d092cd409aeb
   languageName: node
   linkType: hard
 
@@ -14574,17 +14552,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-ci@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "is-ci@npm:2.0.0"
-  dependencies:
-    ci-info: "npm:^2.0.0"
-  bin:
-    is-ci: bin.js
-  checksum: 10/77b869057510f3efa439bbb36e9be429d53b3f51abd4776eeea79ab3b221337fe1753d1e50058a9e2c650d38246108beffb15ccfd443929d77748d8c0cc90144
-  languageName: node
-  linkType: hard
-
 "is-ci@npm:^3.0.1":
   version: 3.0.1
   resolution: "is-ci@npm:3.0.1"
@@ -15331,7 +15298,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-util@npm:30.4.1, jest-util@npm:^30.0.0":
+"jest-util@npm:30.4.1, jest-util@npm:^30.0.0, jest-util@npm:^30.4.1":
   version: 30.4.1
   resolution: "jest-util@npm:30.4.1"
   dependencies:
@@ -15342,20 +15309,6 @@ __metadata:
     graceful-fs: "npm:^4.2.11"
     picomatch: "npm:^4.0.3"
   checksum: 10/603093e12076906afcf28be514d5b7ac4e3c0e26997b0047614cf2a308b65d773137304a1fb011d747517e881aeed067f6606b9937f5b838d67f6e5734b49ebe
-  languageName: node
-  linkType: hard
-
-"jest-util@npm:^26.0.0":
-  version: 26.6.2
-  resolution: "jest-util@npm:26.6.2"
-  dependencies:
-    "@jest/types": "npm:^26.6.2"
-    "@types/node": "npm:*"
-    chalk: "npm:^4.0.0"
-    graceful-fs: "npm:^4.2.4"
-    is-ci: "npm:^2.0.0"
-    micromatch: "npm:^4.0.2"
-  checksum: 10/4502bc699f147d2fa43274af18174b55fd5b956becd1347665217e35a5354e929206abaef580f967ed239587be926c835eb3ca9b5c361205df1988bc8d58a462
   languageName: node
   linkType: hard
 
