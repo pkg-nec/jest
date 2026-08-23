@@ -6071,6 +6071,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@pkg-nec/jest-silent-reporter@npm:^0.6.0":
+  version: 0.6.1
+  resolution: "@pkg-nec/jest-silent-reporter@npm:0.6.1"
+  dependencies:
+    chalk: "npm:^4.0.0"
+    jest-util: "npm:^26.0.0"
+  checksum: 10/89d88f18695404485c836cec38fa1af23b8f837700fb9e495377fa0f65be80220166ae336649d5789edbb11ae7e24738ee310bce34ebb59d89307d4ea6b64286
+  languageName: node
+  linkType: hard
+
 "@pkg-nec/jest-snapshot-utils@workspace:*, @pkg-nec/jest-snapshot-utils@workspace:packages/jest-snapshot-utils":
   version: 0.0.0-use.local
   resolution: "@pkg-nec/jest-snapshot-utils@workspace:packages/jest-snapshot-utils"
@@ -6335,6 +6345,7 @@ __metadata:
     "@pkg-nec/jest-changed-files": "workspace:*"
     "@pkg-nec/jest-globals": "workspace:*"
     "@pkg-nec/jest-mock": "workspace:*"
+    "@pkg-nec/jest-silent-reporter": "npm:^0.6.0"
     "@pkg-nec/jest-snapshot": "workspace:*"
     "@pkg-nec/jest-test-utils": "workspace:*"
     "@pkg-nec/jest-util": "workspace:*"
@@ -6372,7 +6383,6 @@ __metadata:
     istanbul-reports: "npm:^3.1.3"
     jest-junit: "npm:^17.0.0"
     jest-serializer-ansi-escapes: "npm:^4.0.0"
-    jest-silent-reporter: "npm:^0.6.0"
     jest-watch-typeahead: "npm:^3.0.1"
     js-yaml: "npm:^4.1.1"
     mock-fs: "npm:^5.5.0"
@@ -15318,16 +15328,6 @@ __metadata:
   dependencies:
     pretty-ansi: "npm:^3.0.0"
   checksum: 10/3287b8a639488e00c0726d0bd985e5d07d9e2c833ebe8d6a7431842f5a653ea55771aef8a3dde4a0f72185ce2273ae6fc8f34d4295c8596c2f573e9649d3cbcf
-  languageName: node
-  linkType: hard
-
-"jest-silent-reporter@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "jest-silent-reporter@npm:0.6.0"
-  dependencies:
-    chalk: "npm:^4.0.0"
-    jest-util: "npm:^26.0.0"
-  checksum: 10/443e0abaf5a6dc8c17da1e8495b7a55f813224adc39b6d1954bf49ff7fe70533b1020571453180dbb8388ace87f8e1dfc79610a4554bb93334f6c4154231c292
   languageName: node
   linkType: hard
 
