@@ -35,7 +35,7 @@
     }
   },
   "dependencies": {
-    "@babel/core": "^7.27.4",
+    "@babel/core": "^8.0.0",
     "@pkg-nec/babel-jest": "workspace:*",
     "@pkg-nec/jest-circus": "workspace:*",
     "@pkg-nec/jest-docblock": "workspace:*",

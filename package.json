@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "devDependencies": {
-    "@babel/core": "^7.27.4",
+    "@babel/core": "^8.0.0",
     "@babel/plugin-transform-modules-commonjs": "^7.27.1",
     "@babel/preset-env": "^7.27.2",
     "@babel/preset-react": "^7.27.1",
@@ -74,7 +74,7 @@
     "resolve": "^1.20.0",
     "rimraf": "^5.0.10",
     "semver": "^7.7.2",
-    "sigstore": "4.1.1",
+    "sigstore": "5.0.0",
     "slash": "^3.0.0",
     "strip-json-comments": "^3.1.1",
     "tempy": "^1.0.1",
