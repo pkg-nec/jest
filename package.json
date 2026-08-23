@@ -22,7 +22,7 @@
     "@pkg-nec/jest-changed-files": "workspace:*",
     "@pkg-nec/jest-globals": "workspace:*",
     "@pkg-nec/jest-mock": "workspace:*",
-    "@pkg-nec/jest-silent-reporter": "^0.6.0",
+    "@pkg-nec/jest-silent-reporter": "^0.7.0",
     "@pkg-nec/jest-snapshot": "workspace:*",
     "@pkg-nec/jest-test-utils": "workspace:*",
     "@pkg-nec/jest-util": "workspace:*",
