@@ -1379,13 +1379,13 @@ export default defineConfig({
 
 #### Summary Reporter
 
-Summary reporter prints out summary of all tests. It is a part of default reporter, hence it will be enabled if `'default'` is included in the list. For instance, you might want to use it as stand-alone reporter instead of the default one, or together with [Silent Reporter](https://github.com/rickhanlonii/jest-silent-reporter):
+Summary reporter prints out summary of all tests. It is a part of default reporter, hence it will be enabled if `'default'` is included in the list. For instance, you might want to use it as stand-alone reporter instead of the default one, or together with [Silent Reporter](https://github.com/pkg-nec/jest-silent-reporter):
 
 ```js tab title="jest.config.js"
 const {defineConfig} = require('@pkg-nec/jest');
 
 module.exports = defineConfig({
-  reporters: ['jest-silent-reporter', 'summary'],
+  reporters: ['@pkg-nec/jest-silent-reporter', 'summary'],
 });
 ```
 
@@ -1393,7 +1393,7 @@ module.exports = defineConfig({
 import {defineConfig} from '@pkg-nec/jest';
 
 export default defineConfig({
-  reporters: ['jest-silent-reporter', 'summary'],
+  reporters: ['@pkg-nec/jest-silent-reporter', 'summary'],
 });
 ```
 
