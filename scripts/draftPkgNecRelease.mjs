@@ -200,14 +200,14 @@ function validDraftUrl(result) {
 }
 
 function partialRemoteError({
-  cause,
   draftUrl,
   intendedCommit,
   observedCommit,
+  stage,
   tag,
 }) {
   return new Error(
-    `Draft creation requires manual investigation for tag ${tag}; intended commit ${intendedCommit}; draft URL ${draftUrl ?? 'unknown'}; observed commit ${observedCommit ?? 'unknown'}; ${cause instanceof Error ? cause.message : String(cause)}`,
+    `Draft creation requires manual investigation for tag ${tag}; intended commit ${intendedCommit}; draft URL ${draftUrl ?? 'unknown'}; observed commit ${observedCommit ?? 'unknown'}; ${stage}`,
   );
 }
 
@@ -446,22 +446,19 @@ export async function runDraftReleaseCommand({
 
   let createdDraftUrl = null;
   let observedCommit = null;
+  let remoteStage = 'remote tag creation failed';
   try {
-    const createResult = await invokeGh([
-      'release',
-      'create',
-      resolved.plan.anchor.tag,
-      '--draft',
-      '--target',
-      resolved.planIntroductionCommit,
-      '--title',
-      resolved.plan.anchor.tag,
-      '--notes-file',
-      notesPath,
-      '--repo',
-      repository,
+    await invokeGh([
+      'api',
+      `repos/${repository}/git/refs`,
+      '--method',
+      'POST',
+      '--raw-field',
+      `ref=refs/tags/${resolved.tag}`,
+      '--raw-field',
+      `sha=${resolved.planIntroductionCommit}`,
     ]);
-    createdDraftUrl = validDraftUrl(createResult);
+    remoteStage = 'remote tag verification failed';
     await invokeGit([
       'fetch',
       'origin',
@@ -474,12 +471,30 @@ export async function runDraftReleaseCommand({
     if (observedCommit !== resolved.planIntroductionCommit) {
       throw new Error('Created tag does not target the intended commit');
     }
-  } catch (error) {
+    remoteStage = 'draft Release creation failed';
+    const createResult = await invokeGh([
+      'release',
+      'create',
+      resolved.plan.anchor.tag,
+      '--draft',
+      '--verify-tag',
+      '--target',
+      resolved.planIntroductionCommit,
+      '--title',
+      resolved.plan.anchor.tag,
+      '--notes-file',
+      notesPath,
+      '--repo',
+      repository,
+    ]);
+    remoteStage = 'draft Release URL validation failed';
+    createdDraftUrl = validDraftUrl(createResult);
+  } catch {
     throw partialRemoteError({
-      cause: error,
       draftUrl: createdDraftUrl,
       intendedCommit: resolved.planIntroductionCommit,
       observedCommit,
+      stage: remoteStage,
       tag: resolved.tag,
     });
   }

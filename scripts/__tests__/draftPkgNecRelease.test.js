@@ -150,13 +150,14 @@ const keyOrder = [
   'git merge-base --is-ancestor introduction origin/main',
   'gh api exact Node runs',
   'write ignored notes',
-  'gh release create --draft',
+  'gh api create release tag',
   'git fetch created tag',
   'git rev-list created tag',
+  'gh release create --draft --verify-tag',
   'write success URL/instructions',
 ];
 
-const preCreationFailurePoints = [
+const preDraftFailurePoints = [
   'git status --porcelain',
   'git fetch origin main:refs/remotes/origin/main --tags',
   'git rev-parse HEAD',
@@ -176,12 +177,16 @@ const preCreationFailurePoints = [
   'read planned package manifest',
   'gh api exact Node runs',
   'write ignored notes',
+  'gh api create release tag',
+  'git fetch created tag',
+  'git rev-list created tag',
 ];
 
 function runScenario({
   args = [],
   createOutput = draftUrl,
   failAt,
+  failureMessage,
   releases = [completedRelease()],
   releaseRuns = [releaseRun()],
   tagCommit = introductionCommit,
@@ -194,6 +199,7 @@ function runScenario({
     createOutput,
     draftUrl,
     failAt,
+    failureMessage,
     introductionCommit,
     nodeRunsEndpoint,
     notesPath,
@@ -226,7 +232,11 @@ function runScenario({
         const writes = [];
         const record = label => {
           events.push(label);
-          if (label === settings.failAt) throw new Error('injected failure: ' + label);
+          if (label === settings.failAt) {
+            throw new Error(
+              settings.failureMessage ?? 'injected failure: ' + label,
+            );
+          }
         };
         const runGit = async args => {
           const command = args.join(' ');
@@ -319,13 +329,34 @@ function runScenario({
             record('gh api exact Node runs');
             return JSON.stringify([{workflow_runs: [nodeRun]}]);
           }
+          const createTagCommand = [
+            'api', 'repos/pkg-nec/jest/git/refs', '--method', 'POST',
+            '--raw-field', 'ref=refs/tags/' + settings.planTag,
+            '--raw-field', 'sha=' + settings.introductionCommit,
+          ].join(' ');
+          if (command === createTagCommand) {
+            record('gh api create release tag');
+            return JSON.stringify({
+              object: {sha: settings.introductionCommit, type: 'commit'},
+              ref: 'refs/tags/' + settings.planTag,
+            });
+          }
           const createCommand = [
             'release', 'create', settings.planTag, '--draft', '--target',
             settings.introductionCommit, '--title', settings.planTag,
             '--notes-file', settings.notesPath, '--repo', 'pkg-nec/jest',
           ].join(' ');
           if (command === createCommand) {
-            record('gh release create --draft');
+            record('gh release create --draft without tag verification');
+            return settings.createOutput + '\\n';
+          }
+          const verifiedCreateCommand = [
+            'release', 'create', settings.planTag, '--draft', '--verify-tag',
+            '--target', settings.introductionCommit, '--title', settings.planTag,
+            '--notes-file', settings.notesPath, '--repo', 'pkg-nec/jest',
+          ].join(' ');
+          if (command === verifiedCreateCommand) {
+            record('gh release create --draft --verify-tag');
             return settings.createOutput + '\\n';
           }
           throw new Error('Unexpected GitHub command: ' + command);
@@ -375,14 +406,19 @@ function keyEvents(events) {
   return events.filter(event => keyOrder.includes(event));
 }
 
-test('performs every preflight before one draft mutation and verifies its tag', () => {
+test('creates and verifies the exact remote tag before one draft mutation', () => {
   const scenario = runScenario();
 
   expect(scenario.ok).toBe(true);
   expect(keyEvents(scenario.events)).toEqual(keyOrder);
   expect(
-    scenario.events.filter(event => event === 'gh release create --draft'),
+    scenario.events.filter(
+      event => event === 'gh release create --draft --verify-tag',
+    ),
   ).toHaveLength(1);
+  expect(scenario.events).not.toContain(
+    'gh release create --draft without tag verification',
+  );
   expect(scenario.writes[0]).toEqual({
     contents: expect.stringContaining(
       `- Source commit: \`${introductionCommit}\``,
@@ -437,7 +473,10 @@ test.each([
     expect(scenario.error).toContain(runUrl);
     expect(scenario.error).not.toContain(token);
     expect(scenario.error).not.toContain(responseBody);
-    expect(scenario.events).not.toContain('gh release create --draft');
+    expect(scenario.events).not.toContain('gh api create release tag');
+    expect(scenario.events).not.toContain(
+      'gh release create --draft --verify-tag',
+    );
   },
 );
 
@@ -467,17 +506,25 @@ test('reports sanitized plan, tag, and draft identities at the early unresolved 
   expect(scenario.error).toContain(unresolvedDraftUrl);
   expect(scenario.error).not.toContain(token);
   expect(scenario.error).not.toContain(responseBody);
-  expect(scenario.events).not.toContain('gh release create --draft');
+  expect(scenario.events).not.toContain('gh api create release tag');
+  expect(scenario.events).not.toContain(
+    'gh release create --draft --verify-tag',
+  );
 });
 
-test.each(preCreationFailurePoints)(
+test.each(preDraftFailurePoints)(
   'does not create a draft when %s fails',
   failAt => {
     const scenario = runScenario({failAt});
 
     expect(scenario.ok).toBe(false);
     expect(scenario.error).toEqual(expect.any(String));
-    expect(scenario.events).not.toContain('gh release create --draft');
+    expect(scenario.events).not.toContain(
+      'gh release create --draft --verify-tag',
+    );
+    expect(scenario.events).not.toContain(
+      'gh release create --draft without tag verification',
+    );
   },
 );
 
@@ -487,8 +534,11 @@ test.each([['tag fetch', 'git fetch created tag', introductionCommit]])(
     const scenario = runScenario({failAt, tagCommit});
 
     expect(scenario.ok).toBe(false);
-    expect(scenario.error).toMatch(
-      new RegExp(`${planTag}.*${introductionCommit}.*${draftUrl}`, 'su'),
+    expect(scenario.error).toContain(planTag);
+    expect(scenario.error).toContain(introductionCommit);
+    expect(scenario.error).toContain('draft URL unknown');
+    expect(scenario.events).not.toContain(
+      'gh release create --draft --verify-tag',
     );
     expect(scenario.events.join('\n')).not.toMatch(
       /release delete|push --delete|tag --delete|tag -d/u,
@@ -496,8 +546,38 @@ test.each([['tag fetch', 'git fetch created tag', introductionCommit]])(
   },
 );
 
-test('reports unknown partial remote state when draft creation rejects', () => {
-  const scenario = runScenario({failAt: 'gh release create --draft'});
+test.each([
+  [
+    'remote tag creation',
+    'gh api create release tag',
+    'remote tag creation failed',
+  ],
+  [
+    'remote tag verification',
+    'git fetch created tag',
+    'remote tag verification failed',
+  ],
+  [
+    'draft Release creation',
+    'gh release create --draft --verify-tag',
+    'draft Release creation failed',
+  ],
+])('sanitizes adapter details when %s fails', (_label, failAt, safeReason) => {
+  const token = 'ghp_remote_failure_token_that_must_not_appear';
+  const responseBody = '{"secret":"remote failure response body"}';
+  const scenario = runScenario({
+    failAt,
+    failureMessage: `${token} HTTP 500 ${responseBody}`,
+  });
+
+  expect(scenario.ok).toBe(false);
+  expect(scenario.error).toContain(safeReason);
+  expect(scenario.error).not.toContain(token);
+  expect(scenario.error).not.toContain(responseBody);
+});
+
+test('does not draft or roll back when remote tag creation rejects', () => {
+  const scenario = runScenario({failAt: 'gh api create release tag'});
 
   expect(scenario.ok).toBe(false);
   expect(scenario.error).toContain('manual investigation');
@@ -505,6 +585,25 @@ test('reports unknown partial remote state when draft creation rejects', () => {
   expect(scenario.error).toContain(introductionCommit);
   expect(scenario.error).toContain('draft URL unknown');
   expect(scenario.error).toContain('observed commit unknown');
+  expect(scenario.events).not.toContain(
+    'gh release create --draft --verify-tag',
+  );
+  expect(scenario.events.join('\n')).not.toMatch(
+    /release delete|push --delete|tag --delete|tag -d/u,
+  );
+});
+
+test('reports the verified tag when draft creation rejects', () => {
+  const scenario = runScenario({
+    failAt: 'gh release create --draft --verify-tag',
+  });
+
+  expect(scenario.ok).toBe(false);
+  expect(scenario.error).toContain('manual investigation');
+  expect(scenario.error).toContain(planTag);
+  expect(scenario.error).toContain(introductionCommit);
+  expect(scenario.error).toContain('draft URL unknown');
+  expect(scenario.error).toContain(`observed commit ${introductionCommit}`);
   expect(scenario.events.join('\n')).not.toMatch(
     /release delete|push --delete|tag --delete|tag -d/u,
   );
@@ -516,9 +615,12 @@ test('reports the observed commit and never rolls back a mismatched tag', () => 
   expect(scenario.ok).toBe(false);
   expect(scenario.error).toMatch(
     new RegExp(
-      `${planTag}.*${introductionCommit}.*${draftUrl}.*${observedCommit}`,
+      `${planTag}.*${introductionCommit}.*draft URL unknown.*${observedCommit}`,
       'su',
     ),
+  );
+  expect(scenario.events).not.toContain(
+    'gh release create --draft --verify-tag',
   );
   expect(scenario.events.join('\n')).not.toMatch(
     /release delete|push --delete|tag --delete|tag -d/u,
@@ -534,7 +636,17 @@ test('does not trust a non-GitHub draft URL after creation', () => {
   expect(scenario.error).toMatch(
     new RegExp(`${planTag}.*${introductionCommit}`, 'su'),
   );
-  expect(scenario.events).not.toContain('git fetch created tag');
+  expect(scenario.error).toContain('draft URL unknown');
+  expect(scenario.error).toContain(`observed commit ${introductionCommit}`);
+  expect(scenario.events).toEqual(
+    expect.arrayContaining([
+      'gh api create release tag',
+      'git fetch created tag',
+      'git rev-list created tag',
+      'gh release create --draft --verify-tag',
+    ]),
+  );
+  expect(scenario.events).not.toContain('write success URL/instructions');
 });
 
 test.each([['tag'], ['--plan'], ['30.5.0']])(
