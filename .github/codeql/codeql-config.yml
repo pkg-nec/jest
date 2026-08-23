@@ -1,0 +1,4 @@
+name: Jest CodeQL configuration
+
+paths-ignore:
+  - packages/jest-runtime/src/__tests__/test_esm_sync_graph_root/syntax-error.mjs
