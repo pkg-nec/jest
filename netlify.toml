@@ -2,9 +2,9 @@
 
 # production build
 [build]
-  base = "/"
-  command = "yarn workspace jest-website netlify:ci:production"
-  publish = "/website/build"
+  base = "website"
+  command = "yarn netlify:ci:production"
+  publish = "build"
 
 [build.environment]
   NODE_VERSION = "20"
@@ -13,19 +13,18 @@
   YARN_ENABLE_GLOBAL_CACHE = "true"
   YARN_GLOBAL_FOLDER = "/opt/buildhome/.yarn_cache"
   YARN_CACHE_FOLDER = "/opt/buildhome/.yarn_cache"
-  YARN_VERSION = "3.6.4"
 
 [context.production]
   # Do not build the site if there's no site-related changes
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- website/ docs/ netlify.toml"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ':(top)website/' ':(top)docs/' ':(top)netlify.toml'"
 
 # deploy preview build (faster config)
 [context.deploy-preview]
-  command = "yarn workspace jest-website netlify:ci:deployPreview"
+  command = "yarn netlify:ci:deployPreview"
 
 [[plugins]]
   package = "netlify-plugin-cache"
   [plugins.inputs]
     paths = [
-      "website/node_modules/.cache",
+      "node_modules/.cache",
     ]

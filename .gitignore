@@ -29,7 +29,6 @@
 /website/build
 /website/backers.json
 /website/node_modules
-/website/yarn.lock
 /website/i18n/*
 
 /benchmarks/*/node_modules/
