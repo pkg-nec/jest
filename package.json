@@ -134,8 +134,7 @@
   },
   "workspaces": [
     "packages/*",
-    "examples/angular",
-    "examples/typescript"
+    "examples/angular"
   ],
   "prettier": {
     "bracketSpacing": false,
