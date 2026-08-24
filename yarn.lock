@@ -8508,21 +8508,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"example-react@workspace:examples/react":
-  version: 0.0.0-use.local
-  resolution: "example-react@workspace:examples/react"
-  dependencies:
-    "@babel/core": "npm:^7.27.4"
-    "@babel/preset-env": "npm:^7.27.2"
-    "@babel/preset-react": "npm:^7.27.1"
-    "@pkg-nec/babel-jest": "workspace:*"
-    "@pkg-nec/jest": "workspace:*"
-    "@pkg-nec/jest-environment-jsdom": "workspace:*"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
-  languageName: unknown
-  linkType: soft
-
 "example-snapshot@workspace:examples/snapshot":
   version: 0.0.0-use.local
   resolution: "example-snapshot@workspace:examples/snapshot"

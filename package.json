@@ -137,7 +137,6 @@
     "examples/angular",
     "examples/react-native",
     "examples/react-testing-library",
-    "examples/react",
     "examples/snapshot",
     "examples/typescript"
   ],
