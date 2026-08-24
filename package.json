@@ -134,7 +134,20 @@
   },
   "workspaces": [
     "packages/*",
-    "examples/*"
+    "examples/angular",
+    "examples/async",
+    "examples/automatic-mocks",
+    "examples/expect-extend",
+    "examples/getting-started",
+    "examples/jquery",
+    "examples/manual-mocks",
+    "examples/module-mock",
+    "examples/react-native",
+    "examples/react-testing-library",
+    "examples/react",
+    "examples/snapshot",
+    "examples/timer",
+    "examples/typescript"
   ],
   "prettier": {
     "bracketSpacing": false,
