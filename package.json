@@ -135,7 +135,6 @@
   "workspaces": [
     "packages/*",
     "examples/angular",
-    "examples/async",
     "examples/automatic-mocks",
     "examples/expect-extend",
     "examples/getting-started",

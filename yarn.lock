@@ -8476,17 +8476,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"example-async@workspace:examples/async":
-  version: 0.0.0-use.local
-  resolution: "example-async@workspace:examples/async"
-  dependencies:
-    "@babel/core": "npm:^7.27.4"
-    "@babel/preset-env": "npm:^7.27.2"
-    "@pkg-nec/babel-jest": "workspace:*"
-    "@pkg-nec/jest": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
 "example-automatic-mocks@workspace:examples/automatic-mocks":
   version: 0.0.0-use.local
   resolution: "example-automatic-mocks@workspace:examples/automatic-mocks"
