@@ -136,7 +136,6 @@
     "packages/*",
     "examples/angular",
     "examples/expect-extend",
-    "examples/jquery",
     "examples/react-native",
     "examples/react-testing-library",
     "examples/react",

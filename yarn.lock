@@ -8491,19 +8491,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"example-jquery@workspace:examples/jquery":
-  version: 0.0.0-use.local
-  resolution: "example-jquery@workspace:examples/jquery"
-  dependencies:
-    "@babel/core": "npm:^7.27.4"
-    "@babel/preset-env": "npm:^7.27.2"
-    "@pkg-nec/babel-jest": "workspace:*"
-    "@pkg-nec/jest": "workspace:*"
-    "@pkg-nec/jest-environment-jsdom": "workspace:*"
-    jquery: "npm:^4.0.0"
-  languageName: unknown
-  linkType: soft
-
 "example-react-native@workspace:examples/react-native":
   version: 0.0.0-use.local
   resolution: "example-react-native@workspace:examples/react-native"
@@ -10125,13 +10112,6 @@ __metadata:
   version: 1.4.0
   resolution: "jju@npm:1.4.0"
   checksum: 10/1067ff8ce02221faac5a842116ed0ec79a53312a111d0bf8342a80bd02c0a3fdf0b8449694a65947db0a3e8420e8b326dffb489c7dd5866efc380c0d1708a707
-  languageName: node
-  linkType: hard
-
-"jquery@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "jquery@npm:4.0.0"
-  checksum: 10/722be14779518f27f50463d9aaa8d6b42782673a23f65335c4ff9e2ad124cb4d5267696dfc7bc4f40ecf04e852cbb05b1630b50daacf2821737d5d3b480fbf19
   languageName: node
   linkType: hard
 
