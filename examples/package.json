@@ -9,7 +9,8 @@
     "async",
     "automatic-mocks",
     "getting-started",
-    "module-mock"
+    "module-mock",
+    "timer"
   ],
   "packageManager": "yarn@4.18.0"
 }
