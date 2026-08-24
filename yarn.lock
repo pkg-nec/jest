@@ -8504,18 +8504,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"example-manual-mocks@workspace:examples/manual-mocks":
-  version: 0.0.0-use.local
-  resolution: "example-manual-mocks@workspace:examples/manual-mocks"
-  dependencies:
-    "@babel/core": "npm:^7.27.4"
-    "@babel/preset-env": "npm:^7.27.2"
-    "@pkg-nec/babel-jest": "workspace:*"
-    "@pkg-nec/jest": "workspace:*"
-    lodash: "npm:^4.17.19"
-  languageName: unknown
-  linkType: soft
-
 "example-react-native@workspace:examples/react-native":
   version: 0.0.0-use.local
   resolution: "example-react-native@workspace:examples/react-native"
