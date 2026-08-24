@@ -49,6 +49,26 @@ This repository is the independently maintained `@pkg-nec/jest` fork at https://
      - `build:ts` - TypeScript compilation and type declarations
      - `bundle:ts` - API Extractor creates bundled type definitions
 
+### Standalone Website Project
+
+The `website/` directory is intentionally not part of the root Yarn workspace. It is a separate Yarn project with its own `website/package.json` and `website/yarn.lock`. Root install, build, constraints, dedupe, and dependency audit commands do not install or validate website dependencies.
+
+When working on the website, install its dependencies from the website directory:
+
+```bash
+cd website
+corepack enable
+yarn install --immutable
+```
+
+Run website scripts from the same directory. The focused CI-aligned validation is:
+
+```bash
+yarn typecheck
+```
+
+Do not update the root `yarn.lock` for website dependency changes. Update `website/yarn.lock` by running `yarn install` from `website/` when intentionally changing its dependencies.
+
 ### Development Workflow
 
 **For iterative development**, use watch mode in the background:

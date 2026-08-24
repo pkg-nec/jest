@@ -123,10 +123,11 @@ JEST_JASMINE=1 yarn jest
 
 If you are making changes to the website or documentation, test the website folder and run the server to check if your changes are being displayed accurately.
 
-1.  Locate to the website directory and install any website specific dependencies by typing in `yarn`. Following steps are to be followed for this purpose from the root directory.
+1.  From the repository root, enter the website directory and install its dependencies independently.
     ```sh-session
     $ cd website       # Only needed if you are not already in the website directory
-    $ yarn
+    $ corepack enable
+    $ yarn install
     $ node fetchSupporters.js
     $ yarn start
     ```

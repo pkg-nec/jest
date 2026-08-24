@@ -2,19 +2,18 @@
 
 > **Upstream infrastructure notice:** These retained website sources describe upstream Jest infrastructure. This independently maintained `@pkg-nec/jest` fork does not control the upstream Netlify sites or `jestjs.io` deployments.
 
-The Jest website is based on [Docusaurus 2](http://docusaurus.io/).
+The Jest website is based on [Docusaurus 3](https://docusaurus.io/).
 
 ## Run the dev server
 
-You will need Node >=14.
+You will need Node >=20.
 
-The first time, get all the dependencies loaded via
+The first time, install the website dependencies from this directory:
 
 ```bash
-yarn
+corepack enable
+yarn install
 ```
-
-in the root directory.
 
 Fetch `backers.json` file by running
 
@@ -27,8 +26,6 @@ Then, run the server via
 ```bash
 yarn start
 ```
-
-Note, you can also use `yarn workspace jest-website start` from the root of the Jest monorepo. The private `jest-website` workspace name is retained for these sources.
 
 ## Upstream website publishing
 
