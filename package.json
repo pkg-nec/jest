@@ -135,7 +135,6 @@
   "workspaces": [
     "packages/*",
     "examples/angular",
-    "examples/snapshot",
     "examples/typescript"
   ],
   "prettier": {
