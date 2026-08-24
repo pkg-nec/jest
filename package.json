@@ -135,7 +135,6 @@
   "workspaces": [
     "packages/*",
     "examples/angular",
-    "examples/expect-extend",
     "examples/react-native",
     "examples/react-testing-library",
     "examples/react",

@@ -8476,21 +8476,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"example-expect-extend@workspace:examples/expect-extend":
-  version: 0.0.0-use.local
-  resolution: "example-expect-extend@workspace:examples/expect-extend"
-  dependencies:
-    "@babel/core": "npm:^7.27.4"
-    "@babel/preset-env": "npm:^7.27.2"
-    "@babel/preset-typescript": "npm:^7.27.1"
-    "@pkg-nec/babel-jest": "workspace:*"
-    "@pkg-nec/expect": "workspace:*"
-    "@pkg-nec/jest": "workspace:*"
-    "@pkg-nec/jest-globals": "workspace:*"
-    typescript: "npm:^5.8.3"
-  languageName: unknown
-  linkType: soft
-
 "example-react-native@workspace:examples/react-native":
   version: 0.0.0-use.local
   resolution: "example-react-native@workspace:examples/react-native"
