@@ -7851,23 +7851,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"example-react-testing-library@workspace:examples/react-testing-library":
-  version: 0.0.0-use.local
-  resolution: "example-react-testing-library@workspace:examples/react-testing-library"
-  dependencies:
-    "@babel/core": "npm:^7.27.4"
-    "@babel/preset-env": "npm:^7.27.2"
-    "@babel/preset-react": "npm:^7.27.1"
-    "@pkg-nec/babel-jest": "workspace:*"
-    "@pkg-nec/jest": "workspace:*"
-    "@pkg-nec/jest-environment-jsdom": "workspace:*"
-    "@testing-library/dom": "npm:^10.4.1"
-    "@testing-library/react": "npm:^16.3.0"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
-  languageName: unknown
-  linkType: soft
-
 "example-snapshot@workspace:examples/snapshot":
   version: 0.0.0-use.local
   resolution: "example-snapshot@workspace:examples/snapshot"
