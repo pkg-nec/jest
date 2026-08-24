@@ -62,5 +62,35 @@
   "engines": {
     "node": ">=20.0"
   },
-  "packageManager": "yarn@4.18.0"
+  "packageManager": "yarn@4.18.0",
+  "prettier": {
+    "bracketSpacing": false,
+    "proseWrap": "never",
+    "singleQuote": true,
+    "trailingComma": "all",
+    "arrowParens": "avoid",
+    "overrides": [
+      {
+        "files": "**/*.js",
+        "options": {
+          "trailingComma": "es5"
+        }
+      },
+      {
+        "files": [
+          "sidebars.json",
+          "versioned_sidebars/*.json"
+        ],
+        "options": {
+          "parser": "json-stringify"
+        }
+      },
+      {
+        "files": "versioned_docs/*/*.md",
+        "options": {
+          "parser": "mdx"
+        }
+      }
+    ]
+  }
 }
