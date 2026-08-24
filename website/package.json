@@ -8,6 +8,8 @@
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
+    "crowdin:download": "echo 'Downloading translations from Crowdin' && crowdin download --config ../crowdin.yaml --language ja --language es-ES --language fr --language pt-BR --language ro --language ru --language uk --language zh-CN",
+    "crowdin:upload": "echo 'Uploading sources to Crowdin' && crowdin upload sources --config ../crowdin.yaml",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "fetchSupporters": "node fetchSupporters.js",
