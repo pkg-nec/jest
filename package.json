@@ -138,7 +138,6 @@
     "examples/expect-extend",
     "examples/jquery",
     "examples/manual-mocks",
-    "examples/module-mock",
     "examples/react-native",
     "examples/react-testing-library",
     "examples/react",
