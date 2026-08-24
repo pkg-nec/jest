@@ -135,7 +135,6 @@
   "workspaces": [
     "packages/*",
     "examples/angular",
-    "examples/automatic-mocks",
     "examples/expect-extend",
     "examples/getting-started",
     "examples/jquery",
