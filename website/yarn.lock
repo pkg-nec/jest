@@ -8683,6 +8683,7 @@ __metadata:
     graphql: "npm:^16.11.0"
     graphql-request: "npm:^6.1.0"
     js-yaml: "npm:^4.1.1"
+    netlify-plugin-cache: "npm:^1.0.3"
     prism-react-renderer: "npm:^2.1.0"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
@@ -10092,6 +10093,13 @@ __metadata:
   version: 2.6.2
   resolution: "neo-async@npm:2.6.2"
   checksum: 10/1a7948fea86f2b33ec766bc899c88796a51ba76a4afc9026764aedc6e7cde692a09067031e4a1bf6db4f978ccd99e7f5b6c03fe47ad9865c3d4f99050d67e002
+  languageName: node
+  linkType: hard
+
+"netlify-plugin-cache@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "netlify-plugin-cache@npm:1.0.3"
+  checksum: 10/a4246d394ed8cf5a6a5354cba45091569f1fdfae89b131cdecfe560dffda563a3e93bbb5ec244126d5f683b19923f136c6bb03ce460a381c88c82e29664e3d4d
   languageName: node
   linkType: hard
 

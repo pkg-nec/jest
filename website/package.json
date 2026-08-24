@@ -15,7 +15,7 @@
     "fetchSupporters": "node fetchSupporters.js",
     "netlify:ci:production": "yarn netlify:prepare && yarn netlify:crowdin && yarn build",
     "netlify:ci:deployPreview": "yarn netlify:prepare && yarn build -l en",
-    "netlify:prepare": "yarn fetchSupporters && yarn build:js",
+    "netlify:prepare": "yarn fetchSupporters",
     "netlify:crowdin": "yarn write-translations && yarn crowdin:upload && yarn crowdin:download",
     "typecheck": "tsc"
   },
@@ -56,6 +56,7 @@
     "graphql": "^16.11.0",
     "graphql-request": "^6.1.0",
     "js-yaml": "^4.1.1",
+    "netlify-plugin-cache": "^1.0.3",
     "typescript": "^5.8.3"
   },
   "engines": {
