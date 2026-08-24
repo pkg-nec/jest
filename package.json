@@ -135,7 +135,6 @@
   "workspaces": [
     "packages/*",
     "examples/angular",
-    "examples/react-native",
     "examples/react-testing-library",
     "examples/snapshot",
     "examples/typescript"
