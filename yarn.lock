@@ -8580,17 +8580,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"example-timer@workspace:examples/timer":
-  version: 0.0.0-use.local
-  resolution: "example-timer@workspace:examples/timer"
-  dependencies:
-    "@babel/core": "npm:^7.27.4"
-    "@babel/preset-env": "npm:^7.27.2"
-    "@pkg-nec/babel-jest": "workspace:*"
-    "@pkg-nec/jest": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
 "example-typescript@workspace:examples/typescript":
   version: 0.0.0-use.local
   resolution: "example-typescript@workspace:examples/typescript"
