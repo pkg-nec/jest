@@ -18,8 +18,8 @@
     "zone.js": "~0.16.0"
   },
   "devDependencies": {
-    "@pkg-nec/jest": "workspace:*",
-    "@pkg-nec/jest-globals": "workspace:*",
+    "@pkg-nec/jest": "30.4.4",
+    "@pkg-nec/jest-globals": "30.4.2",
     "jest-preset-angular": "^16.0.0",
     "jsdom": "^26.1.0"
   }
