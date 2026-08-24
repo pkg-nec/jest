@@ -136,7 +136,6 @@
     "packages/*",
     "examples/angular",
     "examples/expect-extend",
-    "examples/getting-started",
     "examples/jquery",
     "examples/manual-mocks",
     "examples/module-mock",

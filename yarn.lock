@@ -8491,17 +8491,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"example-getting-started@workspace:examples/getting-started":
-  version: 0.0.0-use.local
-  resolution: "example-getting-started@workspace:examples/getting-started"
-  dependencies:
-    "@babel/core": "npm:^7.27.4"
-    "@babel/preset-env": "npm:^7.27.2"
-    "@pkg-nec/babel-jest": "workspace:*"
-    "@pkg-nec/jest": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
 "example-jquery@workspace:examples/jquery":
   version: 0.0.0-use.local
   resolution: "example-jquery@workspace:examples/jquery"
