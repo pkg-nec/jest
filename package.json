@@ -138,7 +138,6 @@
   },
   "workspaces": [
     "packages/*",
-    "website",
     "examples/*"
   ],
   "prettier": {
