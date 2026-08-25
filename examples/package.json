@@ -22,7 +22,8 @@
     "react-testing-library",
     "react",
     "snapshot",
-    "timer"
+    "timer",
+    "typescript"
   ],
   "packageManager": "yarn@4.18.0"
 }

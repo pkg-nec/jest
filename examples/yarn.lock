@@ -4194,6 +4194,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"example-typescript@workspace:typescript":
+  version: 0.0.0-use.local
+  resolution: "example-typescript@workspace:typescript"
+  dependencies:
+    "@babel/core": "npm:^7.27.4"
+    "@babel/preset-env": "npm:^7.27.2"
+    "@babel/preset-react": "npm:^7.27.1"
+    "@babel/preset-typescript": "npm:^7.27.1"
+    "@pkg-nec/babel-jest": "npm:30.4.3"
+    "@pkg-nec/jest": "npm:30.4.4"
+    "@pkg-nec/jest-environment-jsdom": "npm:30.4.2"
+    "@pkg-nec/jest-globals": "npm:30.4.2"
+    react: "npm:18.3.1"
+    react-dom: "npm:18.3.1"
+    typescript: "npm:^5.8.3"
+  languageName: unknown
+  linkType: soft
+
 "execa@npm:^5.1.1":
   version: 5.1.1
   resolution: "execa@npm:5.1.1"
