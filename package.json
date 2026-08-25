@@ -133,8 +133,7 @@
     "watch:ts": "yarn build:ts --watch"
   },
   "workspaces": [
-    "packages/*",
-    "examples/angular"
+    "packages/*"
   ],
   "prettier": {
     "bracketSpacing": false,
