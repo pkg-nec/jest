@@ -19,6 +19,7 @@
     "manual-mocks",
     "module-mock",
     "react-native",
+    "react-testing-library",
     "react",
     "timer"
   ],
