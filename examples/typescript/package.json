@@ -15,7 +15,8 @@
     "@pkg-nec/babel-jest": "30.4.3",
     "@pkg-nec/jest": "30.4.4",
     "@pkg-nec/jest-environment-jsdom": "30.4.2",
-    "@pkg-nec/jest-globals": "30.4.2"
+    "@pkg-nec/jest-globals": "30.4.2",
+    "@types/react": "^18.3.23"
   },
   "scripts": {
     "test": "jest"
