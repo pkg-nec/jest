@@ -11,6 +11,7 @@
     "typecheck": "tsc -p expect-extend && tsc -p typescript"
   },
   "workspaces": [
+    "angular",
     "async",
     "automatic-mocks",
     "expect-extend",
