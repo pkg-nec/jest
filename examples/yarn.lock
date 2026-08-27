@@ -3022,6 +3022,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"example-manual-mocks@workspace:manual-mocks":
+  version: 0.0.0-use.local
+  resolution: "example-manual-mocks@workspace:manual-mocks"
+  dependencies:
+    "@babel/core": "npm:^7.27.4"
+    "@babel/preset-env": "npm:^7.27.2"
+    "@pkg-nec/babel-jest": "npm:30.4.3"
+    "@pkg-nec/jest": "npm:30.4.4"
+    lodash: "npm:^4.17.19"
+  languageName: unknown
+  linkType: soft
+
 "example-timer@workspace:timer":
   version: 0.0.0-use.local
   resolution: "example-timer@workspace:timer"
@@ -3475,6 +3487,13 @@ __metadata:
   version: 4.0.8
   resolution: "lodash.debounce@npm:4.0.8"
   checksum: 10/cd0b2819786e6e80cb9f5cda26b1a8fc073daaf04e48d4cb462fa4663ec9adb3a5387aa22d7129e48eed1afa05b482e2a6b79bfc99b86886364449500cbb00fd
+  languageName: node
+  linkType: hard
+
+"lodash@npm:^4.17.19":
+  version: 4.18.1
+  resolution: "lodash@npm:4.18.1"
+  checksum: 10/306fea53dfd39dad1f03d45ba654a2405aebd35797b673077f401edb7df2543623dc44b9effbb98f69b32152295fff725a4cec99c684098947430600c6af0c3f
   languageName: node
   linkType: hard
 
