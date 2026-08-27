@@ -7,7 +7,8 @@
   },
   "workspaces": [
     "async",
-    "automatic-mocks"
+    "automatic-mocks",
+    "getting-started"
   ],
   "packageManager": "yarn@4.18.0"
 }
