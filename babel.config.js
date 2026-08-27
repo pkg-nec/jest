@@ -11,7 +11,6 @@ const pkg = require('./package.json');
 const supportedNodeVersion = semver.minVersion(pkg.engines.node).version;
 
 module.exports = {
-  babelrcRoots: ['examples/*'],
   // we don't wanna run the transforms in this file over react native
   exclude: /react-native/,
   overrides: [
