@@ -135,6 +135,26 @@ If you are making changes to the website or documentation, test the website fold
 
 The Jest website also offers documentation for older versions of Jest, which you can edit in `website/versioned_docs`. After making changes to the current documentation in `docs`, please check if any older versions of the documentation have a copy of the file where the change is also relevant and apply the changes to the `versioned_docs` as well.
 
+#### Working on examples
+
+The `examples/` directory is an independent Yarn project that hosts all fourteen child example workspaces. A root `yarn install` does not install their dependencies. Install and validate examples from that directory:
+
+```sh-session
+$ cd examples
+$ corepack enable
+$ yarn install --immutable
+$ yarn typecheck
+$ yarn test
+```
+
+The aggregate commands match the Examples CI gate. To test one child workspace while iterating, run its existing test script through the examples project, for example:
+
+```sh-session
+$ yarn workspace example-async test
+```
+
+Example manifests intentionally pin published `@pkg-nec/*` packages to exact versions rather than linking to root workspaces. This verifies the packages consumers install from npm. Do not update the root `yarn.lock` for example dependency changes; run `yarn install` from `examples/` to update `examples/yarn.lock` intentionally.
+
 ## How to try a development build of Jest in another project
 
 To build Jest:

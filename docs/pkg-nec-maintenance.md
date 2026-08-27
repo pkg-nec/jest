@@ -129,9 +129,9 @@ Run other focused build, lint, type, package, or E2E checks appropriate to the d
 
 ## Dependency security maintenance
 
-The dated baseline is `docs/security/npm-audit-baseline-2026-08-18.md`. It records the repository before the website became a standalone Yarn project, so that historical audit includes publishable packages, root development tooling, the website, examples, and transitive dependencies. An audit entry is not automatically a vulnerability in shipped Jest runtime code.
+The dated baseline is `docs/security/npm-audit-baseline-2026-08-18.md`. It records the repository before the website and examples became standalone Yarn projects, so that one historical root audit includes publishable packages, root development tooling, the website, examples, and transitive dependencies. It is historical evidence, not a statement that any recorded finding has been remediated. An audit entry is not automatically a vulnerability in shipped Jest runtime code.
 
-Current audits must run the root and website projects separately. After enabling Corepack and installing dependencies for both projects, run:
+Current audits must run the root, website, and examples projects separately. After enabling Corepack and installing dependencies for all three projects, run:
 
 ```bash
 # From the repository root, audit the monorepo workspaces.
@@ -140,9 +140,14 @@ yarn npm audit --all --recursive --severity high
 # Audit the standalone website project.
 cd website
 yarn npm audit --all --recursive --severity high
+cd ..
+
+# Audit the standalone examples project.
+cd examples
+yarn npm audit --all --recursive --severity high
 ```
 
-Treat the combined output as the repository-wide audit result: the root command covers the publishable packages, root tooling, and examples, while the website command covers the standalone documentation site.
+Treat the combined output as the repository-wide audit result: the root command covers the publishable packages and root tooling, the website command covers the standalone documentation site, and the examples command covers all fourteen standalone example workspaces.
 
 For each remediation:
 

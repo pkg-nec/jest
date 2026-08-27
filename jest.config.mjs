@@ -37,7 +37,7 @@ export default {
     'e2e/runtime-internal-module-registry/__mocks__',
     'e2e/node-url-manual-mocks/__mocks__',
   ],
-  projects: ['<rootDir>', '<rootDir>/examples/*/'],
+  projects: ['<rootDir>'],
   snapshotFormat: {
     printBasicPrototype: true,
   },

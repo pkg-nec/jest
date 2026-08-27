@@ -124,8 +124,6 @@
     "test-types": "yarn tstyche",
     "test-with-type-info": "yarn jest e2e/__tests__/jest.config.ts.test.ts",
     "test": "yarn lint && yarn jest",
-    "typecheck": "yarn typecheck:examples && yarn typecheck:tests",
-    "typecheck:examples": "tsc -p examples/expect-extend && tsc -p examples/typescript",
     "typecheck:tests": "tsc -b packages/{babel-jest,babel-plugin-jest-hoist,create-jest,diff-sequences,expect,expect-utils,jest-circus,jest-cli,jest-config,jest-console,jest-runtime,jest-snapshot,jest-util,jest-validate,jest-watcher,jest-worker,pretty-format}/**/__tests__",
     "verify-old-ts": "node ./scripts/verifyOldTs.mjs",
     "verify-pnp": "node ./scripts/verifyPnP.mjs",
@@ -133,8 +131,7 @@
     "watch:ts": "yarn build:ts --watch"
   },
   "workspaces": [
-    "packages/*",
-    "examples/*"
+    "packages/*"
   ],
   "prettier": {
     "bracketSpacing": false,

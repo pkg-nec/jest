@@ -5,8 +5,8 @@
   "devDependencies": {
     "@babel/core": "^7.27.4",
     "@babel/preset-env": "^7.27.2",
-    "@pkg-nec/babel-jest": "workspace:*",
-    "@pkg-nec/jest": "workspace:*"
+    "@pkg-nec/babel-jest": "30.4.3",
+    "@pkg-nec/jest": "30.4.4"
   },
   "scripts": {
     "test": "jest"

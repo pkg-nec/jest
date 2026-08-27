@@ -69,6 +69,30 @@ yarn typecheck
 
 Do not update the root `yarn.lock` for website dependency changes. Update `website/yarn.lock` by running `yarn install` from `website/` when intentionally changing its dependencies.
 
+### Standalone Examples Project
+
+The `examples/` directory is intentionally not part of the root Yarn workspace. It is a separate Yarn project whose `examples/package.json` hosts all fourteen child example workspaces and whose dependencies are locked by `examples/yarn.lock`. Root install, build, constraints, dedupe, tests, typechecks, and dependency audits do not install or validate example dependencies.
+
+The examples use exact published `@pkg-nec/*` versions instead of `workspace:` links so they validate the packages consumers receive from npm. Do not replace those pins with root-workspace links.
+
+When working on examples, install dependencies and run validation from the examples directory:
+
+```bash
+cd examples
+corepack enable
+yarn install --immutable
+yarn typecheck
+yarn test
+```
+
+To run one example's test script, select its child workspace from the examples project, for example:
+
+```bash
+yarn workspace example-async test
+```
+
+Do not update the root `yarn.lock` for example dependency changes. Update `examples/yarn.lock` by running `yarn install` from `examples/` when intentionally changing example dependencies. The Examples CI workflow in `.github/workflows/examples.yml` owns the aggregate install, typecheck, and test gate.
+
 ### Development Workflow
 
 **For iterative development**, use watch mode in the background:
@@ -212,10 +236,11 @@ yarn lint:prettier:ci
 
 ### TypeScript Checks
 
-**Typecheck examples**:
+**Typecheck the standalone examples project**:
 
 ```bash
-yarn typecheck:examples
+cd examples
+yarn typecheck
 ```
 
 **Typecheck tests**:
@@ -291,6 +316,7 @@ yarn dedupe
 
 **Other Workflows**:
 
+- `examples.yml` - Installs, typechecks, and tests all standalone example workspaces
 - `prepare-cache.yml` - Prepares Yarn cache
 - `nightly.yml` - Nightly test runs
 - `test-nightly.yml` - Test against nightly Node versions
