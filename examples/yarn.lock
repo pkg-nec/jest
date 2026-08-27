@@ -3011,6 +3011,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"example-manual-mock@workspace:module-mock":
+  version: 0.0.0-use.local
+  resolution: "example-manual-mock@workspace:module-mock"
+  dependencies:
+    "@babel/core": "npm:^7.27.4"
+    "@babel/preset-env": "npm:^7.27.2"
+    "@pkg-nec/babel-jest": "npm:30.4.3"
+    "@pkg-nec/jest": "npm:30.4.4"
+  languageName: unknown
+  linkType: soft
+
 "execa@npm:^5.1.1":
   version: 5.1.1
   resolution: "execa@npm:5.1.1"
