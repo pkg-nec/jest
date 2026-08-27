@@ -196,6 +196,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.2.0":
+  version: 7.29.7
+  resolution: "@babel/runtime@npm:7.29.7"
+  checksum: 10/9883b4951787779fd382b121f22f92966d85f19434841f65fb00b2dfec232107e139683f47c6f252891826ad8ee18317b46c3a0e4819116a9885f47b46d7126a
+  languageName: node
+  linkType: hard
+
 "@babel/template@npm:^7.27.1":
   version: 7.27.2
   resolution: "@babel/template@npm:7.27.2"
@@ -514,6 +521,7 @@ __metadata:
     "@babel/core": "npm:^7.2.2"
     "@babel/plugin-transform-regenerator": "npm:^7.0.0"
     "@babel/plugin-transform-runtime": "npm:^7.2.0"
+    "@babel/runtime": "npm:^7.2.0"
   languageName: unknown
   linkType: soft
 
