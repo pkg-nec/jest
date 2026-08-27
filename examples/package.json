@@ -9,6 +9,7 @@
     "async",
     "automatic-mocks",
     "getting-started",
+    "jquery",
     "manual-mocks",
     "module-mock",
     "timer"
