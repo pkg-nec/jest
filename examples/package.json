@@ -2,8 +2,13 @@
   "name": "@pkg-nec/examples",
   "private": true,
   "version": "0.0.0",
+  "devDependencies": {
+    "@tsconfig/node18": "^18.2.4",
+    "typescript": "^5.8.3"
+  },
   "scripts": {
-    "test": "yarn workspaces foreach -A run test"
+    "test": "yarn workspaces foreach -A run test",
+    "typecheck": "tsc -p expect-extend"
   },
   "workspaces": [
     "async",
