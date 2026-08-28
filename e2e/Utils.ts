@@ -19,7 +19,9 @@ import slash from 'slash';
 import which from 'which';
 import type {Config} from '@pkg-nec/jest-types';
 
-const dedent = dedentBase.withOptions({escapeSpecialCharacters: true});
+// File contents are already evaluated JavaScript strings. Preserve escape
+// sequences such as `\b` and `\r` instead of decoding them a second time.
+const dedent = dedentBase.withOptions({escapeSpecialCharacters: false});
 
 export const run = (
   cmd: string,
@@ -129,6 +131,7 @@ export const cleanup = (directory: string) => {
 export const writeFiles = (
   directory: string,
   files: {[filename: string]: string},
+  options?: {trailingNewline?: boolean},
 ) => {
   fs.mkdirSync(directory, {recursive: true});
   for (const fileOrPath of Object.keys(files)) {
@@ -137,9 +140,10 @@ export const writeFiles = (
     if (dirname !== '/') {
       fs.mkdirSync(path.join(directory, dirname), {recursive: true});
     }
+    const contents = dedent(files[fileOrPath]);
     fs.writeFileSync(
       path.resolve(directory, ...fileOrPath.split('/')),
-      dedent(files[fileOrPath]),
+      options?.trailingNewline ? `${contents}\n` : contents,
     );
   }
 };
