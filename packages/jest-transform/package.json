@@ -40,7 +40,7 @@
     "@types/convert-source-map": "^2.0.3",
     "@types/graceful-fs": "^4.1.9",
     "@types/write-file-atomic": "^4.0.3",
-    "dedent": "^1.6.0"
+    "dedent": "^1.7.2"
   },
   "engines": {
     "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"

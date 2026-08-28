@@ -34,7 +34,7 @@
     "@types/node": "*",
     "chalk": "^4.1.2",
     "co": "^4.6.0",
-    "dedent": "^1.6.0",
+    "dedent": "^1.7.2",
     "is-generator-fn": "^2.1.0",
     "p-limit": "^3.1.0",
     "pure-rand": "^7.0.0",

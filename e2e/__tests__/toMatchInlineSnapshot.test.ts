@@ -386,10 +386,10 @@ test('indentation is correct in the presences of existing snapshots, when the fi
     it('is true', () => {
       expect(true).toMatchInlineSnapshot(\`true\`);
       expect([1, 2, 3]).toMatchInlineSnapshot();
-    });\\n
+    });
   `;
 
-  writeFiles(TESTS_DIR, {[filename]: test});
+  writeFiles(TESTS_DIR, {[filename]: test}, {trailingNewline: true});
   const {stderr, exitCode} = runJest(DIR, ['-w=1', '--ci=false', filename]);
   const fileAfter = readFile(filename);
   expect(stderr).toMatch('1 snapshot written from 1 test suite.');
