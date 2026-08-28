@@ -25,6 +25,6 @@
   "dependencies": {
     "@babel/core": "^7.29.7",
     "@babel/preset-env": "^7.29.7",
-    "babel-plugin-istanbul": "^7.0.1"
+    "@pkg-nec/babel-plugin-istanbul": "^9.0.2"
   }
 }
