@@ -23,8 +23,8 @@
     ]
   },
   "dependencies": {
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "babel-plugin-istanbul": "^7.0.1"
+    "@babel/core": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@pkg-nec/babel-plugin-istanbul": "^9.0.2"
   }
 }
