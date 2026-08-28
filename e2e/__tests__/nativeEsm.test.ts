@@ -87,8 +87,8 @@ test('supports top-level await', () => {
   expect(exitCode).toBe(0);
 });
 
-// minimum version supported by discord.js is 16.9, but they use syntax from 16.11
-onNodeVersions('>=16.11.0', () => {
+// minimum version supported by discord.js and its dependencies is 18.17
+onNodeVersions('>=18.17.0', () => {
   test('support re-exports from CJS of dual packages', () => {
     const {exitCode, stderr, stdout} = runJest(
       DIR,

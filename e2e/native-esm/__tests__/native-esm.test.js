@@ -80,7 +80,7 @@ test('should support importing node core modules', () => {
   expect(JSON.parse(readFileSync(packageJsonPath, 'utf8'))).toEqual({
     devDependencies: {
       colors: '^1.4.0',
-      'discord.js': '14.3.0',
+      'discord.js': '14.27.0',
       'iso-constants': '^0.1.2',
       yargs: '^17.5.1',
     },
