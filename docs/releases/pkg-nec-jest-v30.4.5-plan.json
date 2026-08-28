@@ -1,0 +1,1147 @@
+{
+  "anchor": {
+    "name": "@pkg-nec/jest",
+    "tag": "@pkg-nec/jest-v30.4.5",
+    "version": "30.4.5"
+  },
+  "changedFiles": {
+    "packages": [
+      {
+        "files": [
+          "packages/babel-jest/package.json",
+          "packages/babel-jest/src/__tests__/index.ts",
+          "packages/babel-jest/src/index.ts"
+        ],
+        "name": "@pkg-nec/babel-jest"
+      },
+      {
+        "files": [
+          "packages/expect/package.json"
+        ],
+        "name": "@pkg-nec/expect"
+      },
+      {
+        "files": [
+          "packages/jest-circus/package.json"
+        ],
+        "name": "@pkg-nec/jest-circus"
+      },
+      {
+        "files": [
+          "packages/jest-config/package.json"
+        ],
+        "name": "@pkg-nec/jest-config"
+      },
+      {
+        "files": [
+          "packages/expect-utils/package.json"
+        ],
+        "name": "@pkg-nec/jest-expect-utils"
+      },
+      {
+        "files": [
+          "packages/jest-transform/package.json",
+          "packages/jest-transform/src/ScriptTransformer.ts"
+        ],
+        "name": "@pkg-nec/jest-transform"
+      },
+      {
+        "files": [
+          "packages/jest-worker/package.json"
+        ],
+        "name": "@pkg-nec/jest-worker"
+      },
+      {
+        "files": [
+          "packages/pretty-format/package.json"
+        ],
+        "name": "@pkg-nec/pretty-format"
+      }
+    ],
+    "root": {
+      "allPackages": [
+        "babel.config.js"
+      ],
+      "ambiguous": [
+        ".gitignore",
+        ".yarnrc.yml",
+        "jest.config.ci.mjs",
+        "jest.config.mjs",
+        "netlify.toml",
+        "package.json",
+        "yarn.lock"
+      ],
+      "noImpact": [
+        ".github/codeql/codeql-config.yml",
+        ".github/copilot-instructions.md",
+        ".github/workflows/examples.yml",
+        ".github/workflows/nodejs.yml",
+        ".github/workflows/ossf-scorecard.yml",
+        ".github/workflows/prepare-cache.yml",
+        ".github/workflows/test.yml",
+        ".github/workflows/website.yml",
+        "CONTRIBUTING.md",
+        "docs/Configuration.md",
+        "docs/pkg-nec-maintenance.md",
+        "e2e/__tests__/__snapshots__/nativeEsm.test.ts.snap",
+        "e2e/__tests__/nativeEsm.test.ts",
+        "e2e/__tests__/toMatchInlineSnapshot.test.ts",
+        "e2e/async-regenerator/package.json",
+        "e2e/async-regenerator/yarn.lock",
+        "e2e/babel-plugin-jest-hoist/package.json",
+        "e2e/babel-plugin-jest-hoist/yarn.lock",
+        "e2e/coverage-transform-instrumented/package.json",
+        "e2e/coverage-transform-instrumented/preprocessor.js",
+        "e2e/coverage-transform-instrumented/yarn.lock",
+        "e2e/custom-jsdom-html/package.json",
+        "e2e/custom-jsdom-html/yarn.lock",
+        "e2e/custom-jsdom-version/v27/package.json",
+        "e2e/custom-jsdom-version/v27/yarn.lock",
+        "e2e/global-setup/package.json",
+        "e2e/global-setup/yarn.lock",
+        "e2e/global-teardown/package.json",
+        "e2e/global-teardown/yarn.lock",
+        "e2e/native-esm/__tests__/native-esm.test.js",
+        "e2e/native-esm/package.json",
+        "e2e/native-esm/yarn.lock",
+        "e2e/require-missing-ext/yarn.lock",
+        "e2e/transform/multiple-transformers/package.json",
+        "e2e/transform/multiple-transformers/yarn.lock",
+        "e2e/transform/transform-snapshotResolver/package.json",
+        "e2e/transform/transform-snapshotResolver/yarn.lock",
+        "e2e/transform/transform-testrunner/package.json",
+        "e2e/transform/transform-testrunner/yarn.lock",
+        "e2e/transform/transformer-config/package.json",
+        "e2e/transform/transformer-config/yarn.lock",
+        "e2e/Utils.ts",
+        "examples/angular/package.json",
+        "examples/angular/tsconfig.json",
+        "examples/async/package.json",
+        "examples/automatic-mocks/package.json",
+        "examples/expect-extend/package.json",
+        "examples/expect-extend/tsconfig.json",
+        "examples/getting-started/package.json",
+        "examples/jquery/package.json",
+        "examples/manual-mocks/package.json",
+        "examples/module-mock/package.json",
+        "examples/package.json",
+        "examples/react-native/package.json",
+        "examples/react-testing-library/package.json",
+        "examples/react/package.json",
+        "examples/README.md",
+        "examples/snapshot/package.json",
+        "examples/timer/package.json",
+        "examples/tsconfig.json",
+        "examples/typescript/package.json",
+        "examples/yarn.lock",
+        "scripts/__tests__/draftPkgNecRelease.test.js",
+        "scripts/draftPkgNecRelease.mjs",
+        "website/package.json",
+        "website/README.md",
+        "website/versioned_docs/version-29.7/Configuration.md",
+        "website/versioned_docs/version-30.0/Configuration.md",
+        "website/versioned_docs/version-30.4/Configuration.md",
+        "website/yarn.lock"
+      ]
+    }
+  },
+  "packages": [
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/babel-plugin-jest-hoist",
+      "order": 1,
+      "path": "packages/babel-plugin-jest-hoist",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/babel-preset-jest",
+      "order": 2,
+      "path": "packages/babel-preset-jest",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.1",
+      "name": "@pkg-nec/jest-diff-sequences",
+      "order": 3,
+      "path": "packages/diff-sequences",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.2"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.1",
+      "name": "@pkg-nec/jest-docblock",
+      "order": 4,
+      "path": "packages/jest-docblock",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.2"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.1.1",
+      "name": "@pkg-nec/jest-get-type",
+      "order": 5,
+      "path": "packages/jest-get-type",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.1.2"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.1",
+      "name": "@pkg-nec/jest-regex-util",
+      "order": 6,
+      "path": "packages/jest-regex-util",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.2"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.1",
+      "name": "@pkg-nec/jest-pattern",
+      "order": 7,
+      "path": "packages/jest-pattern",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.2"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-schemas",
+      "order": 8,
+      "path": "packages/jest-schemas",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.0.2",
+      "name": "@pkg-nec/jest-source-map",
+      "order": 9,
+      "path": "packages/jest-source-map",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.0.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-types",
+      "order": 10,
+      "path": "packages/jest-types",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-snapshot-utils",
+      "order": 11,
+      "path": "packages/jest-snapshot-utils",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-util",
+      "order": 12,
+      "path": "packages/jest-util",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-changed-files",
+      "order": 13,
+      "path": "packages/jest-changed-files",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-create-cache-key-function",
+      "order": 14,
+      "path": "packages/jest-create-cache-key-function",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-mock",
+      "order": 15,
+      "path": "packages/jest-mock",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/pretty-format",
+      "order": 16,
+      "path": "packages/pretty-format",
+      "reasons": [
+        {
+          "files": [
+            "packages/pretty-format/package.json"
+          ],
+          "kind": "changed"
+        },
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-each",
+      "order": 17,
+      "path": "packages/jest-each",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-leak-detector",
+      "order": 18,
+      "path": "packages/jest-leak-detector",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-message-util",
+      "order": 19,
+      "path": "packages/jest-message-util",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-validate",
+      "order": 20,
+      "path": "packages/jest-validate",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-worker",
+      "order": 21,
+      "path": "packages/jest-worker",
+      "reasons": [
+        {
+          "files": [
+            "packages/jest-worker/package.json"
+          ],
+          "kind": "changed"
+        },
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-haste-map",
+      "order": 22,
+      "path": "packages/jest-haste-map",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/expect",
+      "order": 23,
+      "path": "packages/expect",
+      "reasons": [
+        {
+          "files": [
+            "packages/expect/package.json"
+          ],
+          "kind": "changed"
+        },
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-diff",
+      "order": 24,
+      "path": "packages/jest-diff",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-environment",
+      "order": 25,
+      "path": "packages/jest-environment",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-expect",
+      "order": 26,
+      "path": "packages/jest-expect",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-expect-utils",
+      "order": 27,
+      "path": "packages/expect-utils",
+      "reasons": [
+        {
+          "files": [
+            "packages/expect-utils/package.json"
+          ],
+          "kind": "changed"
+        },
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-fake-timers",
+      "order": 28,
+      "path": "packages/jest-fake-timers",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-globals",
+      "order": 29,
+      "path": "packages/jest-globals",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-matcher-utils",
+      "order": 30,
+      "path": "packages/jest-matcher-utils",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-snapshot",
+      "order": 31,
+      "path": "packages/jest-snapshot",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-test-utils",
+      "order": 32,
+      "path": "packages/test-utils",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-transform",
+      "order": 33,
+      "path": "packages/jest-transform",
+      "reasons": [
+        {
+          "files": [
+            "packages/jest-transform/package.json",
+            "packages/jest-transform/src/ScriptTransformer.ts"
+          ],
+          "kind": "changed"
+        },
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.3",
+      "name": "@pkg-nec/babel-jest",
+      "order": 34,
+      "path": "packages/babel-jest",
+      "reasons": [
+        {
+          "files": [
+            "packages/babel-jest/package.json",
+            "packages/babel-jest/src/__tests__/index.ts",
+            "packages/babel-jest/src/index.ts"
+          ],
+          "kind": "changed"
+        },
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.4"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-console",
+      "order": 35,
+      "path": "packages/jest-console",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-environment-jsdom-abstract",
+      "order": 36,
+      "path": "packages/jest-environment-jsdom-abstract",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-environment-jsdom",
+      "order": 37,
+      "path": "packages/jest-environment-jsdom",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-environment-node",
+      "order": 38,
+      "path": "packages/jest-environment-node",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-resolve",
+      "order": 39,
+      "path": "packages/jest-resolve",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-test-globals",
+      "order": 40,
+      "path": "packages/test-globals",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-test-result",
+      "order": 41,
+      "path": "packages/jest-test-result",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-phabricator",
+      "order": 42,
+      "path": "packages/jest-phabricator",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-reporters",
+      "order": 43,
+      "path": "packages/jest-reporters",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.3",
+      "name": "@pkg-nec/jest-runtime",
+      "order": 44,
+      "path": "packages/jest-runtime",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.4"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.3",
+      "name": "@pkg-nec/jest-circus",
+      "order": 45,
+      "path": "packages/jest-circus",
+      "reasons": [
+        {
+          "files": [
+            "packages/jest-circus/package.json"
+          ],
+          "kind": "changed"
+        },
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.4"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.3",
+      "name": "@pkg-nec/jest-jasmine2",
+      "order": 46,
+      "path": "packages/jest-jasmine2",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.4"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.3",
+      "name": "@pkg-nec/jest-resolve-dependencies",
+      "order": 47,
+      "path": "packages/jest-resolve-dependencies",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.4"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-test-sequencer",
+      "order": 48,
+      "path": "packages/jest-test-sequencer",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.2",
+      "name": "@pkg-nec/jest-watcher",
+      "order": 49,
+      "path": "packages/jest-watcher",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.3"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.3",
+      "name": "@pkg-nec/jest-runner",
+      "order": 50,
+      "path": "packages/jest-runner",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.4"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.4",
+      "name": "@pkg-nec/jest-config",
+      "order": 51,
+      "path": "packages/jest-config",
+      "reasons": [
+        {
+          "files": [
+            "packages/jest-config/package.json"
+          ],
+          "kind": "changed"
+        },
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.5"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.4",
+      "name": "@pkg-nec/create-jest",
+      "order": 52,
+      "path": "packages/create-jest",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.5"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.4",
+      "name": "@pkg-nec/jest-core",
+      "order": 53,
+      "path": "packages/jest-core",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.5"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.4",
+      "name": "@pkg-nec/jest-cli",
+      "order": 54,
+      "path": "packages/jest-cli",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.5"
+    },
+    {
+      "bump": "patch",
+      "fromVersion": "30.4.4",
+      "name": "@pkg-nec/jest",
+      "order": 55,
+      "path": "packages/jest",
+      "reasons": [
+        {
+          "classification": "all-packages",
+          "files": [
+            "babel.config.js"
+          ],
+          "kind": "root-impact"
+        }
+      ],
+      "toVersion": "30.4.5"
+    }
+  ],
+  "planPath": "docs/releases/pkg-nec-jest-v30.4.5-plan.json",
+  "preparedFrom": "91f643759fa7d7ceccc4a1fac5b7ef4ea22d0a28",
+  "previousRelease": {
+    "commit": "25ca5ea7695aab085f4c0310c53e923d0d4417cf",
+    "tag": "@pkg-nec/jest-v30.4.4"
+  },
+  "rootImpact": {
+    "applied": "all",
+    "requested": null
+  },
+  "schemaVersion": 1
+}

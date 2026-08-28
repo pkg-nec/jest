@@ -1,7 +1,7 @@
 {
   "name": "@pkg-nec/jest-get-type",
   "description": "A utility function to get the type of a value",
-  "version": "30.1.1",
+  "version": "30.1.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/pkg-nec/jest.git",

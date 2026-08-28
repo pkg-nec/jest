@@ -1,7 +1,7 @@
 {
   "name": "@pkg-nec/jest-matcher-utils",
   "description": "A set of utility functions for expect and related packages",
-  "version": "30.4.2",
+  "version": "30.4.3",
   "repository": {
     "type": "git",
     "url": "https://github.com/pkg-nec/jest.git",
