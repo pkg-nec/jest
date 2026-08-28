@@ -32,7 +32,7 @@
     "@fast-check/jest": "^2.1.1",
     "@pkg-nec/jest-test-utils": "workspace:*",
     "chalk": "^4.1.2",
-    "immutable": "^5.1.2"
+    "immutable": "^5.1.8"
   },
   "engines": {
     "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"

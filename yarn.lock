@@ -3398,7 +3398,7 @@ __metadata:
     "@pkg-nec/jest-test-utils": "workspace:*"
     "@pkg-nec/jest-util": "workspace:*"
     chalk: "npm:^4.1.2"
-    immutable: "npm:^5.1.2"
+    immutable: "npm:^5.1.8"
   languageName: unknown
   linkType: soft
 
@@ -3704,7 +3704,7 @@ __metadata:
   dependencies:
     "@pkg-nec/jest-get-type": "workspace:*"
     "@pkg-nec/jest-matcher-utils": "workspace:*"
-    immutable: "npm:^5.1.2"
+    immutable: "npm:^5.1.8"
   languageName: unknown
   linkType: soft
 
@@ -4376,7 +4376,7 @@ __metadata:
     "@types/react-is": "npm:^19.0.0"
     "@types/react-test-renderer": "npm:^18.3.1"
     ansi-styles: "npm:^5.2.0"
-    immutable: "npm:^5.1.2"
+    immutable: "npm:^5.1.8"
     react: "npm:18.3.1"
     react-17: "npm:react@^17.0.2"
     react-18: "npm:react@^18.3.1"
@@ -8334,7 +8334,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immutable@npm:^5.1.2":
+"immutable@npm:^5.1.8":
   version: 5.1.9
   resolution: "immutable@npm:5.1.9"
   checksum: 10/dc61ea6f79897320a048f193dec703dff25ad7bb633c3a0294677d2f258764c88da06e7c2b53d1aa51b6657c98d9f1c7341f49735b9b802fe6e834122cf78dcd
