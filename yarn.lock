@@ -3787,6 +3787,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@pkg-nec/jest-pnp-resolver@npm:^1.2.5":
+  version: 1.2.5
+  resolution: "@pkg-nec/jest-pnp-resolver@npm:1.2.5"
+  peerDependencies:
+    "@pkg-nec/jest-resolve": "*"
+  peerDependenciesMeta:
+    "@pkg-nec/jest-resolve":
+      optional: true
+  checksum: 10/5b60b8355734fa337c27efde8615282f8011fbd00839eed105c8c353b15e186cc7f5bd21833606814ec440985de1f79be20dcf855b777d1e93dc5e5eeb5dc02c
+  languageName: node
+  linkType: hard
+
 "@pkg-nec/jest-regex-util@workspace:*, @pkg-nec/jest-regex-util@workspace:packages/jest-regex-util":
   version: 0.0.0-use.local
   resolution: "@pkg-nec/jest-regex-util@workspace:packages/jest-regex-util"
@@ -3861,12 +3873,12 @@ __metadata:
   resolution: "@pkg-nec/jest-resolve@workspace:packages/jest-resolve"
   dependencies:
     "@pkg-nec/jest-haste-map": "workspace:*"
+    "@pkg-nec/jest-pnp-resolver": "npm:^1.2.5"
     "@pkg-nec/jest-util": "workspace:*"
     "@pkg-nec/jest-validate": "workspace:*"
     "@types/graceful-fs": "npm:^4.1.9"
     chalk: "npm:^4.1.2"
     graceful-fs: "npm:^4.2.11"
-    jest-pnp-resolver: "npm:^1.2.3"
     slash: "npm:^3.0.0"
     unrs-resolver: "npm:^1.7.11"
     url: "npm:^0.11.4"
@@ -8482,18 +8494,6 @@ __metadata:
     slash: "npm:^3.0.0"
     stack-utils: "npm:^2.0.6"
   checksum: 10/f83894efa37aa9c61c0a559b1027ecdb0d0cd8afd3e8ea74e797c707d58daea814e72f04b6db0bb6a148c12ae203e9c6e6c5544832ca5fae286c4f80c18ddc3f
-  languageName: node
-  linkType: hard
-
-"jest-pnp-resolver@npm:^1.2.3":
-  version: 1.2.3
-  resolution: "jest-pnp-resolver@npm:1.2.3"
-  peerDependencies:
-    jest-resolve: "*"
-  peerDependenciesMeta:
-    jest-resolve:
-      optional: true
-  checksum: 10/db1a8ab2cb97ca19c01b1cfa9a9c8c69a143fde833c14df1fab0766f411b1148ff0df878adea09007ac6a2085ec116ba9a996a6ad104b1e58c20adbf88eed9b2
   languageName: node
   linkType: hard
 
