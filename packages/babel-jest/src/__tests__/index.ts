@@ -266,7 +266,7 @@ function defineTests({
       );
       expect(mockedBabel.transformSync.mock.calls[0][1]?.plugins).toEqual([
         [
-          require.resolve('babel-plugin-istanbul'),
+          require.resolve('@pkg-nec/babel-plugin-istanbul'),
           {
             cwd: '/test_root_dir/',
             exclude: [],

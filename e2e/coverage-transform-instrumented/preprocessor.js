@@ -6,7 +6,9 @@
  */
 
 const {transformSync: babelTransform} = require('@babel/core');
-const {default: babelIstanbulPlugin} = require('babel-plugin-istanbul');
+const {
+  default: babelIstanbulPlugin,
+} = require('@pkg-nec/babel-plugin-istanbul');
 // This is imported from this repo
 const jestPreset = require.resolve('@pkg-nec/babel-preset-jest');
 

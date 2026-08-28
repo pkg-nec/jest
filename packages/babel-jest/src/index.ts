@@ -32,7 +32,7 @@ export interface TransformerConfig extends BabelTransformOptions {
 
 const THIS_FILE = fs.readFileSync(__filename);
 const jestPresetPath = require.resolve('@pkg-nec/babel-preset-jest');
-const babelIstanbulPlugin = require.resolve('babel-plugin-istanbul');
+const babelIstanbulPlugin = require.resolve('@pkg-nec/babel-plugin-istanbul');
 
 function assertLoadedBabelConfig(
   babelConfig: Readonly<PartialConfig> | null,
