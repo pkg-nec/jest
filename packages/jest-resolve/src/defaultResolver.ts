@@ -7,7 +7,7 @@
 
 import {isBuiltin} from 'node:module';
 import {fileURLToPath} from 'node:url';
-import pnpResolver from 'jest-pnp-resolver';
+import pnpResolver from '@pkg-nec/jest-pnp-resolver';
 import {
   type ResolveResult,
   ResolverFactory,
@@ -47,8 +47,8 @@ export interface ResolverOptions extends Omit<
   rootDir?: string;
 
   /**
-   * @internal Whether to allow the `jest-pnp-resolver` to be used.
-   * @see https://github.com/arcanis/jest-pnp-resolver/blob/ae8e3992349f3b43d1476572e9315e14358e8944/index.js#L49
+   * @internal Whether to allow the `@pkg-nec/jest-pnp-resolver` to be used.
+   * @see https://github.com/pkg-nec/jest-pnp-resolver/blob/ae8e3992349f3b43d1476572e9315e14358e8944/index.js#L49
    */
   allowPnp?: boolean;
 }
