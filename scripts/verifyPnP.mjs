@@ -34,6 +34,10 @@ try {
 
       enableScripts: true
 
+      npmMinimalAgeGate: 7d
+      npmPreapprovedPackages:
+        - "@pkg-nec/*"
+
       yarnPath: ${path.resolve(rootDirectory, yarnConfig.yarnPath)}
     `,
   );
