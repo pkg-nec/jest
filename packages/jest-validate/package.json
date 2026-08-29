@@ -22,7 +22,7 @@
     "@pkg-nec/jest-get-type": "workspace:*",
     "@pkg-nec/jest-types": "workspace:*",
     "@pkg-nec/pretty-format": "workspace:*",
-    "camelcase": "^6.3.0",
+    "camelcase": "^9.0.0",
     "chalk": "^4.1.2",
     "leven": "^3.1.0"
   },
