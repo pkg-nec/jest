@@ -3483,7 +3483,7 @@ __metadata:
     "@pkg-nec/pretty-format": "workspace:*"
     "@types/graceful-fs": "npm:^4.1.9"
     "@types/node": "npm:*"
-    ansi-escapes: "npm:^4.3.2"
+    ansi-escapes: "npm:^7.3.0"
     chalk: "npm:^4.1.2"
     ci-info: "npm:^4.2.0"
     exit-x: "npm:^0.2.2"
@@ -4165,7 +4165,7 @@ __metadata:
     "@pkg-nec/jest-types": "workspace:*"
     "@pkg-nec/jest-util": "workspace:*"
     "@types/node": "npm:*"
-    ansi-escapes: "npm:^4.3.2"
+    ansi-escapes: "npm:^7.3.0"
     chalk: "npm:^4.1.2"
     emittery: "npm:^0.13.1"
     string-length: "npm:^4.0.2"
@@ -5675,6 +5675,15 @@ __metadata:
   dependencies:
     environment: "npm:^1.0.0"
   checksum: 10/bf0d36c2b350f4fb5759742f83000fa1bae35b610f05aa528db65f626620b34100a048906308d98ea385e1447997417f3f594456c45c3aa30f52f3f450a30ed3
+  languageName: node
+  linkType: hard
+
+"ansi-escapes@npm:^7.3.0":
+  version: 7.3.0
+  resolution: "ansi-escapes@npm:7.3.0"
+  dependencies:
+    environment: "npm:^1.0.0"
+  checksum: 10/189e23e75aacf00ee647ba0545687456cc4bc62547dd0cf6c7728f91fce88854c8e885d5819a278b39981bb846d9427693d2380c562aecdb0cf91d3342141e93
   languageName: node
   linkType: hard
 
